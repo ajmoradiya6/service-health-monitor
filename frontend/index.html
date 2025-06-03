@@ -1,0 +1,141 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Health Monitor</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Mobile Menu Button -->
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">
+            <i data-lucide="menu"></i>
+        </button>
+
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2 class="sidebar-title">Services</h2>
+                <i data-lucide="plus" class="expand-icon"></i>
+            </div>
+            <ul class="service-list">
+                <li class="service-item active" onclick="selectService(this)">
+                    <div class="service-name">File Manager Service</div>
+                </li>
+                <li class="service-item" onclick="selectService(this)">
+                    <div class="status-dot"></div>
+                    <div class="service-name">PDF Viewer</div>
+                </li>
+                <li class="service-item" onclick="selectService(this)">
+                    <div class="status-dot"></div>
+                    <div class="service-name">Document Viewer</div>
+                </li>
+                <li class="service-item" onclick="selectService(this)">
+                    <div class="status-dot"></div>
+                    <div class="service-name">Image Processor</div>
+                </li>
+                <li class="service-item" onclick="selectService(this)">
+                    <div class="status-dot"></div>
+                    <div class="service-name">API Gateway</div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1 class="page-title">Service Health Monitor</h1>
+                <div class="header-actions">
+                    <div class="live-indicator">
+                        <div class="live-dot"></div>
+                        <span>Live</span>
+                    </div>
+                    <div class="notification-badge">
+                        <i data-lucide="bell" class="notification-icon"></i>
+                        <div class="badge">3</div>
+                    </div>
+                    <i data-lucide="settings" class="icon-button"></i>
+                </div>
+            </div>
+
+            <!-- Metrics Grid -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <i data-lucide="activity" class="metric-icon"></i>
+                        <div class="metric-label">Status</div>
+                    </div>
+                    <div class="metric-value status-running">
+                        <div class="status-dot"></div>
+                        <span>Running</span>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <i data-lucide="memory-stick" class="metric-icon"></i>
+                        <div class="metric-label">Memory</div>
+                    </div>
+                    <div class="metric-value">35.4%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <i data-lucide="cpu" class="metric-icon"></i>
+                        <div class="metric-label">CPU</div>
+                    </div>
+                    <div class="metric-value">20.5%</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-header">
+                        <i data-lucide="users" class="metric-icon"></i>
+                        <div class="metric-label">Connections</div>
+                    </div>
+                    <div class="metric-value">77</div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab(this, 'metrics')">
+                    <i data-lucide="bar-chart-3"></i>
+                    <span>Metrics</span>
+                </div>
+                <div class="tab" onclick="switchTab(this, 'logs')">
+                    <i data-lucide="file-text"></i>
+                    <span>Logs</span>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h3 class="chart-title">Resource Usage Trend</h3>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color cpu"></div>
+                            <span>CPU</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color memory"></div>
+                            <span>Memory</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart">
+                    <canvas id="chartCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>
