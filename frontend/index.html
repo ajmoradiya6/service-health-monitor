@@ -4,10 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Health Monitor</title>
-    <link rel="stylesheet" href="css/styles.css">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css" />
+
+
 </head>
-<body>
+<body data-theme="dark">
+    <div class="bg-gradient"></div>
     <div class="container">
         <!-- Mobile Menu Button -->
         <button class="mobile-menu-btn" onclick="toggleSidebar()">
@@ -21,25 +27,26 @@
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h2 class="sidebar-title">Services</h2>
-                <i data-lucide="plus" class="expand-icon"></i>
+                <i data-lucide="plus" class="expand-icon" onclick="addIconAnimation(this, 'plus-bounce')"></i>
             </div>
             <ul class="service-list">
-                <li class="service-item active" onclick="selectService(this)">
+                <li class="service-item active" onclick="selectService(this, 0)">
+                    <div class="status-dot"></div>
                     <div class="service-name">File Manager Service</div>
                 </li>
-                <li class="service-item" onclick="selectService(this)">
+                <li class="service-item" onclick="selectService(this, 1)">
                     <div class="status-dot"></div>
                     <div class="service-name">PDF Viewer</div>
                 </li>
-                <li class="service-item" onclick="selectService(this)">
+                <li class="service-item" onclick="selectService(this, 2)">
                     <div class="status-dot"></div>
                     <div class="service-name">Document Viewer</div>
                 </li>
-                <li class="service-item" onclick="selectService(this)">
+                <li class="service-item" onclick="selectService(this, 3)">
                     <div class="status-dot"></div>
                     <div class="service-name">Image Processor</div>
                 </li>
-                <li class="service-item" onclick="selectService(this)">
+                <li class="service-item" onclick="selectService(this, 4)">
                     <div class="status-dot"></div>
                     <div class="service-name">API Gateway</div>
                 </li>
@@ -55,11 +62,18 @@
                         <div class="live-dot"></div>
                         <span>Live</span>
                     </div>
-                    <div class="notification-badge">
+                    <div class="action-button notification-badge" onclick="addIconAnimation(this.querySelector('.notification-icon'), 'bell-ring')">
                         <i data-lucide="bell" class="notification-icon"></i>
                         <div class="badge">3</div>
                     </div>
-                    <i data-lucide="settings" class="icon-button"></i>
+                    <div class="action-button theme-button" onclick="toggleTheme()">
+                        <div class="theme-icon-container">
+                            <i data-lucide="sun" class="theme-icon" id="theme-icon"></i>
+                        </div>
+                    </div>
+                    <div class="action-button">
+                        <i data-lucide="settings" class="icon-button"></i>
+                    </div>
                 </div>
             </div>
 
@@ -77,37 +91,38 @@
                 </div>
                 <div class="metric-card">
                     <div class="metric-header">
-                        <i data-lucide="memory-stick" class="metric-icon"></i>
+                        <i data-lucide="database" class="metric-icon"></i>
                         <div class="metric-label">Memory</div>
                     </div>
-                    <div class="metric-value">35.4%</div>
+                    <div class="metric-value" id="memory-value">35.4%</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-header">
                         <i data-lucide="cpu" class="metric-icon"></i>
                         <div class="metric-label">CPU</div>
                     </div>
-                    <div class="metric-value">20.5%</div>
+                    <div class="metric-value" id="cpu-value">20.5%</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-header">
                         <i data-lucide="users" class="metric-icon"></i>
                         <div class="metric-label">Connections</div>
                     </div>
-                    <div class="metric-value">77</div>
+                    <div class="metric-value" id="connections-value">77</div>
                 </div>
             </div>
 
             <!-- Tabs -->
             <div class="tabs">
-                <div class="tab active" onclick="switchTab(this, 'metrics')">
-                    <i data-lucide="bar-chart-3"></i>
+                <div class="tab active" onclick="switchTab(this, 'metrics', 0)">
+                    <i data-lucide="bar-chart-2"></i>
                     <span>Metrics</span>
                 </div>
-                <div class="tab" onclick="switchTab(this, 'logs')">
+                <div class="tab" onclick="switchTab(this, 'logs', 1)">
                     <i data-lucide="file-text"></i>
                     <span>Logs</span>
                 </div>
+                <div class="tab-slider"></div>
             </div>
 
             <!-- Chart -->
@@ -133,9 +148,5 @@
     </div>
 
     <script src="js/main.js"></script>
-    <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
-    </script>
 </body>
 </html>
