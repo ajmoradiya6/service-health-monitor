@@ -667,6 +667,10 @@
             animation: statusPulse 2s infinite;
         }
 
+        .status-running span {
+            color: var(--green-primary);
+        }
+
         @keyframes statusPulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.2); }
