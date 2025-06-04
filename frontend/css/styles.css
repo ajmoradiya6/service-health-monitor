@@ -698,6 +698,7 @@
 
         .tab {
             flex-grow: 1;
+            flex-basis: 0;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -736,6 +737,7 @@
         .tab:not(.active):hover {
             color: var(--text-primary);
             background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
         }
 
         .tab:active {
@@ -744,6 +746,7 @@
 
         [data-theme="light"] .tab:not(.active):hover {
             background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
         }
 
         [data-theme="light"] .tab:active {
@@ -901,7 +904,6 @@
 
         .logs-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
             flex-wrap: wrap;
@@ -917,6 +919,7 @@
             overflow: hidden;
             display: flex;
             align-items: center;
+            max-width: 300px;
         }
 
         [data-theme="light"] .search-box {
@@ -943,16 +946,15 @@
 
         .search-input:focus {
             outline: none;
-            border-color: var(--blue-primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
         .search-icon {
             width: 16px;
             height: 16px;
             color: var(--text-secondary);
-            margin-left: 12px;
+            margin-left: 8px;
             margin-right: 8px;
+            flex-shrink: 0;
         }
 
         .filter-dropdown {
@@ -1181,12 +1183,6 @@
         .service-item:nth-child(4) { animation-delay: 0.25s; }
         .service-item:nth-child(5) { animation-delay: 0.3s; }
 
-        .chart-container, .logs-container {
-            animation: fadeIn 0.6s ease forwards;
-            animation-delay: 0.5s;
-            opacity: 0;
-        }
-
         .log-entry {
             animation: slideIn 0.3s ease forwards;
             opacity: 0;
@@ -1396,4 +1392,11 @@
                 left: -16px;
                 right: -16px;
             }
+        }
+
+        .logs-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: auto;
         }
