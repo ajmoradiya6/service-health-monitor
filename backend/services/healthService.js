@@ -42,4 +42,25 @@ async function updateService(serviceId, updatedService) {
     }
 }
 
-module.exports = { getAllServices, updateService };
+async function deleteService(serviceId) {
+    try {
+        const services = await getAllServices(); // Read existing services
+        const initialLength = services.length;
+        const updatedServices = services.filter(service => service.id !== serviceId);
+
+        if (updatedServices.length === initialLength) {
+            // No service was deleted, meaning the ID wasn't found
+            throw new Error(`Service with ID ${serviceId} not found.`);
+        }
+
+        // Write the updated array back to the file
+        await fs.writeFile(servicesFilePath, JSON.stringify(updatedServices, null, 2), 'utf8');
+        console.log(`Service with ID ${serviceId} deleted successfully.`);
+
+    } catch (error) {
+        console.error('Error deleting service:', error);
+        throw error; // Re-throw the error for the caller to handle
+    }
+}
+
+module.exports = { getAllServices, updateService, deleteService };

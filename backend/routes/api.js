@@ -1,6 +1,6 @@
 ﻿const express = require('express');
 const router = express.Router();
-const { getAllServices, updateService } = require('../services/healthService');
+const { getAllServices, updateService, deleteService } = require('../services/healthService');
 const registerServiceRouter = require('./registerService');
 
 router.get('/services', async (req, res) => {
@@ -26,6 +26,22 @@ router.put('/services/:id', async (req, res) => {
              res.status(404).json({ error: error.message });
         } else {
             res.status(500).json({ error: 'Failed to update service' });
+        }
+    }
+});
+
+router.delete('/services/:id', async (req, res) => {
+    const serviceId = req.params.id;
+
+    try {
+        await deleteService(serviceId);
+        res.status(200).json({ message: 'Service deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting service:', error);
+        if (error.message.includes('not found')) {
+            res.status(404).json({ error: error.message });
+        } else {
+            res.status(500).json({ error: 'Failed to delete service' });
         }
     }
 });

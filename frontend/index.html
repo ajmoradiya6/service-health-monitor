@@ -187,6 +187,43 @@
 
     <script src="js/main.js"></script>
     <script src="http://localhost:35729/livereload.js"></script>
+
+    <!-- Edit Service Modal -->
+    <div id="edit-service-modal" class="modal">
+        <div class="modal-content">
+            <i data-lucide="x" class="close-button" onclick="closeEditServiceModal()"></i>
+            <h2>Modify Service</h2>
+            <form id="edit-service-form">
+                <input type="hidden" id="edit-service-id">
+                <div class="form-group">
+                    <label for="edit-service-name">Service Name:</label>
+                    <input type="text" id="edit-service-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-service-url">Service URL:</label>
+                    <input type="text" id="edit-service-url" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-service-port">Port Number:</label>
+                    <input type="number" id="edit-service-port" required>
+                </div>
+                <button type="submit">Modify</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal for Deletion -->
+    <div id="confirmation-modal" class="modal">
+        <div class="modal-content">
+            <i data-lucide="x" class="close-button" onclick="closeConfirmationModal()"></i>
+            <h2>Confirm Deletion</h2>
+            <p>Are you sure you want to delete this service?</p>
+            <div class="modal-buttons">
+                <button class="btn secondary" onclick="closeConfirmationModal()">Cancel</button>
+                <button class="btn danger" id="confirm-delete-btn">Delete</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 
@@ -209,30 +246,6 @@
                 <input type="number" id="service-port" required>
             </div>
             <button type="submit">Register</button>
-        </form>
-    </div>
-</div>
-
-<!-- Edit Service Modal -->
-<div id="edit-service-modal" class="modal">
-    <div class="modal-content">
-        <i data-lucide="x" class="close-button" onclick="closeEditServiceModal()"></i>
-        <h2>Modify Service</h2>
-        <form id="edit-service-form">
-            <input type="hidden" id="edit-service-id">
-            <div class="form-group">
-                <label for="edit-service-name">Service Name:</label>
-                <input type="text" id="edit-service-name" required>
-            </div>
-            <div class="form-group">
-                <label for="edit-service-url">Service URL:</label>
-                <input type="text" id="edit-service-url" required>
-            </div>
-            <div class="form-group">
-                <label for="edit-service-port">Port Number:</label>
-                <input type="number" id="edit-service-port" required>
-            </div>
-            <button type="submit">Modify</button>
         </form>
     </div>
 </div>

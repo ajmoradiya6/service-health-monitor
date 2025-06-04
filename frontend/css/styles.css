@@ -1525,6 +1525,7 @@
             font-size: 18px;
             font-weight: 600;
             color: var(--text-primary);
+            text-align: left;
         }
 
         .close-button {
@@ -1692,4 +1693,64 @@
 
         [data-theme="light"] .context-menu li:hover svg {
             color: var(--text-primary); /* Change icon color on hover in light theme */
+        }
+
+        /* Styles for the confirmation modal */
+        #confirmation-modal .modal-content {
+            /* Inherit general modal-content styles */
+            /* Add specific overrides if needed for size or text alignment */
+            max-width: 400px; /* Make it slightly smaller like before, if desired */
+            text-align: left; /* Left align text content */
+        }
+
+        #confirmation-modal .modal-content h2 {
+            /* Inherit general h2 styles, maybe adjust margin */
+            margin-bottom: 15px; /* Adjust margin */
+            text-align: left;
+        }
+
+        #confirmation-modal .modal-content p {
+            /* Inherit general paragraph styles, maybe adjust margin and color */
+            color: var(--text-secondary); /* Ensure secondary text color */
+            margin-bottom: 20px; /* Space below message before buttons */
+            text-align: left;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end; /* Right align the buttons */
+            gap: 10px; /* Space between buttons */
+            margin-top: 20px; /* Space above buttons */
+        }
+
+        .modal-buttons .btn {
+            /* Inherit general button styles or define specifically */
+            padding: 10px 20px; /* Consistent padding */
+            border: none; /* Remove border */
+            border-radius: 6px; /* Consistent border radius */
+            cursor: pointer;
+            font-size: 1em; /* Consistent font size */
+            font-weight: 600; /* Consistent font weight */
+            transition: background-color 0.2s ease, opacity 0.2s ease;
+        }
+
+        .modal-buttons .btn.secondary {
+            background-color: var(--bg-card);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color); /* Border for secondary button */
+        }
+
+        .modal-buttons .btn.secondary:hover {
+            opacity: 0.9;
+            background-color: rgba(148, 163, 184, 0.1); /* Subtle hover effect */
+        }
+
+        .modal-buttons .btn.danger {
+            background-color: var(--red-primary);
+            color: white;
+        }
+
+        .modal-buttons .btn.danger:hover {
+            opacity: 0.9;
+            background-color: #c83232; /* Slightly darker red on hover */
         }

@@ -79,6 +79,13 @@ const registerServiceForm = document.getElementById('register-service-form');
 const editServiceModal = document.getElementById('edit-service-modal');
 const editServiceForm = document.getElementById('edit-service-form');
 
+// Get confirmation modal elements
+const confirmationModal = document.getElementById('confirmation-modal');
+const confirmDeleteButton = document.getElementById('confirm-delete-btn');
+
+// Variable to store the service ID for deletion
+let serviceIdToDelete = null;
+
 // Get sidebar elements
 const sidebar = document.getElementById('sidebar');
 const resizer = document.getElementById('sidebar-resizer');
@@ -672,8 +679,8 @@ function handleEditService(serviceId) {
 }
 
 function handleDeleteService(serviceId) {
-    console.log('Delete service with ID:', serviceId);
-    // TODO: Implement delete logic
+    // Instead of confirm, open the custom confirmation modal
+    openConfirmationModal(serviceId);
     hideContextMenu();
 }
 
@@ -793,6 +800,8 @@ window.addEventListener('click', function(event) {
 
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOMContentLoaded fired.');
+    
     // Initialize theme
     initializeTheme();
 
@@ -925,6 +934,72 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Event delegation for the Confirm Delete button within the confirmation modal
+    const confirmationModalElement = document.getElementById('confirmation-modal');
+    if (confirmationModalElement) {
+        console.log('Confirmation modal element found for event delegation.', confirmationModalElement);
+        confirmationModalElement.addEventListener('click', async function(event) {
+            console.log('Click event on confirmation modal captured.', event.target);
+            // Check if the clicked element is the confirm delete button
+            const confirmDeleteButton = event.target.closest('#confirm-delete-btn');
+            if (confirmDeleteButton) {
+                console.log('Clicked element is the confirm delete button.');
+                if (serviceIdToDelete) {
+                    console.log('Executing deletion for service ID:', serviceIdToDelete);
+                    try {
+                        console.log('Sending DELETE request to:', `/api/services/${serviceIdToDelete}`);
+                        const response = await fetch(`/api/services/${serviceIdToDelete}`, {
+                            method: 'DELETE',
+                        });
+
+                        console.log('Received response from DELETE request:', response);
+                        if (response.ok) {
+                            console.log('Service deleted successfully. Response OK.');
+                            closeConfirmationModal();
+                            // Refresh the service list in the sidebar
+                            loadServices();
+                        } else {
+                            console.error('Failed to delete service. Response not OK.', response.status);
+                            const errorData = await response.json();
+                            console.error('Error details:', errorData);
+                            // TODO: Display an error message to the user
+                        }
+                    } catch (error) {
+                        console.error('Error during fetch or processing delete response:', error);
+                        // TODO: Display an error message to the user
+                    }
+                } else {
+                    console.error('No service ID set for deletion.');
+                }
+            }
+        });
+    } else {
+        console.error('Confirmation modal element #confirmation-modal not found for event delegation.');
+    }
+
     // Initial load of services
     loadServices();
 });
+
+// Function to open the Confirmation modal
+function openConfirmationModal(serviceId) {
+    console.log('Attempting to open confirmation modal for service ID:', serviceId);
+    serviceIdToDelete = serviceId; // Store the ID
+    const modal = document.getElementById('confirmation-modal');
+    if (modal) {
+        console.log('Confirmation modal element found.', modal);
+        modal.style.display = 'flex'; // Use flex to center
+    } else {
+        console.error('Confirmation modal element #confirmation-modal not found.');
+    }
+}
+
+// Function to close the Confirmation modal
+function closeConfirmationModal() {
+    console.log('Attempting to close confirmation modal.');
+    const modal = document.getElementById('confirmation-modal');
+    if (modal) {
+        console.log('Confirmation modal element found for closing.');
+        modal.style.display = 'none';
+    }
+}
