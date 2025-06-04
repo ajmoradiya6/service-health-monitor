@@ -4,6 +4,7 @@
             --bg-secondary: #0f1419;
             --bg-card: #1e2530;
             --border-color: rgba(78, 93, 120, 0.25);
+            --border-color-hover: rgba(78, 93, 120, 0.4);
             --text-primary: #ffffff;
             --text-secondary: #9ca3af;
             --blue-primary: #3b82f6;
@@ -198,12 +199,28 @@
 
         /* ===== LIGHT MODE VARIABLES ===== */
         [data-theme="light"] {
-            --bg-primary: #f8fafc;
-            --bg-secondary: #ffffff;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f0f0f0;
             --bg-card: #ffffff;
-            --border-color: rgba(148, 163, 184, 0.3);
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
+            --border-color: #cccccc;
+            --border-color-light: #dddddd;
+            --border-color-hover: #bbbbbb;
+            --border-color-hover-light: #aaaaaa;
+            --text-primary: #333333;
+            --text-secondary: #555555;
+            --icon-color: #555555;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --blue-primary: #3b82f6;
+            --blue-accent: #2563eb;
+            --blue-glow: rgba(59, 130, 246, 0.3);
+            --purple-primary: #8b5cf6;
+            --green-primary: #10b981;
+            --red-primary: #ef4444;
+            --yellow-primary: #f59e0b;
+            --card-radius: 12px;
+            --transition-normal: all 0.3s ease;
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
             --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
         }
@@ -983,7 +1000,7 @@
         .logs-actions-right {
             display: flex;
             align-items: center;
-            gap: 12px; /* Space between filter and export */
+            gap: 8px; /* Slightly reduced space between filter and export buttons */
         }
 
         .search-box {
@@ -1037,47 +1054,151 @@
             flex-shrink: 0;
         }
 
+        /* Styles for Filter Button */
         .filter-dropdown {
             position: relative;
         }
 
-        .filter-button,
-        .export-button {
+        .filter-button {
             display: flex;
             align-items: center;
-            padding: 8px 12px;
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
+            justify-content: center; /* Center content horizontally */
+            gap: 4px; /* Space between icon, text, and chevron */
+            padding: 6px 8px; /* Padding to match image */
+            background-color: var(--bg-primary); /* Background color */
+            border: 1px solid var(--border-color); /* Use light gray border color */
+            border-radius: 6px; /* Rounded corners */
+            color: var(--text-primary); /* Text color */
             cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            transition: var(--transition-normal);
-            gap: 8px;
-            height: 36px;
-            background-color: var(--bg-card);
-            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+            font-size: 13px; /* Font size */
+            line-height: 1.5; /* Ensure consistent vertical alignment */
+            height: 34px; /* Fixed height */
+            width: 120px; /* Fixed width for filter button */
+            box-shadow: var(--shadow-sm); /* Subtle shadow */
         }
 
-        .filter-button svg,
-        .export-button svg,
-        .filter-button i,
-        .export-button i {
-            width: 16px;
-            height: 16px;
+        [data-theme="light"] .filter-button {
+             background-color: #ffffff;
+             border-color: var(--border-color-light); /* Use light gray border color for light theme */
+             box-shadow: var(--shadow-sm-light);
         }
 
         .filter-button:hover,
         .export-button:hover {
-            box-shadow: var(--shadow-lg);
-            border-color: rgba(78, 93, 120, 0.4);
-            background-color: rgba(30, 41, 59, 0.7);
+            background-color: #f5f5f5;
+            border-color: var(--border-color-hover);
+            box-shadow: var(--shadow-md);
         }
 
-        [data-theme="light"] .filter-button:hover,
+        [data-theme="dark"] .filter-button:hover,
+        [data-theme="dark"] .export-button:hover {
+            background-color: #2A3441;
+            border-color: var(--border-color-hover);
+            box-shadow: var(--shadow-md);
+        }
+
+        .filter-button svg {
+             width: 14px; /* Icon size */
+             height: 14px; /* Icon size */
+             color: var(--text-secondary); /* Icon color */
+             flex-shrink: 0;
+        }
+
+        .filter-button span {
+            margin-right: 2px; /* Space between text and chevron */
+             display: inline-flex;
+             align-items: center;
+        }
+
+        /* Styles for Export Button */
+        .export-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+            line-height: 1.5;
+            height: 34px;
+            box-shadow: var(--shadow-sm);
+            white-space: nowrap;
+            width: 120px;
+            justify-content: center;
+        }
+
+        [data-theme="light"] .export-button {
+            background-color: #ffffff;
+            border-color: var(--border-color-light);
+            box-shadow: var(--shadow-sm-light);
+        }
+
+        .export-button svg {
+            width: 14px;
+            height: 14px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .export-button:hover {
+            background-color: var(--bg-hover);
+            border-color: var(--border-color-hover);
+            box-shadow: var(--shadow-md);
+        }
+
         [data-theme="light"] .export-button:hover {
-            background-color: rgba(248, 250, 252, 0.8);
-            border-color: rgba(148, 163, 184, 0.5);
+            background-color: #f5f5f5;
+            border-color: var(--border-color-hover);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Styles for Filter Dropdown Options (matching context menu) */
+        .filter-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-shadow: var(--shadow-md);
+            z-index: 1000;
+            min-width: 120px;
+            margin-top: 4px;
+            display: none;
+            padding: 4px;
+        }
+
+        [data-theme="dark"] .filter-options {
+            background-color: #1a1a1a;
+        }
+
+        .filter-options.show {
+            display: block;
+        }
+
+        .filter-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 13px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-option:hover {
+            background-color: #f0f0f0;
+        }
+
+        [data-theme="dark"] .filter-option:hover {
+            background-color: #2a2a2a;
         }
 
         .logs-stats {
@@ -1762,4 +1883,16 @@
         .modal-buttons .btn.danger:hover {
             opacity: 0.9;
             background-color: #c83232; /* Slightly darker red on hover */
+        }
+
+        [data-theme="dark"] .filter-button {
+            background-color: #1E2530;
+            border-color: var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        [data-theme="dark"] .filter-button:hover {
+            background-color: #2A3441;
+            border-color: var(--border-color-hover);
+            box-shadow: var(--shadow-md);
         }

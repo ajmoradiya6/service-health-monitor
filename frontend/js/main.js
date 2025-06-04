@@ -117,6 +117,9 @@ const logData = [
     { level: 'info', timestamp: '09:02:50', message: 'Cache cleared successfully' }
 ];
 
+// Global variable to store current log filter
+let currentLogFilter = 'all';
+
 // ===== ANIMATION FUNCTIONS =====
 function addIconAnimation(element, animationClass) {
     if (element) {
@@ -352,14 +355,105 @@ function populateLogs() {
     });
 }
 
+// Function to toggle filter dropdown
 function toggleFilter() {
-    // Placeholder for filter functionality
-    console.log('Filter toggle clicked');
+    const filterDropdown = document.querySelector('.filter-dropdown .filter-options');
+    if (filterDropdown) {
+        filterDropdown.classList.toggle('show');
+    }
 }
 
+// Function to filter logs by level
+function filterLogsByLevel(level) {
+    currentLogFilter = level;
+    const logs = document.querySelectorAll('.log-entry');
+    const filterButton = document.querySelector('.filter-button span');
+    
+    // Update filter button text
+    filterButton.textContent = level.charAt(0).toUpperCase() + level.slice(1);
+    
+    // Hide dropdown
+    const filterDropdown = document.querySelector('.filter-dropdown .filter-options');
+    if (filterDropdown) {
+        filterDropdown.classList.remove('show');
+    }
+    
+    // Filter logs
+    logs.forEach(entry => {
+        const logLevel = entry.querySelector('.log-level').className.split(' ')[1];
+        if (level === 'all' || logLevel === level) {
+            entry.style.display = 'flex';
+        } else {
+            entry.style.display = 'none';
+        }
+    });
+    
+    // Update stats
+    updateLogStats();
+}
+
+// Function to update log statistics
+function updateLogStats() {
+    const logs = document.querySelectorAll('.log-entry');
+    const stats = {
+        info: 0,
+        warning: 0,
+        error: 0
+    };
+    
+    logs.forEach(entry => {
+        if (entry.style.display !== 'none') {
+            const logLevel = entry.querySelector('.log-level').className.split(' ')[1];
+            stats[logLevel]++;
+        }
+    });
+    
+    // Update stats display
+    const infoStat = document.querySelector('.log-stat[data-level="info"] span');
+    const warningStat = document.querySelector('.log-stat[data-level="warning"] span');
+    const errorStat = document.querySelector('.log-stat[data-level="error"] span');
+    
+    if (infoStat) infoStat.textContent = stats.info;
+    if (warningStat) warningStat.textContent = stats.warning;
+    if (errorStat) errorStat.textContent = stats.error;
+}
+
+// Function to export logs to CSV
 function exportLogs() {
-    // Placeholder for export functionality
-    console.log('Export logs clicked');
+    const logs = Array.from(document.querySelectorAll('.log-entry'));
+    const visibleLogs = logs.filter(entry => entry.style.display !== 'none');
+    
+    if (visibleLogs.length === 0) {
+        alert('No logs to export!');
+        return;
+    }
+    
+    // Create CSV content
+    let csvContent = 'Timestamp,Level,Message\n';
+    
+    visibleLogs.forEach(entry => {
+        const timestamp = entry.querySelector('.log-timestamp').textContent;
+        const level = entry.querySelector('.log-level').className.split(' ')[1];
+        const message = entry.querySelector('.log-message').textContent;
+        
+        // Escape commas and quotes in the message
+        const escapedMessage = message.replace(/"/g, '""');
+        
+        csvContent += `${timestamp},${level},"${escapedMessage}"\n`;
+    });
+    
+    // Create and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `service_logs_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 // ===== CHART FUNCTIONS =====
@@ -999,6 +1093,31 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.error('Confirmation modal element #confirmation-modal not found for event delegation.');
     }
+
+    // Add filter options to the dropdown
+    const filterDropdown = document.querySelector('.filter-dropdown');
+    if (filterDropdown) {
+        const filterOptions = document.createElement('div');
+        filterOptions.className = 'filter-options';
+        filterOptions.innerHTML = `
+            <div class="filter-option" onclick="filterLogsByLevel('all')">All Levels</div>
+            <div class="filter-option" onclick="filterLogsByLevel('info')">Info</div>
+            <div class="filter-option" onclick="filterLogsByLevel('warning')">Warning</div>
+            <div class="filter-option" onclick="filterLogsByLevel('error')">Error</div>
+        `;
+        filterDropdown.appendChild(filterOptions);
+    }
+    
+    // Close filter dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const filterDropdown = document.querySelector('.filter-dropdown');
+        if (filterDropdown && !filterDropdown.contains(event.target)) {
+            const filterOptions = filterDropdown.querySelector('.filter-options');
+            if (filterOptions) {
+                filterOptions.classList.remove('show');
+            }
+        }
+    });
 
     // Initial load of services
     loadServices();
