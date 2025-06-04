@@ -955,7 +955,15 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Confirmation modal element found for event delegation.', confirmationModalElement);
         confirmationModalElement.addEventListener('click', async function(event) {
             console.log('Click event on confirmation modal captured.', event.target);
-            // Check if the clicked element is the confirm delete button
+            
+            // Prevent deletion if clicking the cancel button or the modal background/content directly
+            if (event.target.classList.contains('secondary') || event.target.id === 'confirmation-modal' || event.target.classList.contains('modal-content') || event.target.classList.contains('close')) {
+                console.log('Click was on cancel button, close button, modal background, or modal content. Aborting delete.');
+                // The closeConfirmationModal is already handled by onclick on these elements
+                return; 
+            }
+
+            // Check if the clicked element is the confirm delete button or an element inside it
             const confirmDeleteButton = event.target.closest('#confirm-delete-btn');
             if (confirmDeleteButton) {
                 console.log('Clicked element is the confirm delete button.');

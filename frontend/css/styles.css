@@ -974,10 +974,16 @@
 
         .logs-controls-top {
             display: flex;
+            justify-content: space-between; /* Push search left, actions right */
+            align-items: flex-start; /* Align items to the top */
+            width: 100%;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+
+        .logs-actions-right {
+            display: flex;
             align-items: center;
-            gap: 12px; /* Space between search, filter, export */
-            width: 100%; /* Ensure it takes full width */
-            flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
+            gap: 12px; /* Space between filter and export */
         }
 
         .search-box {
@@ -1080,6 +1086,8 @@
             font-size: 14px;
             color: var(--text-secondary);
             flex-wrap: wrap;
+            width: 100%; /* Ensure stats take full width */
+            justify-content: flex-start; /* Left align stats */
         }
 
         .log-stat {
@@ -1139,6 +1147,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            width: 100%; /* Ensure logs list takes full width */
         }
 
         .log-entry {
