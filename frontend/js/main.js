@@ -553,3 +553,62 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(updateChartData, 3000);
     setInterval(updateMetrics, 5000);
 });
+
+// Sidebar resizing functionality
+const sidebar = document.getElementById('sidebar');
+const resizer = document.getElementById('sidebar-resizer');
+const mainContent = document.querySelector('.main-content');
+
+let isResizing = false;
+let lastDownX = 0;
+let initialSidebarWidth = 0;
+
+// Minimum and maximum sidebar widths
+const MIN_SIDEBAR_WIDTH = 200; // Adjust as needed
+const MAX_SIDEBAR_WIDTH = 400; // Adjust as needed
+
+resizer.addEventListener('mousedown', function(e) {
+    isResizing = true;
+    lastDownX = e.clientX;
+    initialSidebarWidth = sidebar.offsetWidth;
+
+    // Add event listeners to document to track mouse movement globally
+    document.addEventListener('mousemove', mousemoveHandler);
+    document.addEventListener('mouseup', mouseupHandler);
+});
+
+function mousemoveHandler(e) {
+    if (!isResizing) return;
+
+    const dx = e.clientX - lastDownX;
+    let newWidth = initialSidebarWidth + dx;
+
+    // Apply constraints
+    newWidth = Math.max(MIN_SIDEBAR_WIDTH, newWidth);
+    newWidth = Math.min(MAX_SIDEBAR_WIDTH, newWidth);
+
+    sidebar.style.width = `${newWidth}px`;
+    // Optionally adjust main content's left margin if needed, but flexbox should handle it
+    // mainContent.style.marginLeft = `${newWidth}px`;
+
+    // Prevent text selection during resize
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+}
+
+function mouseupHandler() {
+    isResizing = false;
+    // Remove event listeners
+    document.removeEventListener('mousemove', mousemoveHandler);
+    document.removeEventListener('mouseup', mouseupHandler);
+
+    // Restore text selection and cursor
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
+
+    // Trigger canvas resize if it's visible (for chart) - important!
+    const chartContainer = document.getElementById('chart-container');
+    if (chartContainer && chartContainer.style.display !== 'none') {
+        resizeCanvas();
+    }
+}

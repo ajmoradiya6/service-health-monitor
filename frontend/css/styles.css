@@ -229,6 +229,38 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
+        /* Scrollbar styles for Webkit browsers (Chrome, Safari, Edge) */
+        ::-webkit-scrollbar {
+            width: 8px; /* Width of the scrollbar */
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary); /* Color of the track */
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3); /* Color of the scroll thumb */
+            border-radius: 4px; /* Rounded corners for the thumb */
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.5); /* Color on hover */
+        }
+
+        /* Apply dark scrollbar styles in dark mode */
+        [data-theme="dark"] ::-webkit-scrollbar-track {
+            background: transparent; /* Make the track transparent in dark mode */
+        }
+
+        [data-theme="dark"] ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.2); /* Subtle semi-transparent thumb */
+            border-radius: 4px; /* Rounded corners */
+        }
+
+        [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.4); /* Slightly more visible on hover */
+        }
+
         .container {
             display: flex;
             height: 100vh;
@@ -297,6 +329,7 @@
             box-shadow: var(--shadow-sm);
             position: relative;
             overflow-y: auto;
+            flex-shrink: 0; /* Prevent sidebar from shrinking */
         }
 
         .sidebar-header {
@@ -415,6 +448,39 @@
             font-weight: 500;
         }
 
+        /* Sidebar Resizer */
+        .sidebar-resizer {
+            width: 0.5px; /* Even thinner visual line */
+            cursor: col-resize; /* Resize cursor */
+            position: relative; /* Position relative to sidebar */
+            z-index: 1001; /* Above sidebar */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(148, 163, 184, 0.2); /* Subtle background line */
+            transition: background-color 0.2s ease;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        [data-theme="light"] .sidebar-resizer {
+            background-color: rgba(0, 0, 0, 0.1); /* Subtle background in light mode */
+        }
+
+        .sidebar-resizer i {
+            width: 20px; /* Increased icon size */
+            height: 20px; /* Increased icon size */
+            color: var(--text-secondary); /* Icon color */
+        }
+
+        .sidebar-resizer i svg {
+            width: 20px; /* Ensure SVG size */
+            height: 20px; /* Ensure SVG size */
+        }
+
+        .sidebar-resizer:hover i {
+             color: var(--text-primary); /* Icon color on hover */
+        }
+
         /* ===== MAIN CONTENT ===== */
         .main-content {
             flex: 1;
@@ -499,12 +565,6 @@
             background-color: var(--green-primary);
             opacity: 0.3;
             animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.3; }
-            50% { transform: scale(1.5); opacity: 0; }
-            100% { transform: scale(1); opacity: 0.3; }
         }
 
         .action-button {
@@ -1116,6 +1176,22 @@
         .log-level.error {
             background-color: var(--red-primary);
             color: white;
+        }
+
+        /* Dark mode log level colors */
+        [data-theme="dark"] .log-level.info {
+            background-color: rgba(59, 130, 246, 0.3); /* Darker, semi-transparent blue */
+            color: var(--blue-primary); /* Keep original blue text color */
+        }
+
+        [data-theme="dark"] .log-level.warning {
+            background-color: rgba(245, 158, 11, 0.3); /* Darker, semi-transparent yellow */
+            color: var(--yellow-primary); /* Keep original yellow text color */
+        }
+
+        [data-theme="dark"] .log-level.error {
+            background-color: rgba(239, 68, 68, 0.3); /* Darker, semi-transparent red */
+            color: var(--red-primary); /* Keep original red text color */
         }
 
         .log-timestamp {
