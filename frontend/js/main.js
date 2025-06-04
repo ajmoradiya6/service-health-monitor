@@ -25,6 +25,22 @@ const canvas = document.getElementById('chartCanvas');
 const ctx = canvas.getContext('2d');
 let animationFrame;
 
+// Sample log data
+const logData = [
+    { level: 'warning', timestamp: '09:02:22', message: 'Service service1 running normally' },
+    { level: 'info', timestamp: '09:02:22', message: 'Service service1 processing requests' },
+    { level: 'error', timestamp: '09:02:28', message: 'Service service1 running normally' },
+    { level: 'error', timestamp: '09:02:32', message: 'Service service1 running normally' },
+    { level: 'warning', timestamp: '09:02:32', message: 'Service service1 running normally' },
+    { level: 'info', timestamp: '09:02:33', message: 'Service service1 processing requests' },
+    { level: 'info', timestamp: '09:02:35', message: 'Database connection established' },
+    { level: 'warning', timestamp: '09:02:40', message: 'High memory usage detected' },
+    { level: 'error', timestamp: '09:02:45', message: 'Failed to connect to external API' },
+    { level: 'info', timestamp: '09:02:50', message: 'User authentication successful' },
+    { level: 'warning', timestamp: '09:02:55', message: 'Slow query detected in database' },
+    { level: 'info', timestamp: '09:03:00', message: 'Cache cleared successfully' }
+];
+
 // ===== ANIMATION FUNCTIONS =====
 function addIconAnimation(element, animationClass) {
     if (element) {
@@ -137,6 +153,8 @@ function selectService(element, index) {
 function switchTab(element, tabName, index) {
     const tabs = document.querySelectorAll('.tab');
     const tabSlider = document.querySelector('.tab-slider');
+    const chartContainer = document.getElementById('chart-container');
+    const logsContainer = document.getElementById('logs-container');
     
     // Update tab slider position - account for the gap
     if (index === 0) {
@@ -149,10 +167,50 @@ function switchTab(element, tabName, index) {
     tabs.forEach(tab => tab.classList.remove('active'));
     element.classList.add('active');
     activeTab = tabName;
+
+    // Switch containers
+    if (tabName === 'metrics') {
+        chartContainer.style.display = 'block';
+        logsContainer.classList.remove('active');
+    } else if (tabName === 'logs') {
+        chartContainer.style.display = 'none';
+        logsContainer.classList.add('active');
+        populateLogs();
+    }
     
     // Add animation to tab icon
     const tabIcon = element.querySelector('i');
     addIconAnimation(tabIcon, 'chart-pulse');
+}
+
+// ===== LOGS FUNCTIONS =====
+function populateLogs() {
+    const logsList = document.getElementById('logs-list');
+    logsList.innerHTML = '';
+    
+    logData.forEach((log, index) => {
+        const logEntry = document.createElement('div');
+        logEntry.className = `log-entry ${log.level}`;
+        logEntry.style.animationDelay = `${index * 0.05}s`;
+        
+        logEntry.innerHTML = `
+            <div class="log-level ${log.level}">${log.level}</div>
+            <div class="log-timestamp">${log.timestamp}</div>
+            <div class="log-message">${log.message}</div>
+        `;
+        
+        logsList.appendChild(logEntry);
+    });
+}
+
+function toggleFilter() {
+    // Placeholder for filter functionality
+    console.log('Filter toggle clicked');
+}
+
+function exportLogs() {
+    // Placeholder for export functionality
+    console.log('Export logs clicked');
 }
 
 // ===== CHART FUNCTIONS =====
@@ -424,6 +482,24 @@ function animateChart() {
     animationFrame = requestAnimationFrame(animate);
 }
 
+// ===== SEARCH FUNCTIONALITY =====
+function setupLogSearch() {
+    const searchInput = document.getElementById('log-search');
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const logEntries = document.querySelectorAll('.log-entry');
+        
+        logEntries.forEach(entry => {
+            const message = entry.querySelector('.log-message').textContent.toLowerCase();
+            if (message.includes(searchTerm)) {
+                entry.style.display = 'flex';
+            } else {
+                entry.style.display = 'none';
+            }
+        });
+    });
+}
+
 // ===== EVENT LISTENERS =====
 window.addEventListener('resize', () => {
     setTimeout(resizeCanvas, 100);
@@ -469,6 +545,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initial chart draw
     setTimeout(resizeCanvas, 100);
+
+    // Setup log search
+    setupLogSearch();
     
     // Start update intervals
     setInterval(updateChartData, 3000);

@@ -125,8 +125,8 @@
                 <div class="tab-slider"></div>
             </div>
 
-            <!-- Chart -->
-            <div class="chart-container">
+            <!-- Chart Container -->
+            <div class="chart-container" id="chart-container">
                 <div class="chart-header">
                     <h3 class="chart-title">Resource Usage Trend</h3>
                     <div class="chart-legend">
@@ -142,6 +142,40 @@
                 </div>
                 <div class="chart">
                     <canvas id="chartCanvas"></canvas>
+                </div>
+            </div>
+            
+            <!-- Logs Container -->
+            <div class="logs-container" id="logs-container">
+                <div class="logs-header">
+                    <div class="logs-controls">
+                        <div class="search-box">
+                            <i data-lucide="search" class="search-icon"></i>
+                            <input type="text" class="search-input" placeholder="Search logs..." id="log-search">
+                        </div>
+                        <div class="filter-dropdown">
+                            <button class="filter-button" onclick="toggleFilter()">
+                                <i data-lucide="filter"></i>
+                                <span>All Levels</span>
+                                <i data-lucide="chevron-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="export-button" onclick="exportLogs()">
+                        <i data-lucide="download"></i>
+                        <span>Export CSV</span>
+                    </button>
+                </div>
+
+                <div class="logs-stats">
+                    <div class="log-stat total">Total: <strong>29</strong></div>
+                    <div class="log-stat info">Info: <strong>12</strong></div>
+                    <div class="log-stat warning">Warnings: <strong>8</strong></div>
+                    <div class="log-stat error">Errors: <strong>9</strong></div>
+                </div>
+
+                <div class="logs-list" id="logs-list">
+                    <!-- Log entries will be populated by JavaScript -->
                 </div>
             </div>
         </div>
