@@ -885,7 +885,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-     // Event listener for the Edit Service form submission
+    // Event delegation for the Register Service modal close button
+    const registerModalContent = document.querySelector('#register-service-modal .modal-content');
+    if (registerModalContent) {
+        console.log('Register modal content found for close button event delegation.', registerModalContent);
+        registerModalContent.addEventListener('click', function(event) {
+            const closeButton = event.target.closest('.close-button');
+            if (closeButton) {
+                console.log('Register modal close button clicked (via event delegation).');
+                closeRegisterServiceModal();
+            }
+        });
+    } else {
+        console.error('Register modal content #register-service-modal .modal-content not found for close button event delegation.');
+    }
+
+    // Event listener for the Edit Service form submission
     const editServiceForm = document.getElementById('edit-service-form');
     if (editServiceForm) {
         editServiceForm.addEventListener('submit', async function(event) {
