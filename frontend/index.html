@@ -29,7 +29,7 @@
                 <h2 class="sidebar-title">Services</h2>
                 <i data-lucide="plus" class="expand-icon" onclick="addIconAnimation(this, 'plus-bounce')"></i>
             </div>
-            <ul class="service-list">
+            <ul class="service-list" id="service-list">
                 <li class="service-item active" onclick="selectService(this, 0)">
                     <div class="status-dot"></div>
                     <div class="service-name">File Manager Service</div>
@@ -153,11 +153,11 @@
             <!-- Logs Container -->
             <div class="logs-container" id="logs-container">
                 <div class="logs-header">
-                    <div class="search-box">
-                        <i data-lucide="search" class="search-icon"></i>
-                        <input type="text" class="search-input" placeholder="Search logs..." id="log-search">
-                    </div>
-                    <div class="logs-actions">
+                    <div class="logs-controls-top">
+                        <div class="search-box">
+                            <i data-lucide="search" class="search-icon"></i>
+                            <input type="text" class="search-input" placeholder="Search logs..." id="log-search">
+                        </div>
                         <div class="filter-dropdown">
                             <button class="filter-button" onclick="toggleFilter()">
                                 <i data-lucide="filter"></i>
@@ -170,7 +170,6 @@
                             <span>Export CSV</span>
                         </button>
                     </div>
-                </div>
 
                 <div class="logs-stats">
                     <div class="log-stat total">Total: <strong>29</strong></div>
@@ -210,6 +209,30 @@
                 <input type="number" id="service-port" required>
             </div>
             <button type="submit">Register</button>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Service Modal -->
+<div id="edit-service-modal" class="modal">
+    <div class="modal-content">
+        <i data-lucide="x" class="close-button" onclick="closeEditServiceModal()"></i>
+        <h2>Modify Service</h2>
+        <form id="edit-service-form">
+            <input type="hidden" id="edit-service-id">
+            <div class="form-group">
+                <label for="edit-service-name">Service Name:</label>
+                <input type="text" id="edit-service-name" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-service-url">Service URL:</label>
+                <input type="text" id="edit-service-url" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-service-port">Port Number:</label>
+                <input type="number" id="edit-service-port" required>
+            </div>
+            <button type="submit">Modify</button>
         </form>
     </div>
 </div>

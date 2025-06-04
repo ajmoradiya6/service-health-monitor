@@ -6,7 +6,9 @@
     "start": "node backend/server.js"
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "properties-reader": "^2.3.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "connect-livereload": "^0.6.1",

@@ -1,18 +1,66 @@
 ﻿async function loadServices() {
-  const response = await fetch('/api/services');
-  const services = await response.json();
+  try {
+    const response = await fetch('/api/services');
+    
+    if (!response.ok) {
+        console.error('Failed to fetch services:', response.status, response.statusText);
+        // Optionally try to read response body for more error details
+        const errorText = await response.text();
+        console.error('Response body:', errorText);
+        return; // Stop execution if fetch failed
+    }
 
-  const container = document.getElementById('services');
-  container.innerHTML = '';  // Clear any existing content
+    const services = await response.json();
 
-  services.forEach(service => {
-    const div = document.createElement('div');
-    div.className = 'service';
-    div.innerHTML = Object.entries(service)
-      .map(([key, value]) => `<p><strong>${key}:</strong> ${value}</p>`)
-      .join('');
-    container.appendChild(div);
-  });
+    // Correctly get the services list container by its new ID
+    const container = document.getElementById('service-list');
+    
+    if (!container) {
+        console.error('Service list container not found in the DOM.');
+        return; // Exit if the container is still not found (should not happen after adding ID)
+    }
+
+    container.innerHTML = '';  // Clear any existing content
+
+    services.forEach((service, index) => {
+      const div = document.createElement('div');
+      // Use the existing service-item class and add click handler
+      // The main div click will handle service selection
+      div.className = 'service-item';
+      div.onclick = (event) => {
+          // Prevent the ellipsis click from triggering service selection
+          if (event.target.closest('.service-actions')) {
+              return;
+          }
+          selectService(div, index, service);
+      };
+      
+      // Construct the inner HTML with status dot, service name, and actions (ellipsis)
+      const statusColor = 'var(--green-primary)'; // Placeholder
+      
+      div.innerHTML = `
+          <div class="status-dot" style="background-color: ${statusColor};"></div>
+          <span class="service-name">${service.name}</span>
+          <div class="service-actions" data-service-id="${service.id}"><i data-lucide="more-vertical"></i></div>
+      `;
+      
+      // Store service data on the element
+      div.dataset.service = JSON.stringify(service);
+
+      container.appendChild(div);
+    });
+
+    // After adding all service items, create Lucide icons within the container
+    lucide.createIcons({
+        parentElement: container // Only create icons within the service list container
+    });
+
+    // Add event listener for service actions (ellipsis) using delegation
+    container.addEventListener('click', handleServiceActionsClick);
+
+  } catch (error) {
+    console.error('Network error or exception while loading services:', error);
+  }
 }
 
 window.onload = loadServices;
@@ -24,6 +72,27 @@ let activeTab = 'metrics';
 const canvas = document.getElementById('chartCanvas');
 const ctx = canvas.getContext('2d');
 let animationFrame;
+
+// Get modal elements and forms
+const registerServiceModal = document.getElementById('register-service-modal');
+const registerServiceForm = document.getElementById('register-service-form');
+const editServiceModal = document.getElementById('edit-service-modal');
+const editServiceForm = document.getElementById('edit-service-form');
+
+// Get sidebar elements
+const sidebar = document.getElementById('sidebar');
+const resizer = document.getElementById('sidebar-resizer');
+const mainContent = document.querySelector('.main-content');
+
+// Sidebar resizing variables
+let isResizing = false;
+let lastDownX = 0;
+let initialSidebarWidth = 0;
+const MIN_SIDEBAR_WIDTH = 200; // Adjust as needed
+const MAX_SIDEBAR_WIDTH = 400; // Adjust as needed
+
+// Context menu state
+let activeContextMenu = null;
 
 // Sample log data
 const logData = [
@@ -58,8 +127,11 @@ function toggleTheme() {
     const currentTheme = body.getAttribute('data-theme');
     const themeIconContainer = document.querySelector('.theme-icon-container');
     
+    if (!themeIconContainer) return;
+
     // Create ripple effect
     const themeButton = document.querySelector('.theme-button');
+    if (!themeButton) return;
     const rect = themeButton.getBoundingClientRect();
     const ripple = document.createElement('div');
     ripple.className = 'theme-ripple';
@@ -82,11 +154,11 @@ function toggleTheme() {
     setTimeout(() => {
         if (currentTheme === 'dark') {
             body.setAttribute('data-theme', 'light');
-            themeIcon.setAttribute('data-lucide', 'moon');
+            if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
             localStorage.setItem('theme', 'light');
         } else {
             body.setAttribute('data-theme', 'dark');
-            themeIcon.setAttribute('data-lucide', 'sun');
+            if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
             localStorage.setItem('theme', 'dark');
         }
         
@@ -96,7 +168,7 @@ function toggleTheme() {
         // Re-attach event listener to the plus icon after re-creation
         const newOpenModalButton = document.querySelector('.sidebar-header .expand-icon');
         if (newOpenModalButton) {
-            // Remove old listener if it exists on the previous element instance
+            // Remove existing listener before adding a new one
             // Note: This assumes the openModalButton variable might still hold a reference to an old element.
             // A more robust solution might involve event delegation or ensuring icon re-creation is synchronous if possible.
             
@@ -122,9 +194,54 @@ function initializeTheme() {
     body.setAttribute('data-theme', savedTheme);
     
     if (savedTheme === 'dark') {
-        themeIcon.setAttribute('data-lucide', 'sun');
+        if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
     } else {
-        themeIcon.setAttribute('data-lucide', 'moon');
+        if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
+    }
+}
+
+// ===== MODAL FUNCTIONS =====
+// Function to open the Register Service modal
+function openRegisterServiceModal() {
+    const modal = document.getElementById('register-service-modal');
+    if (modal) {
+        modal.style.display = 'flex'; // Use flex to center
+    }
+}
+
+// Function to close the Register Service modal
+function closeRegisterServiceModal() {
+    const modal = document.getElementById('register-service-modal');
+    const form = document.getElementById('register-service-form');
+    if (modal) {
+        modal.style.display = 'none';
+        if (form) {
+            form.reset(); // Reset form fields
+        }
+    }
+}
+
+// Function to open the Edit Service modal and populate it
+function openEditServiceModal(service) {
+    const modal = document.getElementById('edit-service-modal');
+    if (modal) {
+        document.getElementById('edit-service-id').value = service.id;
+        document.getElementById('edit-service-name').value = service.name;
+        document.getElementById('edit-service-url').value = service.url;
+        document.getElementById('edit-service-port').value = service.port;
+        modal.style.display = 'flex'; // Use flex to center
+    }
+}
+
+// Function to close the Edit Service modal
+function closeEditServiceModal() {
+    const modal = document.getElementById('edit-service-modal');
+    const form = document.getElementById('edit-service-form');
+    if (modal) {
+        modal.style.display = 'none';
+        if (form) {
+            form.reset(); // Optional: Clear form fields
+        }
     }
 }
 
@@ -133,29 +250,38 @@ function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.querySelector('.sidebar-overlay');
     
-    sidebar.classList.toggle('open');
-    overlay.classList.toggle('show');
-    
-    // Add animation to menu icon
-    const menuIcon = document.querySelector('.mobile-menu-btn i');
-    addIconAnimation(menuIcon, 'menu-slide');
+    if (sidebar && overlay) {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('show');
+        
+        // Add animation to menu icon
+        const menuIcon = document.querySelector('.mobile-menu-btn i');
+        addIconAnimation(menuIcon, 'menu-slide');
+    }
 }
 
 function closeSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.querySelector('.sidebar-overlay');
     
-    sidebar.classList.remove('open');
-    overlay.classList.remove('show');
+    if (sidebar && overlay) {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('show');
+    }
 }
 
-function selectService(element, index) {
+function selectService(element, index, serviceData) {
     document.querySelectorAll('.service-item').forEach(item => {
         item.classList.remove('active');
     });
     element.classList.add('active');
     activeService = index;
     
+    // You can now use serviceData here, e.g., to display service details
+    console.log('Selected service:', serviceData);
+    // Example: display service name in a main content header
+    // document.getElementById('page-title').textContent = serviceData.name;
+
     // Close sidebar on mobile after selection
     if (window.innerWidth <= 768) {
         closeSidebar();
@@ -168,6 +294,8 @@ function switchTab(element, tabName, index) {
     const chartContainer = document.getElementById('chart-container');
     const logsContainer = document.getElementById('logs-container');
     
+    if (!tabSlider || !chartContainer || !logsContainer) return;
+
     // Update tab slider position - account for the gap
     if (index === 0) {
         tabSlider.style.transform = 'translateX(0)';
@@ -198,6 +326,8 @@ function switchTab(element, tabName, index) {
 // ===== LOGS FUNCTIONS =====
 function populateLogs() {
     const logsList = document.getElementById('logs-list');
+    if (!logsList) return;
+
     logsList.innerHTML = '';
     
     logData.forEach((log, index) => {
@@ -420,6 +550,8 @@ function updateMetrics() {
     const cpuElement = document.getElementById('cpu-value');
     const connectionsElement = document.getElementById('connections-value');
     
+    if (!memoryElement || !cpuElement || !connectionsElement) return;
+
     const newMemory = (35 + Math.random() * 10).toFixed(1);
     const newCpu = (20 + Math.random() * 15).toFixed(1);
     const newConnections = Math.floor(70 + Math.random() * 20);
@@ -484,6 +616,9 @@ function animateChart() {
         
         if (progress < 1) {
             animationFrame = requestAnimationFrame(animate);
+        } else {
+            cancelAnimationFrame(animationFrame);
+            animationFrame = null; // Clear animationFrame when done
         }
     }
     
@@ -497,6 +632,7 @@ function animateChart() {
 // ===== SEARCH FUNCTIONALITY =====
 function setupLogSearch() {
     const searchInput = document.getElementById('log-search');
+    if (!searchInput) return;
     searchInput.addEventListener('input', function(e) {
         const searchTerm = e.target.value.toLowerCase();
         const logEntries = document.querySelectorAll('.log-entry');
@@ -512,31 +648,146 @@ function setupLogSearch() {
     });
 }
 
+// ===== CONTEXT MENU FUNCTIONS =====
+
+// Placeholder functions for context menu actions
+function handleEditService(serviceId) {
+    console.log('Edit service with ID:', serviceId);
+    // Find the service data for the given ID
+    const serviceItems = document.querySelectorAll('.service-item');
+    let serviceToEdit = null;
+    serviceItems.forEach(item => {
+        const serviceData = JSON.parse(item.dataset.service);
+        if (serviceData.id === serviceId) {
+            serviceToEdit = serviceData;
+        }
+    });
+
+    if (serviceToEdit) {
+        openEditServiceModal(serviceToEdit);
+    } else {
+        console.error('Service with ID', serviceId, 'not found.');
+    }
+    hideContextMenu(); // Hide the context menu
+}
+
+function handleDeleteService(serviceId) {
+    console.log('Delete service with ID:', serviceId);
+    // TODO: Implement delete logic
+    hideContextMenu();
+}
+
+// Function to handle clicks on service actions (ellipsis)
+function handleServiceActionsClick(event) {
+    const actionsElement = event.target.closest('.service-actions');
+    if (actionsElement) {
+        event.stopPropagation(); // Prevent click from bubbling to parent service-item
+        const serviceId = actionsElement.dataset.serviceId;
+
+        // Use the actionsElement itself as the target for positioning
+        showContextMenu(actionsElement, serviceId);
+    }
+}
+
+// Placeholder functions for showing/hiding the context menu
+function showContextMenu(targetElement, serviceId) {
+    // Remove any existing context menu
+    hideContextMenu();
+
+    const contextMenu = document.createElement('ul');
+    contextMenu.className = 'context-menu';
+    contextMenu.dataset.serviceId = serviceId; // Store service ID on the menu
+
+    contextMenu.innerHTML = `
+        <li onclick="handleEditService('${serviceId}')"><i data-lucide="edit"></i> Edit</li>
+        <li onclick="handleDeleteService('${serviceId}')"><i data-lucide="trash-2"></i> Delete</li>
+    `;
+
+    // Position the context menu near the target element
+    const rect = targetElement.getBoundingClientRect();
+    // Position below the target element, aligned to its right edge
+    // Get the menu width after it's in the DOM for accurate calculation
+    const menuWidth = contextMenu.offsetWidth;
+    contextMenu.style.top = `${rect.bottom + window.scrollY + 5}px`;
+    contextMenu.style.left = `${rect.right + window.scrollX - menuWidth}px`;
+
+    document.body.appendChild(contextMenu);
+    activeContextMenu = contextMenu;
+
+    // Create icons within the new context menu
+    lucide.createIcons({
+        parentElement: contextMenu // Only create icons within the context menu
+    });
+
+    // Add a click listener to the document to hide the menu when clicking outside
+    // Use setTimeout with 0 delay to allow the current click event to bubble and be processed first
+    setTimeout(() => {
+        // Only add the listener if activeContextMenu is still the one we just created
+        if (activeContextMenu === contextMenu) {
+             document.addEventListener('click', handleClickOutsideMenu);
+        }
+    }, 0);
+}
+
+function hideContextMenu() {
+    if (activeContextMenu) {
+        activeContextMenu.remove();
+        // Remove the outside click listener when the menu is hidden
+        document.removeEventListener('click', handleClickOutsideMenu);
+        activeContextMenu = null;
+    }
+}
+
+function handleClickOutsideMenu(event) {
+    // Hide the menu if the click is not inside the menu itself
+    if (activeContextMenu && !activeContextMenu.contains(event.target)) {
+        hideContextMenu();
+    }
+}
+
 // ===== EVENT LISTENERS =====
+
+// Event listener for window resize to redraw chart and update tab slider
 window.addEventListener('resize', () => {
     setTimeout(resizeCanvas, 100);
-    
+
     // Update tab slider position
     const tabs = document.querySelectorAll('.tab');
     const tabSlider = document.querySelector('.tab-slider');
+    if (!tabs || !tabSlider) return;
     const activeIndex = Array.from(tabs).findIndex(tab => tab.classList.contains('active'));
-    
-    tabSlider.style.transform = `translateX(${activeIndex * 100}%)`;
+
+    tabSlider.style.transform = `translateX(${(activeIndex * 100)}%)`; // Use percentage for flexibility
 });
 
+// Event listener for orientation change to redraw chart
 window.addEventListener('orientationchange', () => {
     setTimeout(resizeCanvas, 100);
 });
 
+// Event listener to close sidebar on mobile when clicking outside
 document.addEventListener('click', (e) => {
     const sidebar = document.getElementById('sidebar');
     const menuBtn = document.querySelector('.mobile-menu-btn');
-    
-    if (window.innerWidth <= 768 && 
-        sidebar.classList.contains('open') && 
-        !sidebar.contains(e.target) && 
+
+    if (sidebar && menuBtn && window.innerWidth <= 768 &&
+        sidebar.classList.contains('open') &&
+        !sidebar.contains(e.target) &&
         !menuBtn.contains(e.target)) {
         closeSidebar();
+    }
+});
+
+// Event listener to close the modal when clicking outside the modal content
+window.addEventListener('click', function(event) {
+    const registerServiceModal = document.getElementById('register-service-modal');
+    const editServiceModal = document.getElementById('edit-service-modal');
+
+    if (registerServiceModal && event.target == registerServiceModal) {
+        closeRegisterServiceModal();
+    }
+    if (editServiceModal && event.target == editServiceModal) {
+        closeEditServiceModal();
     }
 });
 
@@ -544,43 +795,29 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize theme
     initializeTheme();
-    
+
     // Initialize Lucide icons
+    // Initial creation of icons for static elements
     lucide.createIcons();
-    
+
     // Generate initial data
     chartData = generateData();
-    
+
     // Initialize tab slider
     const tabSlider = document.querySelector('.tab-slider');
-    tabSlider.style.transform = 'translateX(0%)';
-    
+    if (tabSlider) tabSlider.style.transform = 'translateX(0%)'; // Ensure initial position
+
     // Initial chart draw
     setTimeout(resizeCanvas, 100);
 
     // Setup log search
     setupLogSearch();
-    
+
     // Start update intervals
     setInterval(updateChartData, 3000);
     setInterval(updateMetrics, 5000);
 
-    // ===== REGISTER SERVICE MODAL FUNCTIONS =====
-    const registerServiceModal = document.getElementById('register-service-modal');
-    const registerServiceForm = document.getElementById('register-service-form');
-
-    // Function to open the modal
-    function openRegisterServiceModal() {
-        registerServiceModal.style.display = 'flex';
-    }
-
-    // Function to close the modal
-    function closeRegisterServiceModal() {
-        registerServiceModal.style.display = 'none';
-        registerServiceForm.reset(); // Reset form fields
-    }
-
-    // Event delegation for opening the modal when the plus icon is clicked
+    // Event listener for opening the Register Service modal when the plus icon is clicked
     const sidebarHeader = document.querySelector('.sidebar-header');
     if (sidebarHeader) {
         sidebarHeader.addEventListener('click', function(event) {
@@ -592,127 +829,102 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Event delegation for closing the modal when the close button is clicked
-    const modalContent = document.querySelector('.modal-content');
-    if (modalContent) {
-        modalContent.addEventListener('click', function(event) {
-            // Check if the clicked element or its parent is the close-button
-            if (event.target.closest('.close-button')) {
-                closeRegisterServiceModal();
+    // Event listener for the Register Service form submission
+    const registerServiceForm = document.getElementById('register-service-form');
+    if (registerServiceForm) {
+        registerServiceForm.addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const serviceName = document.getElementById('service-name').value;
+            const serviceUrl = document.getElementById('service-url').value;
+            const servicePort = document.getElementById('service-port').value;
+
+            // Create an object with the service data
+            const serviceData = {
+                name: serviceName,
+                url: serviceUrl,
+                port: servicePort
+            };
+
+            console.log('Service data to register:', serviceData);
+
+            // Send this data to the backend endpoint to save to properties file
+            try {
+                const response = await fetch('/api/register-service', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(serviceData)
+                });
+
+                if (response.ok) {
+                    console.log('Service registered successfully');
+                    closeRegisterServiceModal();
+                    // Refresh the service list in the sidebar
+                    loadServices();
+                } else {
+                    console.error('Failed to register service');
+                    const errorData = await response.json();
+                    console.error('Error details:', errorData);
+                    // TODO: Display an error message to the user
+                }
+            } catch (error) {
+                console.error('Error registering service:', error);
+                // TODO: Display an error message to the user
             }
         });
     }
 
-    // Event listener to close the modal when clicking outside the modal content
-    window.addEventListener('click', function(event) {
-        if (event.target == registerServiceModal) {
-            closeRegisterServiceModal();
-        }
-    });
+     // Event listener for the Edit Service form submission
+    const editServiceForm = document.getElementById('edit-service-form');
+    if (editServiceForm) {
+        editServiceForm.addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent default form submission
 
-    // Event listener for form submission
-    registerServiceForm.addEventListener('submit', async function(event) {
-        event.preventDefault(); // Prevent default form submission
+            const serviceId = document.getElementById('edit-service-id').value;
+            const serviceName = document.getElementById('edit-service-name').value;
+            const serviceUrl = document.getElementById('edit-service-url').value;
+            const servicePort = document.getElementById('edit-service-port').value;
 
-        const serviceName = document.getElementById('service-name').value;
-        const serviceUrl = document.getElementById('service-url').value;
-        const servicePort = document.getElementById('service-port').value;
+            // Create an object with the updated service data
+            const updatedServiceData = {
+                id: serviceId, // Include ID in the data sent for update
+                name: serviceName,
+                url: serviceUrl,
+                port: servicePort
+            };
 
-        // Create an object with the service data
-        const serviceData = {
-            name: serviceName,
-            url: serviceUrl,
-            port: servicePort
-        };
+            console.log('Service data to update:', updatedServiceData);
 
-        console.log('Service data to register:', serviceData);
+            // Send this data to the backend endpoint to update the service
+            try {
+                const response = await fetch(`/api/services/${serviceId}`, {
+                    method: 'PUT', // Or 'PATCH' depending on your backend API
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedServiceData)
+                });
 
-        // TODO: Send this data to the backend endpoint to save to properties file
-        // Example fetch call (this endpoint doesn't exist yet):
-        /*
-        try {
-            const response = await fetch('/api/register-service', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(serviceData)
-            });
-
-            if (response.ok) {
-                console.log('Service registered successfully');
-                closeRegisterServiceModal();
-                // TODO: Refresh the service list in the sidebar
-            } else {
-                console.error('Failed to register service');
+                if (response.ok) {
+                    console.log('Service updated successfully');
+                    closeEditServiceModal();
+                    // Refresh the service list in the sidebar
+                    loadServices();
+                } else {
+                    console.error('Failed to update service');
+                    const errorData = await response.json();
+                    console.error('Error details:', errorData);
+                    // TODO: Display an error message to the user
+                }
+            } catch (error) {
+                console.error('Error updating service:', error);
                 // TODO: Display an error message to the user
             }
-        } catch (error) {
-            console.error('Error registering service:', error);
-            // TODO: Display an error message to the user
-        }
-        */
-
-        // For now, just close the modal after logging the data
-        closeRegisterServiceModal();
-    });
-}); // End of DOMContentLoaded
-
-// Sidebar resizing functionality
-const sidebar = document.getElementById('sidebar');
-const resizer = document.getElementById('sidebar-resizer');
-const mainContent = document.querySelector('.main-content');
-
-let isResizing = false;
-let lastDownX = 0;
-let initialSidebarWidth = 0;
-
-// Minimum and maximum sidebar widths
-const MIN_SIDEBAR_WIDTH = 200; // Adjust as needed
-const MAX_SIDEBAR_WIDTH = 400; // Adjust as needed
-
-resizer.addEventListener('mousedown', function(e) {
-    isResizing = true;
-    lastDownX = e.clientX;
-    initialSidebarWidth = sidebar.offsetWidth;
-
-    // Add event listeners to document to track mouse movement globally
-    document.addEventListener('mousemove', mousemoveHandler);
-    document.addEventListener('mouseup', mouseupHandler);
-});
-
-function mousemoveHandler(e) {
-    if (!isResizing) return;
-
-    const dx = e.clientX - lastDownX;
-    let newWidth = initialSidebarWidth + dx;
-
-    // Apply constraints
-    newWidth = Math.max(MIN_SIDEBAR_WIDTH, newWidth);
-    newWidth = Math.min(MAX_SIDEBAR_WIDTH, newWidth);
-
-    sidebar.style.width = `${newWidth}px`;
-    // Optionally adjust main content's left margin if needed, but flexbox should handle it
-    // mainContent.style.marginLeft = `${newWidth}px`;
-
-    // Prevent text selection during resize
-    document.body.style.userSelect = 'none';
-    document.body.style.cursor = 'col-resize';
-}
-
-function mouseupHandler() {
-    isResizing = false;
-    // Remove event listeners
-    document.removeEventListener('mousemove', mousemoveHandler);
-    document.removeEventListener('mouseup', mouseupHandler);
-
-    // Restore text selection and cursor
-    document.body.style.userSelect = '';
-    document.body.style.cursor = '';
-
-    // Trigger canvas resize if it's visible (for chart) - important!
-    const chartContainer = document.getElementById('chart-container');
-    if (chartContainer && chartContainer.style.display !== 'none') {
-        resizeCanvas();
+        });
     }
-}
+
+    // Initial load of services
+    loadServices();
+});
