@@ -38,7 +38,7 @@ const logData = [
     { level: 'error', timestamp: '09:02:45', message: 'Failed to connect to external API' },
     { level: 'info', timestamp: '09:02:50', message: 'User authentication successful' },
     { level: 'warning', timestamp: '09:02:55', message: 'Slow query detected in database' },
-    { level: 'info', timestamp: '09:03:00', message: 'Cache cleared successfully' }
+    { level: 'info', timestamp: '09:02:50', message: 'Cache cleared successfully' }
 ];
 
 // ===== ANIMATION FUNCTIONS =====
@@ -90,9 +90,21 @@ function toggleTheme() {
             localStorage.setItem('theme', 'dark');
         }
         
-        // Recreate icons to update the theme icon
+        // Recreate icons to update the theme icon and other icons
         lucide.createIcons();
-    }, 300);
+
+        // Re-attach event listener to the plus icon after re-creation
+        const newOpenModalButton = document.querySelector('.sidebar-header .expand-icon');
+        if (newOpenModalButton) {
+            // Remove old listener if it exists on the previous element instance
+            // Note: This assumes the openModalButton variable might still hold a reference to an old element.
+            // A more robust solution might involve event delegation or ensuring icon re-creation is synchronous if possible.
+            
+            // Remove existing listener before adding a new one
+            newOpenModalButton.removeEventListener('click', openRegisterServiceModal);
+            newOpenModalButton.addEventListener('click', openRegisterServiceModal);
+        }
+    }, 350); // Increased delay slightly
     
     // Remove transition class after animation completes
     setTimeout(() => {
@@ -552,7 +564,99 @@ document.addEventListener('DOMContentLoaded', () => {
     // Start update intervals
     setInterval(updateChartData, 3000);
     setInterval(updateMetrics, 5000);
-});
+
+    // ===== REGISTER SERVICE MODAL FUNCTIONS =====
+    const registerServiceModal = document.getElementById('register-service-modal');
+    const registerServiceForm = document.getElementById('register-service-form');
+
+    // Function to open the modal
+    function openRegisterServiceModal() {
+        registerServiceModal.style.display = 'flex';
+    }
+
+    // Function to close the modal
+    function closeRegisterServiceModal() {
+        registerServiceModal.style.display = 'none';
+        registerServiceForm.reset(); // Reset form fields
+    }
+
+    // Event delegation for opening the modal when the plus icon is clicked
+    const sidebarHeader = document.querySelector('.sidebar-header');
+    if (sidebarHeader) {
+        sidebarHeader.addEventListener('click', function(event) {
+            // Check if the clicked element or its parent is the expand-icon
+            if (event.target.closest('.expand-icon')) {
+                // Add a small delay to ensure DOM updates are complete
+                setTimeout(openRegisterServiceModal, 50);
+            }
+        });
+    }
+
+    // Event delegation for closing the modal when the close button is clicked
+    const modalContent = document.querySelector('.modal-content');
+    if (modalContent) {
+        modalContent.addEventListener('click', function(event) {
+            // Check if the clicked element or its parent is the close-button
+            if (event.target.closest('.close-button')) {
+                closeRegisterServiceModal();
+            }
+        });
+    }
+
+    // Event listener to close the modal when clicking outside the modal content
+    window.addEventListener('click', function(event) {
+        if (event.target == registerServiceModal) {
+            closeRegisterServiceModal();
+        }
+    });
+
+    // Event listener for form submission
+    registerServiceForm.addEventListener('submit', async function(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const serviceName = document.getElementById('service-name').value;
+        const serviceUrl = document.getElementById('service-url').value;
+        const servicePort = document.getElementById('service-port').value;
+
+        // Create an object with the service data
+        const serviceData = {
+            name: serviceName,
+            url: serviceUrl,
+            port: servicePort
+        };
+
+        console.log('Service data to register:', serviceData);
+
+        // TODO: Send this data to the backend endpoint to save to properties file
+        // Example fetch call (this endpoint doesn't exist yet):
+        /*
+        try {
+            const response = await fetch('/api/register-service', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(serviceData)
+            });
+
+            if (response.ok) {
+                console.log('Service registered successfully');
+                closeRegisterServiceModal();
+                // TODO: Refresh the service list in the sidebar
+            } else {
+                console.error('Failed to register service');
+                // TODO: Display an error message to the user
+            }
+        } catch (error) {
+            console.error('Error registering service:', error);
+            // TODO: Display an error message to the user
+        }
+        */
+
+        // For now, just close the modal after logging the data
+        closeRegisterServiceModal();
+    });
+}); // End of DOMContentLoaded
 
 // Sidebar resizing functionality
 const sidebar = document.getElementById('sidebar');

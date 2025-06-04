@@ -190,3 +190,26 @@
     <script src="http://localhost:35729/livereload.js"></script>
 </body>
 </html>
+
+<!-- Register Service Modal -->
+<div id="register-service-modal" class="modal">
+    <div class="modal-content">
+        <i data-lucide="x" class="close-button"></i>
+        <h2>Register Service</h2>
+        <form id="register-service-form">
+            <div class="form-group">
+                <label for="service-name">Service Name:</label>
+                <input type="text" id="service-name" required>
+            </div>
+            <div class="form-group">
+                <label for="service-url">Service URL:</label>
+                <input type="text" id="service-url" required>
+            </div>
+            <div class="form-group">
+                <label for="service-port">Port Number:</label>
+                <input type="number" id="service-port" required>
+            </div>
+            <button type="submit">Register</button>
+        </form>
+    </div>
+</div>

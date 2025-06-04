@@ -351,16 +351,18 @@
             cursor: pointer;
             color: var(--text-secondary);
             padding: 6px;
-            border-radius: 8px;
-            transition: color 0.3s ease;
+            border-radius: 8px; /* Add rounded corners */
+            transition: var(--transition-normal);
         }
 
         .expand-icon:hover {
             color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.08); /* Subtle background on hover */
         }
 
         [data-theme="light"] .expand-icon:hover {
             color: var(--text-primary);
+            background-color: rgba(0, 0, 0, 0.05); /* Subtle background on hover for light theme */
         }
 
         .service-list {
@@ -1475,4 +1477,128 @@
             align-items: center;
             gap: 12px;
             margin-left: auto;
+        }
+
+        /* ===== MODAL STYLES ===== */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 2000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0, 0, 0, 0.6); /* Black with opacity */
+            backdrop-filter: blur(5px); /* Add blur effect */
+            -webkit-backdrop-filter: blur(5px); /* Safari support */
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: var(--bg-card);
+            padding: 20px;
+            border-radius: var(--card-radius);
+            border: 1px solid var(--border-color);
+            width: 90%; /* Responsive width */
+            max-width: 500px; /* Maximum width */
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            animation: fadeIn 0.3s ease-out; /* Simple fade-in animation */
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .close-button {
+            color: var(--text-secondary);
+            position: absolute;
+            top: 15px; /* Adjusted top position */
+            right: 15px; /* Adjusted right position */
+            font-size: 0; /* Hide default icon font if any */
+            font-weight: bold;
+            transition: var(--transition-normal);
+            cursor: pointer;
+            display: flex; /* Use flexbox to center the SVG */
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            padding: 6px;
+            border-radius: 8px; /* Added rounded corners by default */
+        }
+
+        .close-button svg {
+            width: 18px; /* Set SVG icon size */
+            height: 18px; /* Set SVG icon size */
+            color: var(--text-secondary); /* Ensure icon color */
+        }
+
+        .modal .close-button:hover,
+        .modal .close-button:focus {
+            color: var(--text-primary);
+            text-decoration: none;
+            cursor: pointer;
+            background-color: rgba(148, 163, 184, 0.15); /* Subtle background on hover */
+            border-radius: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: var(--transition-normal);
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="number"]:focus {
+            outline: none;
+            border-color: var(--blue-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .modal-content button[type="submit"] {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: var(--blue-primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: var(--transition-normal);
+            margin-top: 20px;
+        }
+
+        .modal-content button[type="submit"]:hover {
+            background-color: var(--blue-accent);
+        }
+
+        .modal-content button[type="submit"]:active {
+            background-color: #1e40af;
         }
