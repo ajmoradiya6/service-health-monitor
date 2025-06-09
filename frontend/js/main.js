@@ -280,17 +280,74 @@ function closeSidebar() {
     }
 }
 
-function selectService(element, index, serviceData) {
+// Logic to fetch data from hosted service
+const outputToConsole = true; // set false to disable console logs
+
+function connectToSignalR(serviceData) {
+    // Build the SignalR URL from service data
+    const baseUrl = serviceData.url.replace('https://', 'http://'); // Convert https to http for local development
+    const port = serviceData.port;
+    const signalRUrl = `${baseUrl}:${port}/healthhub`;
+    
+    console.log('Connecting to SignalR hub at:', signalRUrl);
+
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl(signalRUrl, { 
+            withCredentials: true,
+            skipNegotiation: true, // Skip negotiation for local development
+            transport: signalR.HttpTransportType.WebSockets // Force WebSocket transport
+        })
+        .configureLogging(signalR.LogLevel.Debug) // Set to Debug for more detailed logs
+        .build();
+
+    connection.on("ReceiveHealthUpdate", (data) => {
+        if (outputToConsole) {
+            console.log("Health data received:", data);
+        }
+
+        // Update UI elements
+        document.getElementById("cpu-value").textContent = `${data.cpuUsagePercent}%`;
+        document.getElementById("memory-value").textContent = `${data.memoryUsagePercent}%`;
+        document.getElementById("connections-value").textContent = data.activeConnections;
+
+        // For logs
+        const logsList = document.getElementById("logs-list");
+        const newLog = document.createElement("div");
+        newLog.className = "log-entry";
+        newLog.textContent = `${new Date().toLocaleTimeString()} - ${data.message || 'Health ping'}`;
+        logsList.prepend(newLog);
+    });
+
+    connection
+        .start()
+        .then(() => {
+            if (outputToConsole) console.log("Successfully connected to SignalR hub at:", signalRUrl);
+        })
+        .catch((err) => {
+            console.error("SignalR connection error:", err);
+            console.error("Failed to connect to:", signalRUrl);
+        });
+
+    return connection;
+}
+
+// Modify the selectService function to establish SignalR connection
+function selectService(element, index, service) {
     document.querySelectorAll('.service-item').forEach(item => {
         item.classList.remove('active');
     });
     element.classList.add('active');
     activeService = index;
     
-    // You can now use serviceData here, e.g., to display service details
-    console.log('Selected service:', serviceData);
-    // Example: display service name in a main content header
-    // document.getElementById('page-title').textContent = serviceData.name;
+    // Get the service data from the data attribute
+    const serviceData = JSON.parse(element.dataset.service);
+    console.log('Selected service data:', serviceData);
+
+    // Connect to SignalR for this service
+    const connection = connectToSignalR(serviceData);
+
+    // Store the connection in the element for cleanup if needed
+    element.dataset.signalRConnection = connection;
 
     // Close sidebar on mobile after selection
     if (window.innerWidth <= 768) {
@@ -1145,3 +1202,5 @@ function closeConfirmationModal() {
         modal.style.display = 'none';
     }
 }
+
+

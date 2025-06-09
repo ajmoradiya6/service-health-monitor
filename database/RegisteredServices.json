@@ -1,9 +1,9 @@
 [
   {
     "id": "39a0a40e-80bb-4689-889b-0cfba765229f",
-    "name": "Asd11",
-    "url": "https://google.com",
-    "port": "2222"
+    "name": "PDF Service",
+    "url": "https://localhost",
+    "port": "8005"
   },
   {
     "id": "a20fa5e1-c904-4e60-8384-b1187a50f458",
