@@ -1896,3 +1896,48 @@
             border-color: var(--border-color-hover);
             box-shadow: var(--shadow-md);
         }
+
+        .service-item.selected {
+            background-color: var(--blue-primary);
+            color: #ffffff;
+        }
+
+        .service-item.selected .service-name,
+        .service-item.selected .service-status,
+        .service-item.selected .service-actions,
+        .service-item.selected .service-actions i,
+        .service-item.selected .service-actions i svg,
+        .service-item.selected .service-actions i svg path {
+            color: #ffffff !important;
+            fill: #ffffff !important;
+            stroke: #ffffff !important;
+        }
+
+        [data-theme="light"] .service-item.selected .service-name,
+        [data-theme="light"] .service-item.selected .service-status,
+        [data-theme="light"] .service-item.selected .service-actions,
+        [data-theme="light"] .service-item.selected .service-actions i,
+        [data-theme="light"] .service-item.selected .service-actions i svg,
+        [data-theme="light"] .service-item.selected .service-actions i svg path {
+            color: #ffffff !important;
+            fill: #ffffff !important;
+            stroke: #ffffff !important;
+        }
+
+        .service-item.selected .service-actions i svg[style] {
+            color: #ffffff !important;
+            fill: none !important;
+            stroke: #ffffff !important;
+            stroke-width: 2 !important;
+            stroke-linecap: round !important;
+            stroke-linejoin: round !important;
+        }
+
+        [data-theme="light"] .service-item.selected .service-actions i svg[style] {
+            color: #ffffff !important;
+            fill: none !important;
+            stroke: #ffffff !important;
+            stroke-width: 2 !important;
+            stroke-linecap: round !important;
+            stroke-linejoin: round !important;
+        }

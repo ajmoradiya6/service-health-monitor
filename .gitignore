@@ -24,3 +24,6 @@ build/
 
 # Cache
 .cache/
+
+# Database files
+database/RegisteredServices.json
