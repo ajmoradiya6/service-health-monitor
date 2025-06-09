@@ -101,22 +101,6 @@ const MAX_SIDEBAR_WIDTH = 400; // Adjust as needed
 // Context menu state
 let activeContextMenu = null;
 
-// Sample log data
-const logData = [
-    { level: 'warning', timestamp: '09:02:22', message: 'Service service1 running normally' },
-    { level: 'info', timestamp: '09:02:22', message: 'Service service1 processing requests' },
-    { level: 'error', timestamp: '09:02:28', message: 'Service service1 running normally' },
-    { level: 'error', timestamp: '09:02:32', message: 'Service service1 running normally' },
-    { level: 'warning', timestamp: '09:02:32', message: 'Service service1 running normally' },
-    { level: 'info', timestamp: '09:02:33', message: 'Service service1 processing requests' },
-    { level: 'info', timestamp: '09:02:35', message: 'Database connection established' },
-    { level: 'warning', timestamp: '09:02:40', message: 'High memory usage detected' },
-    { level: 'error', timestamp: '09:02:45', message: 'Failed to connect to external API' },
-    { level: 'info', timestamp: '09:02:50', message: 'User authentication successful' },
-    { level: 'warning', timestamp: '09:02:55', message: 'Slow query detected in database' },
-    { level: 'info', timestamp: '09:02:50', message: 'Cache cleared successfully' }
-];
-
 // Global variable to store current log filter
 let currentLogFilter = 'all';
 
@@ -283,52 +267,184 @@ function closeSidebar() {
 // Logic to fetch data from hosted service
 const outputToConsole = true; // set false to disable console logs
 
+// Add animation function
+function animateValue(element, start, end, duration, suffix = '') {
+    const startTime = performance.now();
+    
+    function updateValue(timestamp) {
+        const elapsed = timestamp - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeProgress = progress < 0.5 
+            ? 2 * progress * progress 
+            : 1 - Math.pow(-2 * progress + 2, 2) / 2; // Ease in-out quad
+        
+        const value = start + (end - start) * easeProgress;
+        element.textContent = `${value.toFixed(1)}${suffix}`;
+        
+        if (progress < 1) {
+            requestAnimationFrame(updateValue);
+        } else {
+            // Always show one decimal place for the final value
+            element.textContent = `${Number(end).toFixed(1)}${suffix}`;
+        }
+    }
+    
+    requestAnimationFrame(updateValue);
+}
+
+function parseMetricValue(value, isPercentage = false) {
+    if (typeof value === 'string') {
+        // Remove any non-numeric characters except decimal point
+        const numericValue = parseFloat(value.replace(/[^0-9.]/g, ''));
+        return isNaN(numericValue) ? 0 : numericValue;
+    }
+    return value || 0;
+}
+
 function connectToSignalR(serviceData) {
     // Build the SignalR URL from service data
     const baseUrl = serviceData.url.replace('https://', 'http://'); // Convert https to http for local development
     const port = serviceData.port;
     const signalRUrl = `${baseUrl}:${port}/healthhub`;
-    
-    console.log('Connecting to SignalR hub at:', signalRUrl);
 
-    const connection = new signalR.HubConnectionBuilder()
-        .withUrl(signalRUrl, { 
-            withCredentials: true,
-            skipNegotiation: true, // Skip negotiation for local development
-            transport: signalR.HttpTransportType.WebSockets // Force WebSocket transport
-        })
-        .configureLogging(signalR.LogLevel.Debug) // Set to Debug for more detailed logs
-        .build();
+    let dataTimeout;
+    const DATA_TIMEOUT_DURATION = 5000; // 5 seconds timeout
+    let reconnectTimeout;
+    const RECONNECT_INTERVAL = 5000; // Try to reconnect every 5 seconds
+    let isFirstData = true;
+    let hasShownInitialStatus = false;
+    let isServiceRunning = false;
 
-    connection.on("ReceiveHealthUpdate", (data) => {
-        if (outputToConsole) {
-            console.log("Health data received:", data);
+    // Reset status display when switching services
+    const statusElement = document.querySelector('.status-running');
+    if (statusElement) {
+        const statusDot = statusElement.querySelector('.status-dot');
+        const statusText = statusElement.querySelector('span');
+        statusDot.style.backgroundColor = '#FFD700'; // Yellow color
+        statusText.textContent = 'Connecting...';
+    }
+
+    // Reset service dot in sidebar
+    const serviceItem = document.querySelector(`.service-item[data-service*="${serviceData.id}"]`);
+    if (serviceItem) {
+        const serviceDot = serviceItem.querySelector('.status-dot');
+        if (serviceDot) {
+            serviceDot.style.backgroundColor = '#FFD700'; // Yellow color
+        }
+    }
+
+    function updateServiceStatus(isRunning) {
+        isServiceRunning = isRunning;
+        
+        // Update status in the metrics card
+        const statusElement = document.querySelector('.status-running');
+        if (statusElement) {
+            const statusDot = statusElement.querySelector('.status-dot');
+            const statusText = statusElement.querySelector('span');
+            
+            if (isRunning) {
+                statusDot.style.backgroundColor = 'var(--green-primary)';
+                statusText.textContent = 'Running';
+            } else {
+                statusDot.style.backgroundColor = 'var(--red-primary)';
+                statusText.textContent = 'Stopped';
+            }
         }
 
-        // Update UI elements
-        document.getElementById("cpu-value").textContent = `${data.cpuUsagePercent}%`;
-        document.getElementById("memory-value").textContent = `${data.memoryUsagePercent}%`;
-        document.getElementById("connections-value").textContent = data.activeConnections;
+        // Update the service dot in the sidebar
+        const serviceItem = document.querySelector(`.service-item[data-service*="${serviceData.id}"]`);
+        if (serviceItem) {
+            const serviceDot = serviceItem.querySelector('.status-dot');
+            if (serviceDot) {
+                serviceDot.style.backgroundColor = isRunning ? 'var(--green-primary)' : 'var(--red-primary)';
+            }
+        }
+    }
 
-        // For logs
-        const logsList = document.getElementById("logs-list");
-        const newLog = document.createElement("div");
-        newLog.className = "log-entry";
-        newLog.textContent = `${new Date().toLocaleTimeString()} - ${data.message || 'Health ping'}`;
-        logsList.prepend(newLog);
-    });
+    function startConnection() {
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl(signalRUrl, { 
+                withCredentials: true,
+                skipNegotiation: true,
+                transport: signalR.HttpTransportType.WebSockets
+            })
+            .configureLogging(signalR.LogLevel.Debug)
+            .build();
 
-    connection
-        .start()
-        .then(() => {
-            if (outputToConsole) console.log("Successfully connected to SignalR hub at:", signalRUrl);
-        })
-        .catch((err) => {
-            console.error("SignalR connection error:", err);
-            console.error("Failed to connect to:", signalRUrl);
+        connection.on("ReceiveHealthUpdate", (data) => {
+            // Clear any existing timeout
+            clearTimeout(dataTimeout);
+            
+            // Update status to running on first data
+            if (isFirstData) {
+                hasShownInitialStatus = true;
+                updateServiceStatus(true);
+                isFirstData = false;
+            }
+
+            // Get current values
+            const cpuElement = document.getElementById("cpu-value");
+            const memoryElement = document.getElementById("memory-value");
+            const connectionsElement = document.getElementById("connections-value");
+
+            // Parse current values
+            const currentCpu = parseMetricValue(cpuElement.textContent, true);
+            const currentMemory = parseMetricValue(memoryElement.textContent, true);
+            const currentConnections = parseMetricValue(connectionsElement.textContent);
+
+            // Parse new values
+            const newCpu = parseMetricValue(data.cpuUsage, true);
+            const newMemory = parseMetricValue(data.memoryUsage, true);
+            const newConnections = parseMetricValue(data.activeConnections);
+
+            // Animate the values
+            animateValue(cpuElement, currentCpu, newCpu, 1000, '%');
+            animateValue(memoryElement, currentMemory, newMemory, 1000, '%');
+            animateValue(connectionsElement, currentConnections, newConnections, 1000);
+
+            // For logs
+            const logsList = document.getElementById("logs-list");
+            const newLog = document.createElement("div");
+            newLog.className = "log-entry";
+            newLog.textContent = `${new Date(data.timestamp).toLocaleTimeString()} - Service Uptime: ${data.serviceUptime}`;
+            logsList.prepend(newLog);
         });
 
-    return connection;
+        connection
+            .start()
+            .then(() => {
+                console.log("Successfully connected to SignalR hub at:", signalRUrl);
+            })
+            .catch((err) => {
+                console.error("SignalR connection error:", err);
+                console.error("Failed to connect to:", signalRUrl);
+                hasShownInitialStatus = true;
+                updateServiceStatus(false);
+                
+                // Try to reconnect after a delay
+                reconnectTimeout = setTimeout(() => {
+                    startConnection();
+                }, RECONNECT_INTERVAL);
+            });
+
+        // Clean up timeout when connection is closed
+        connection.onclose(() => {
+            clearTimeout(dataTimeout);
+            hasShownInitialStatus = true;
+            updateServiceStatus(false);
+            isFirstData = true; // Reset first data flag when connection closes
+            
+            // Try to reconnect after a delay
+            reconnectTimeout = setTimeout(() => {
+                startConnection();
+            }, RECONNECT_INTERVAL);
+        });
+
+        return connection;
+    }
+
+    // Start the initial connection
+    return startConnection();
 }
 
 // Modify the selectService function to establish SignalR connection
@@ -514,25 +630,10 @@ function exportLogs() {
 }
 
 // ===== CHART FUNCTIONS =====
-function generateData(points = 40) {
-    const data = [];
-    const now = new Date();
-    for (let i = 0; i < points; i++) {
-        const time = new Date(now.getTime() - (points - i) * 15000);
-        data.push({
-            time: time,
-            cpu: 20 + Math.sin(i * 0.1) * 10 + Math.random() * 8,
-            memory: 35 + Math.cos(i * 0.15) * 8 + Math.random() * 6
-        });
-    }
-    return data;
-}
-
 function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * window.devicePixelRatio;
-    canvas.height = rect.height * window.devicePixelRatio;
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    canvas.width = rect.width;
+    canvas.height = rect.height;
     drawChart();
 }
 
@@ -700,91 +801,6 @@ function drawChart() {
         ctx.arc(x, memY, 1.5, 0, Math.PI * 2);
         ctx.fill();
     });
-}
-
-// ===== UPDATE FUNCTIONS =====
-function updateMetrics() {
-    const memoryElement = document.getElementById('memory-value');
-    const cpuElement = document.getElementById('cpu-value');
-    const connectionsElement = document.getElementById('connections-value');
-    
-    if (!memoryElement || !cpuElement || !connectionsElement) return;
-
-    const newMemory = (35 + Math.random() * 10).toFixed(1);
-    const newCpu = (20 + Math.random() * 15).toFixed(1);
-    const newConnections = Math.floor(70 + Math.random() * 20);
-    
-    // Animate the values
-    animateValue(memoryElement, parseFloat(memoryElement.textContent), parseFloat(newMemory), 1000, '%');
-    animateValue(cpuElement, parseFloat(cpuElement.textContent), parseFloat(newCpu), 1000, '%');
-    animateValue(connectionsElement, parseInt(connectionsElement.textContent), newConnections, 1000);
-}
-
-function animateValue(element, start, end, duration, suffix = '') {
-    const startTime = performance.now();
-    
-    function updateValue(timestamp) {
-        const elapsed = timestamp - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easeProgress = progress < 0.5 
-            ? 2 * progress * progress 
-            : 1 - Math.pow(-2 * progress + 2, 2) / 2; // Ease in-out quad
-        
-        const value = start + (end - start) * easeProgress;
-        element.textContent = `${value.toFixed(1)}${suffix}`;
-        
-        if (progress < 1) {
-            requestAnimationFrame(updateValue);
-        } else {
-            element.textContent = `${end.toFixed(1)}${suffix}`;
-        }
-    }
-    
-    requestAnimationFrame(updateValue);
-}
-
-function updateChartData() {
-    const lastTime = chartData[chartData.length - 1]?.time || new Date();
-    const newTime = new Date(lastTime.getTime() + 15000);
-    
-    chartData.push({
-        time: newTime,
-        cpu: 20 + Math.sin(chartData.length * 0.1) * 10 + Math.random() * 8,
-        memory: 35 + Math.cos(chartData.length * 0.15) * 8 + Math.random() * 6
-    });
-    
-    if (chartData.length > 40) {
-        chartData.shift();
-    }
-    
-    // Animate chart update
-    animateChart();
-}
-
-function animateChart() {
-    let startTime;
-    const duration = 1000;
-    
-    function animate(timestamp) {
-        if (!startTime) startTime = timestamp;
-        const elapsed = timestamp - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        drawChart();
-        
-        if (progress < 1) {
-            animationFrame = requestAnimationFrame(animate);
-        } else {
-            cancelAnimationFrame(animationFrame);
-            animationFrame = null; // Clear animationFrame when done
-        }
-    }
-    
-    if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
-    }
-    
-    animationFrame = requestAnimationFrame(animate);
 }
 
 // ===== SEARCH FUNCTIONALITY =====
@@ -957,33 +973,20 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTheme();
 
     // Initialize Lucide icons
-    // Initial creation of icons for static elements
     lucide.createIcons();
-
-    // Generate initial data
-    chartData = generateData();
 
     // Initialize tab slider
     const tabSlider = document.querySelector('.tab-slider');
-    if (tabSlider) tabSlider.style.transform = 'translateX(0%)'; // Ensure initial position
-
-    // Initial chart draw
-    setTimeout(resizeCanvas, 100);
+    if (tabSlider) tabSlider.style.transform = 'translateX(0%)';
 
     // Setup log search
     setupLogSearch();
-
-    // Start update intervals
-    setInterval(updateChartData, 3000);
-    setInterval(updateMetrics, 5000);
 
     // Event listener for opening the Register Service modal when the plus icon is clicked
     const sidebarHeader = document.querySelector('.sidebar-header');
     if (sidebarHeader) {
         sidebarHeader.addEventListener('click', function(event) {
-            // Check if the clicked element or its parent is the expand-icon
             if (event.target.closest('.expand-icon')) {
-                // Add a small delay to ensure DOM updates are complete
                 setTimeout(openRegisterServiceModal, 50);
             }
         });
