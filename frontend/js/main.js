@@ -324,9 +324,8 @@ function connectToSignalR(serviceData) {
     // Reset status display when connecting if this service is active
     const statusElement = document.querySelector('.status-running');
     if (activeServiceId === serviceData.id && statusElement) {
-        const statusDot = statusElement.querySelector('.status-dot');
+        statusElement.style.setProperty('--dot-color', 'var(--yellow-primary)');
         const statusText = statusElement.querySelector('span');
-        statusDot.style.setProperty('--dot-color', 'var(--yellow-primary)');
         statusText.textContent = 'Connecting...';
     }
 
@@ -345,16 +344,9 @@ function connectToSignalR(serviceData) {
         // Update status in the metrics card only for the active service
         const statusElement = document.querySelector('.status-running');
         if (activeServiceId === serviceData.id && statusElement) {
-            const statusDot = statusElement.querySelector('.status-dot');
+            statusElement.style.setProperty('--dot-color', isRunning ? 'var(--green-primary)' : 'var(--red-primary)');
             const statusText = statusElement.querySelector('span');
-
-            if (isRunning) {
-                statusDot.style.setProperty('--dot-color', 'var(--green-primary)');
-                statusText.textContent = 'Running';
-            } else {
-                statusDot.style.setProperty('--dot-color', 'var(--red-primary)');
-                statusText.textContent = 'Stopped';
-            }
+            statusText.textContent = isRunning ? 'Running' : 'Stopped';
         }
 
         // Update the service dot in the sidebar
@@ -489,9 +481,8 @@ function selectService(element, index, service) {
     if (!serviceConnections[serviceData.id]) {
         const statusElement = document.querySelector('.status-running');
         if (statusElement) {
-            const statusDot = statusElement.querySelector('.status-dot');
+            statusElement.style.setProperty('--dot-color', 'var(--yellow-primary)');
             const statusText = statusElement.querySelector('span');
-            statusDot.style.setProperty('--dot-color', 'var(--yellow-primary)');
             statusText.textContent = 'Connecting...';
         }
     }
@@ -579,15 +570,9 @@ function renderServiceMetrics(serviceId) {
 
     const statusElement = document.querySelector('.status-running');
     if (statusElement) {
-        const statusDot = statusElement.querySelector('.status-dot');
+        statusElement.style.setProperty('--dot-color', metrics.serviceRunning ? 'var(--green-primary)' : 'var(--red-primary)');
         const statusText = statusElement.querySelector('span');
-        if (metrics.serviceRunning) {
-            statusDot.style.setProperty('--dot-color', 'var(--green-primary)');
-            statusText.textContent = 'Running';
-        } else {
-            statusDot.style.setProperty('--dot-color', 'var(--red-primary)');
-            statusText.textContent = 'Stopped';
-        }
+        statusText.textContent = metrics.serviceRunning ? 'Running' : 'Stopped';
     }
 }
 
