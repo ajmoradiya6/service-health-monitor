@@ -1910,28 +1910,41 @@
         }
 
         .service-item.selected .service-name,
+        .service-item.active .service-name,
         .service-item.selected .service-status,
+        .service-item.active .service-status,
         .service-item.selected .service-actions,
+        .service-item.active .service-actions,
         .service-item.selected .service-actions i,
+        .service-item.active .service-actions i,
         .service-item.selected .service-actions i svg,
-        .service-item.selected .service-actions i svg path {
+        .service-item.active .service-actions i svg,
+        .service-item.selected .service-actions i svg path,
+        .service-item.active .service-actions i svg path {
             color: #ffffff !important;
             fill: #ffffff !important;
             stroke: #ffffff !important;
         }
 
         [data-theme="light"] .service-item.selected .service-name,
+        [data-theme="light"] .service-item.active .service-name,
         [data-theme="light"] .service-item.selected .service-status,
+        [data-theme="light"] .service-item.active .service-status,
         [data-theme="light"] .service-item.selected .service-actions,
+        [data-theme="light"] .service-item.active .service-actions,
         [data-theme="light"] .service-item.selected .service-actions i,
+        [data-theme="light"] .service-item.active .service-actions i,
         [data-theme="light"] .service-item.selected .service-actions i svg,
-        [data-theme="light"] .service-item.selected .service-actions i svg path {
+        [data-theme="light"] .service-item.active .service-actions i svg,
+        [data-theme="light"] .service-item.selected .service-actions i svg path,
+        [data-theme="light"] .service-item.active .service-actions i svg path {
             color: #ffffff !important;
             fill: #ffffff !important;
             stroke: #ffffff !important;
         }
 
-        .service-item.selected .service-actions i svg[style] {
+        .service-item.selected .service-actions i svg[style],
+        .service-item.active .service-actions i svg[style] {
             color: #ffffff !important;
             fill: none !important;
             stroke: #ffffff !important;
@@ -1940,7 +1953,8 @@
             stroke-linejoin: round !important;
         }
 
-        [data-theme="light"] .service-item.selected .service-actions i svg[style] {
+        [data-theme="light"] .service-item.selected .service-actions i svg[style],
+        [data-theme="light"] .service-item.active .service-actions i svg[style] {
             color: #ffffff !important;
             fill: none !important;
             stroke: #ffffff !important;
