@@ -67,11 +67,16 @@ window.onload = loadServices;
 
 // ===== GLOBAL VARIABLES =====
 let chartData = [];
-let activeService = 0;
+let activeServiceId = null;
 let activeTab = 'metrics';
 const canvas = document.getElementById('chartCanvas');
 const ctx = canvas.getContext('2d');
 let animationFrame;
+
+// Maintain connections and data per service
+const serviceConnections = {};
+const serviceLogs = {};
+const serviceMetrics = {};
 
 // Get modal elements and forms
 const registerServiceModal = document.getElementById('register-service-modal');
@@ -302,6 +307,9 @@ function parseMetricValue(value, isPercentage = false) {
 }
 
 function connectToSignalR(serviceData) {
+    if (serviceConnections[serviceData.id]) {
+        return serviceConnections[serviceData.id];
+    }
     // Build the SignalR URL from service data
     const baseUrl = serviceData.url.replace('https://', 'http://'); // Convert https to http for local development
     const port = serviceData.port;
@@ -315,12 +323,12 @@ function connectToSignalR(serviceData) {
     let hasShownInitialStatus = false;
     let isServiceRunning = false;
 
-    // Reset status display when switching services
+    // Reset status display when connecting if this service is active
     const statusElement = document.querySelector('.status-running');
-    if (statusElement) {
+    if (activeServiceId === serviceData.id && statusElement) {
         const statusDot = statusElement.querySelector('.status-dot');
         const statusText = statusElement.querySelector('span');
-        statusDot.style.backgroundColor = '#FFD700'; // Yellow color
+        statusDot.style.backgroundColor = '#FFD700';
         statusText.textContent = 'Connecting...';
     }
 
@@ -335,13 +343,13 @@ function connectToSignalR(serviceData) {
 
     function updateServiceStatus(isRunning) {
         isServiceRunning = isRunning;
-        
-        // Update status in the metrics card
+
+        // Update status in the metrics card only for the active service
         const statusElement = document.querySelector('.status-running');
-        if (statusElement) {
+        if (activeServiceId === serviceData.id && statusElement) {
             const statusDot = statusElement.querySelector('.status-dot');
             const statusText = statusElement.querySelector('span');
-            
+
             if (isRunning) {
                 statusDot.style.backgroundColor = 'var(--green-primary)';
                 statusText.textContent = 'Running';
@@ -372,42 +380,58 @@ function connectToSignalR(serviceData) {
             .build();
 
         connection.on("ReceiveHealthUpdate", (data) => {
-            // Clear any existing timeout
             clearTimeout(dataTimeout);
-            
-            // Update status to running on first data
+
             if (isFirstData) {
                 hasShownInitialStatus = true;
                 updateServiceStatus(true);
                 isFirstData = false;
             }
 
-            // Get current values
-            const cpuElement = document.getElementById("cpu-value");
-            const memoryElement = document.getElementById("memory-value");
-            const connectionsElement = document.getElementById("connections-value");
+            // Store latest metrics
+            serviceMetrics[serviceData.id] = {
+                cpuUsage: data.cpuUsage,
+                memoryUsage: data.memoryUsage,
+                activeConnections: data.activeConnections,
+                serviceRunning: true,
+                serviceUptime: data.serviceUptime,
+                timestamp: data.timestamp
+            };
 
-            // Parse current values
-            const currentCpu = parseMetricValue(cpuElement.textContent, true);
-            const currentMemory = parseMetricValue(memoryElement.textContent, true);
-            const currentConnections = parseMetricValue(connectionsElement.textContent);
+            if (!serviceLogs[serviceData.id]) serviceLogs[serviceData.id] = [];
+            serviceLogs[serviceData.id].push({ timestamp: data.timestamp, serviceUptime: data.serviceUptime });
+            if (serviceLogs[serviceData.id].length > 100) serviceLogs[serviceData.id].shift();
 
-            // Parse new values
-            const newCpu = parseMetricValue(data.cpuUsage, true);
-            const newMemory = parseMetricValue(data.memoryUsage, true);
-            const newConnections = parseMetricValue(data.activeConnections);
+            if (activeServiceId === serviceData.id) {
+                const cpuElement = document.getElementById("cpu-value");
+                const memoryElement = document.getElementById("memory-value");
+                const connectionsElement = document.getElementById("connections-value");
 
-            // Animate the values
-            animateValue(cpuElement, currentCpu, newCpu, 1000, '%');
-            animateValue(memoryElement, currentMemory, newMemory, 1000, '%');
-            animateValue(connectionsElement, currentConnections, newConnections, 1000);
+                const currentCpu = parseMetricValue(cpuElement.textContent, true);
+                const currentMemory = parseMetricValue(memoryElement.textContent, true);
+                const currentConnections = parseMetricValue(connectionsElement.textContent);
 
-            // For logs
-            const logsList = document.getElementById("logs-list");
-            const newLog = document.createElement("div");
-            newLog.className = "log-entry";
-            newLog.textContent = `${new Date(data.timestamp).toLocaleTimeString()} - Service Uptime: ${data.serviceUptime}`;
-            logsList.prepend(newLog);
+                const newCpu = parseMetricValue(data.cpuUsage, true);
+                const newMemory = parseMetricValue(data.memoryUsage, true);
+                const newConnections = parseMetricValue(data.activeConnections);
+
+                animateValue(cpuElement, currentCpu, newCpu, 1000, '%');
+                animateValue(memoryElement, currentMemory, newMemory, 1000, '%');
+                animateValue(connectionsElement, currentConnections, newConnections, 1000);
+
+                const logsList = document.getElementById("logs-list");
+                if (logsList) {
+                    const newLog = document.createElement("div");
+                    newLog.className = "log-entry";
+                    newLog.textContent = `${new Date(data.timestamp).toLocaleTimeString()} - Service Uptime: ${data.serviceUptime}`;
+                    logsList.prepend(newLog);
+                }
+
+                updateLogStats();
+            } else {
+                // Update sidebar dot only
+                updateServiceStatus(true);
+            }
         });
 
         connection
@@ -432,9 +456,11 @@ function connectToSignalR(serviceData) {
             clearTimeout(dataTimeout);
             hasShownInitialStatus = true;
             updateServiceStatus(false);
+            if (serviceMetrics[serviceData.id]) {
+                serviceMetrics[serviceData.id].serviceRunning = false;
+            }
             isFirstData = true; // Reset first data flag when connection closes
-            
-            // Try to reconnect after a delay
+
             reconnectTimeout = setTimeout(() => {
                 startConnection();
             }, RECONNECT_INTERVAL);
@@ -443,8 +469,9 @@ function connectToSignalR(serviceData) {
         return connection;
     }
 
-    // Start the initial connection
-    return startConnection();
+    const conn = startConnection();
+    serviceConnections[serviceData.id] = conn;
+    return conn;
 }
 
 // Modify the selectService function to establish SignalR connection
@@ -453,17 +480,20 @@ function selectService(element, index, service) {
         item.classList.remove('active');
     });
     element.classList.add('active');
-    activeService = index;
-    
+
     // Get the service data from the data attribute
     const serviceData = JSON.parse(element.dataset.service);
+    activeServiceId = serviceData.id;
     console.log('Selected service data:', serviceData);
 
-    // Connect to SignalR for this service
-    const connection = connectToSignalR(serviceData);
+    // Connect to SignalR for this service if not already connected
+    if (!serviceConnections[serviceData.id]) {
+        serviceConnections[serviceData.id] = connectToSignalR(serviceData);
+    }
 
-    // Store the connection in the element for cleanup if needed
-    element.dataset.signalRConnection = connection;
+    // Render cached metrics and logs
+    renderServiceMetrics(serviceData.id);
+    populateLogs(serviceData.id);
 
     // Close sidebar on mobile after selection
     if (window.innerWidth <= 768) {
@@ -495,10 +525,11 @@ function switchTab(element, tabName, index) {
     if (tabName === 'metrics') {
         chartContainer.style.display = 'block';
         logsContainer.classList.remove('active');
+        renderServiceMetrics(activeServiceId);
     } else if (tabName === 'logs') {
         chartContainer.style.display = 'none';
         logsContainer.classList.add('active');
-        populateLogs();
+        populateLogs(activeServiceId);
     }
     
     // Add animation to tab icon
@@ -507,25 +538,47 @@ function switchTab(element, tabName, index) {
 }
 
 // ===== LOGS FUNCTIONS =====
-function populateLogs() {
+function populateLogs(serviceId) {
     const logsList = document.getElementById('logs-list');
     if (!logsList) return;
 
     logsList.innerHTML = '';
-    
-    logData.forEach((log, index) => {
+    const logs = serviceLogs[serviceId] || [];
+
+    logs.forEach((log) => {
         const logEntry = document.createElement('div');
-        logEntry.className = `log-entry ${log.level}`;
-        logEntry.style.animationDelay = `${index * 0.05}s`;
-        
-        logEntry.innerHTML = `
-            <div class="log-level ${log.level}">${log.level}</div>
-            <div class="log-timestamp">${log.timestamp}</div>
-            <div class="log-message">${log.message}</div>
-        `;
-        
-        logsList.appendChild(logEntry);
+        logEntry.className = 'log-entry';
+        logEntry.textContent = `${new Date(log.timestamp).toLocaleTimeString()} - Service Uptime: ${log.serviceUptime}`;
+        logsList.prepend(logEntry);
     });
+
+    updateLogStats();
+}
+
+function renderServiceMetrics(serviceId) {
+    const metrics = serviceMetrics[serviceId];
+    if (!metrics) return;
+
+    const cpuElement = document.getElementById('cpu-value');
+    const memoryElement = document.getElementById('memory-value');
+    const connectionsElement = document.getElementById('connections-value');
+
+    if (cpuElement) cpuElement.textContent = parseMetricValue(metrics.cpuUsage, true).toFixed(1) + '%';
+    if (memoryElement) memoryElement.textContent = parseMetricValue(metrics.memoryUsage, true).toFixed(1) + '%';
+    if (connectionsElement) connectionsElement.textContent = parseMetricValue(metrics.activeConnections).toFixed(1);
+
+    const statusElement = document.querySelector('.status-running');
+    if (statusElement) {
+        const statusDot = statusElement.querySelector('.status-dot');
+        const statusText = statusElement.querySelector('span');
+        if (metrics.serviceRunning) {
+            statusDot.style.backgroundColor = 'var(--green-primary)';
+            statusText.textContent = 'Running';
+        } else {
+            statusDot.style.backgroundColor = 'var(--red-primary)';
+            statusText.textContent = 'Stopped';
+        }
+    }
 }
 
 // Function to toggle filter dropdown
@@ -567,28 +620,16 @@ function filterLogsByLevel(level) {
 
 // Function to update log statistics
 function updateLogStats() {
-    const logs = document.querySelectorAll('.log-entry');
-    const stats = {
-        info: 0,
-        warning: 0,
-        error: 0
-    };
-    
-    logs.forEach(entry => {
-        if (entry.style.display !== 'none') {
-            const logLevel = entry.querySelector('.log-level').className.split(' ')[1];
-            stats[logLevel]++;
-        }
-    });
-    
-    // Update stats display
+    const logs = serviceLogs[activeServiceId] || [];
+    const totalStat = document.querySelector('.log-stat.total strong');
     const infoStat = document.querySelector('.log-stat[data-level="info"] span');
     const warningStat = document.querySelector('.log-stat[data-level="warning"] span');
     const errorStat = document.querySelector('.log-stat[data-level="error"] span');
-    
-    if (infoStat) infoStat.textContent = stats.info;
-    if (warningStat) warningStat.textContent = stats.warning;
-    if (errorStat) errorStat.textContent = stats.error;
+
+    if (totalStat) totalStat.textContent = logs.length;
+    if (infoStat) infoStat.textContent = 0;
+    if (warningStat) warningStat.textContent = 0;
+    if (errorStat) errorStat.textContent = 0;
 }
 
 // Function to export logs to CSV
