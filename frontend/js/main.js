@@ -669,16 +669,17 @@ function filterLogsByLevel(level) {
 }
 
 // Function to update log statistics
-function updateLogStats() {
-    const logs = document.querySelectorAll('.log-entry');
-    let info = 0, warning = 0, error = 0, total = 0;
+function updateLogStats(serviceId = activeServiceId) {
+    const logs = serviceLogs[serviceId] || [];
+    let info = 0, warning = 0, error = 0;
+
     logs.forEach(entry => {
-        if (entry.style.display === 'none') return;
-        total++;
-        if (entry.classList.contains('info')) info++;
-        else if (entry.classList.contains('warning')) warning++;
-        else if (entry.classList.contains('error')) error++;
+        if (entry.level === 'info') info++;
+        else if (entry.level === 'warning') warning++;
+        else if (entry.level === 'error') error++;
     });
+
+    const total = logs.length;
 
     const totalStat = document.querySelector('.log-stat.total strong');
     const infoStat = document.querySelector('.log-stat.info strong');
