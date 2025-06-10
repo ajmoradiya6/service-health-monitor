@@ -464,6 +464,8 @@ function connectToSignalR(serviceData) {
 
                 const logsList = document.getElementById("logs-list");
                 if (logsList && Array.isArray(data.applicationLogs)) {
+                    const wasAtBottom =
+                        Math.abs(logsList.scrollHeight - logsList.clientHeight - logsList.scrollTop) <= 1;
                     data.applicationLogs.forEach((log) => {
                         const entry = parseLogEntry(log);
 
@@ -474,8 +476,11 @@ function connectToSignalR(serviceData) {
                             <div class="log-timestamp">${entry.timestamp}</div>
                             <div class="log-message">${entry.message}</div>
                         `;
-                        logsList.prepend(logDiv);
+                        logsList.appendChild(logDiv);
                     });
+                    if (wasAtBottom) {
+                        logsList.scrollTop = logsList.scrollHeight;
+                    }
                 }
 
                 updateLogStats();
@@ -606,7 +611,7 @@ function populateLogs(serviceId) {
     logsList.innerHTML = '';
     const logs = serviceLogs[serviceId] || [];
 
-    logs.slice().reverse().forEach((log) => {
+    logs.forEach((log) => {
         if (currentLogFilter !== 'all' && log.level !== currentLogFilter) {
             return;
         }
@@ -619,6 +624,8 @@ function populateLogs(serviceId) {
         `;
         logsList.appendChild(logEntry);
     });
+
+    logsList.scrollTop = logsList.scrollHeight;
 
     updateLogStats();
 }
