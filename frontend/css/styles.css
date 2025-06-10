@@ -12,6 +12,7 @@
             --blue-glow: rgba(59, 130, 246, 0.3);
             --purple-primary: #8b5cf6;
             --green-primary: #10b981;
+            --gray-primary: #6b7280;
             --red-primary: #ef4444;
             --yellow-primary: #f59e0b;
             --card-radius: 12px;
@@ -217,6 +218,7 @@
             --blue-glow: rgba(59, 130, 246, 0.3);
             --purple-primary: #8b5cf6;
             --green-primary: #10b981;
+            --gray-primary: #9ca3af;
             --red-primary: #ef4444;
             --yellow-primary: #f59e0b;
             --card-radius: 12px;
@@ -399,6 +401,11 @@
             position: relative;
             overflow: hidden;
             height: 36px;
+            color: var(--text-secondary);
+        }
+
+        .service-item.connected {
+            color: var(--text-primary);
         }
 
         .service-item.active {
@@ -436,7 +443,7 @@
             height: 8px;
             border-radius: 50%;
             margin-right: 10px;
-            background-color: var(--dot-color, var(--green-primary));
+            background-color: var(--dot-color, var(--gray-primary));
             position: relative;
             transition: color 0.3s ease;
         }
@@ -449,7 +456,7 @@
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            background-color: var(--dot-color, var(--green-primary));
+            background-color: var(--dot-color, var(--gray-primary));
             opacity: 0.3;
             animation: pulse-dot 2s infinite;
         }
@@ -751,7 +758,7 @@
         }
 
         .status-running span {
-            color: var(--dot-color, var(--green-primary));
+            color: var(--dot-color, var(--gray-primary));
         }
 
         @keyframes statusPulse {

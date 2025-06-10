@@ -336,6 +336,7 @@ function connectToSignalR(serviceData) {
         if (serviceDot) {
             serviceDot.style.setProperty('--dot-color', 'var(--yellow-primary)'); // Yellow color
         }
+        serviceItem.classList.add('connected');
     }
 
     function updateServiceStatus(isRunning) {
@@ -357,6 +358,7 @@ function connectToSignalR(serviceData) {
                 const color = isRunning ? 'var(--green-primary)' : 'var(--red-primary)';
                 serviceDot.style.setProperty('--dot-color', color);
             }
+            serviceItem.classList.add('connected');
         }
     }
 
