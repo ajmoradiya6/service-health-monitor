@@ -56,6 +56,20 @@
     // Add event listener for service actions (ellipsis) using delegation
     container.addEventListener('click', handleServiceActionsClick);
 
+    // Auto-select the first service and attempt connections to all services
+    if (services.length > 0) {
+        const firstItem = container.querySelector('.service-item');
+        if (firstItem) {
+            selectService(firstItem, 0, services[0]);
+        }
+
+        services.forEach((srv, idx) => {
+            if (idx !== 0) {
+                connectToSignalR(srv);
+            }
+        });
+    }
+
   } catch (error) {
     console.error('Network error or exception while loading services:', error);
   }
