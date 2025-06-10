@@ -409,7 +409,18 @@ function connectToSignalR(serviceData) {
             if (!serviceLogs[serviceData.id]) serviceLogs[serviceData.id] = [];
             if (Array.isArray(data.applicationLogs)) {
                 data.applicationLogs.forEach((log) => {
-                    serviceLogs[serviceData.id].push(log);
+                    const entry = typeof log === 'object' && log !== null
+                        ? {
+                            level: (log.level || 'info').toLowerCase(),
+                            timestamp: log.timestamp || new Date().toLocaleTimeString(),
+                            message: log.message || ''
+                        }
+                        : {
+                            level: 'info',
+                            timestamp: new Date().toLocaleTimeString(),
+                            message: String(log)
+                        };
+                    serviceLogs[serviceData.id].push(entry);
                     if (serviceLogs[serviceData.id].length > MAX_LOGS) {
                         serviceLogs[serviceData.id].shift();
                     }
@@ -436,10 +447,26 @@ function connectToSignalR(serviceData) {
                 const logsList = document.getElementById("logs-list");
                 if (logsList && Array.isArray(data.applicationLogs)) {
                     data.applicationLogs.forEach((log) => {
-                        const newLog = document.createElement("div");
-                        newLog.className = "log-entry";
-                        newLog.textContent = log;
-                        logsList.prepend(newLog);
+                        const entry = typeof log === 'object' && log !== null
+                            ? {
+                                level: (log.level || 'info').toLowerCase(),
+                                timestamp: log.timestamp || new Date().toLocaleTimeString(),
+                                message: log.message || ''
+                            }
+                            : {
+                                level: 'info',
+                                timestamp: new Date().toLocaleTimeString(),
+                                message: String(log)
+                            };
+
+                        const logDiv = document.createElement('div');
+                        logDiv.className = `log-entry ${entry.level}`;
+                        logDiv.innerHTML = `
+                            <div class="log-level ${entry.level}">${entry.level}</div>
+                            <div class="log-timestamp">${entry.timestamp}</div>
+                            <div class="log-message">${entry.message}</div>
+                        `;
+                        logsList.prepend(logDiv);
                     });
                 }
 
@@ -571,11 +598,18 @@ function populateLogs(serviceId) {
     logsList.innerHTML = '';
     const logs = serviceLogs[serviceId] || [];
 
-    logs.forEach((log) => {
+    logs.slice().reverse().forEach((log) => {
+        if (currentLogFilter !== 'all' && log.level !== currentLogFilter) {
+            return;
+        }
         const logEntry = document.createElement('div');
-        logEntry.className = 'log-entry';
-        logEntry.textContent = log;
-        logsList.prepend(logEntry);
+        logEntry.className = `log-entry ${log.level}`;
+        logEntry.innerHTML = `
+            <div class="log-level ${log.level}">${log.level}</div>
+            <div class="log-timestamp">${log.timestamp}</div>
+            <div class="log-message">${log.message}</div>
+        `;
+        logsList.appendChild(logEntry);
     });
 
     updateLogStats();
@@ -612,7 +646,6 @@ function toggleFilter() {
 // Function to filter logs by level
 function filterLogsByLevel(level) {
     currentLogFilter = level;
-    const logs = document.querySelectorAll('.log-entry');
     const filterButton = document.querySelector('.filter-button span');
 
     // Update filter button text
@@ -624,19 +657,30 @@ function filterLogsByLevel(level) {
         filterDropdown.classList.remove('show');
     }
 
-    // Since logs have no level metadata, simply show all
-    logs.forEach(entry => {
-        entry.style.display = 'flex';
-    });
-
-    updateLogStats();
+    populateLogs(activeServiceId);
 }
 
 // Function to update log statistics
 function updateLogStats() {
-    const logs = serviceLogs[activeServiceId] || [];
+    const logs = document.querySelectorAll('.log-entry');
+    let info = 0, warning = 0, error = 0, total = 0;
+    logs.forEach(entry => {
+        if (entry.style.display === 'none') return;
+        total++;
+        if (entry.classList.contains('info')) info++;
+        else if (entry.classList.contains('warning')) warning++;
+        else if (entry.classList.contains('error')) error++;
+    });
+
     const totalStat = document.querySelector('.log-stat.total strong');
-    if (totalStat) totalStat.textContent = logs.length;
+    const infoStat = document.querySelector('.log-stat.info strong');
+    const warnStat = document.querySelector('.log-stat.warning strong');
+    const errorStat = document.querySelector('.log-stat.error strong');
+
+    if (totalStat) totalStat.textContent = total;
+    if (infoStat) infoStat.textContent = info;
+    if (warnStat) warnStat.textContent = warning;
+    if (errorStat) errorStat.textContent = error;
 }
 
 // Function to export logs to CSV
@@ -650,12 +694,14 @@ function exportLogs() {
     }
     
     // Create CSV content
-    let csvContent = 'Message\n';
+    let csvContent = 'Timestamp,Level,Message\n';
 
     visibleLogs.forEach(entry => {
-        const message = entry.textContent;
+        const timestamp = entry.querySelector('.log-timestamp').textContent;
+        const level = entry.querySelector('.log-level').textContent;
+        const message = entry.querySelector('.log-message').textContent;
         const escapedMessage = message.replace(/"/g, '""');
-        csvContent += `"${escapedMessage}"\n`;
+        csvContent += `${timestamp},${level},"${escapedMessage}"\n`;
     });
     
     // Create and trigger download
