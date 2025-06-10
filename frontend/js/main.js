@@ -486,6 +486,17 @@ function selectService(element, index, service) {
     activeServiceId = serviceData.id;
     console.log('Selected service data:', serviceData);
 
+    // If this service has never been connected, show "Connecting..." feedback
+    if (!serviceConnections[serviceData.id]) {
+        const statusElement = document.querySelector('.status-running');
+        if (statusElement) {
+            const statusDot = statusElement.querySelector('.status-dot');
+            const statusText = statusElement.querySelector('span');
+            statusDot.style.backgroundColor = '#FFD700';
+            statusText.textContent = 'Connecting...';
+        }
+    }
+
     // Connect to SignalR for this service if not already connected
     if (!serviceConnections[serviceData.id]) {
         serviceConnections[serviceData.id] = connectToSignalR(serviceData);
