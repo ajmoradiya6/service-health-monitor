@@ -285,7 +285,7 @@ function closeSidebar() {
 const outputToConsole = true; // set false to disable console logs
 
 // Add animation function
-function animateValue(element, start, end, duration, suffix = '') {
+function animateValue(element, start, end, duration, suffix = '', decimals = 1) {
     const startTime = performance.now();
     
     function updateValue(timestamp) {
@@ -296,13 +296,13 @@ function animateValue(element, start, end, duration, suffix = '') {
             : 1 - Math.pow(-2 * progress + 2, 2) / 2; // Ease in-out quad
         
         const value = start + (end - start) * easeProgress;
-        element.textContent = `${value.toFixed(1)}${suffix}`;
+        element.textContent = `${value.toFixed(decimals)}${suffix}`;
         
         if (progress < 1) {
             requestAnimationFrame(updateValue);
         } else {
-            // Always show one decimal place for the final value
-            element.textContent = `${Number(end).toFixed(1)}${suffix}`;
+            // Always show the specified number of decimal places for the final value
+            element.textContent = `${Number(end).toFixed(decimals)}${suffix}`;
         }
     }
     
@@ -422,9 +422,9 @@ function connectToSignalR(serviceData) {
                 const newMemory = parseMetricValue(data.memoryUsage, true);
                 const newConnections = parseMetricValue(data.activeConnections);
 
-                animateValue(cpuElement, currentCpu, newCpu, 1000, '%');
-                animateValue(memoryElement, currentMemory, newMemory, 1000, '%');
-                animateValue(connectionsElement, currentConnections, newConnections, 1000);
+                animateValue(cpuElement, currentCpu, newCpu, 1000, '%', 2);
+                animateValue(memoryElement, currentMemory, newMemory, 1000, '%', 2);
+                animateValue(connectionsElement, currentConnections, newConnections, 1000, '', 1);
 
                 const logsList = document.getElementById("logs-list");
                 if (logsList) {
@@ -580,8 +580,8 @@ function renderServiceMetrics(serviceId) {
     const memoryElement = document.getElementById('memory-value');
     const connectionsElement = document.getElementById('connections-value');
 
-    if (cpuElement) cpuElement.textContent = parseMetricValue(metrics.cpuUsage, true).toFixed(1) + '%';
-    if (memoryElement) memoryElement.textContent = parseMetricValue(metrics.memoryUsage, true).toFixed(1) + '%';
+    if (cpuElement) cpuElement.textContent = parseMetricValue(metrics.cpuUsage, true).toFixed(2) + '%';
+    if (memoryElement) memoryElement.textContent = parseMetricValue(metrics.memoryUsage, true).toFixed(2) + '%';
     if (connectionsElement) connectionsElement.textContent = parseMetricValue(metrics.activeConnections).toFixed(1);
 
     const statusElement = document.querySelector('.status-running');
