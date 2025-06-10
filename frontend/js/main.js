@@ -89,6 +89,7 @@ let animationFrame;
 const serviceConnections = {};
 const serviceLogs = {};
 const serviceMetrics = {};
+const MAX_LOGS = 200; // limit stored logs per service
 
 // Get modal elements and forms
 const registerServiceModal = document.getElementById('register-service-modal');
@@ -406,8 +407,14 @@ function connectToSignalR(serviceData) {
             };
 
             if (!serviceLogs[serviceData.id]) serviceLogs[serviceData.id] = [];
-            serviceLogs[serviceData.id].push({ timestamp: data.timestamp, serviceUptime: data.serviceUptime });
-            if (serviceLogs[serviceData.id].length > 100) serviceLogs[serviceData.id].shift();
+            if (Array.isArray(data.applicationLogs)) {
+                data.applicationLogs.forEach((log) => {
+                    serviceLogs[serviceData.id].push(log);
+                    if (serviceLogs[serviceData.id].length > MAX_LOGS) {
+                        serviceLogs[serviceData.id].shift();
+                    }
+                });
+            }
 
             if (activeServiceId === serviceData.id) {
                 const cpuElement = document.getElementById("cpu-value");
@@ -427,11 +434,13 @@ function connectToSignalR(serviceData) {
                 animateValue(connectionsElement, currentConnections, newConnections, 1000, '', 1);
 
                 const logsList = document.getElementById("logs-list");
-                if (logsList) {
-                    const newLog = document.createElement("div");
-                    newLog.className = "log-entry";
-                    newLog.textContent = `${new Date(data.timestamp).toLocaleTimeString()} - Service Uptime: ${data.serviceUptime}`;
-                    logsList.prepend(newLog);
+                if (logsList && Array.isArray(data.applicationLogs)) {
+                    data.applicationLogs.forEach((log) => {
+                        const newLog = document.createElement("div");
+                        newLog.className = "log-entry";
+                        newLog.textContent = log;
+                        logsList.prepend(newLog);
+                    });
                 }
 
                 updateLogStats();
@@ -565,7 +574,7 @@ function populateLogs(serviceId) {
     logs.forEach((log) => {
         const logEntry = document.createElement('div');
         logEntry.className = 'log-entry';
-        logEntry.textContent = `${new Date(log.timestamp).toLocaleTimeString()} - Service Uptime: ${log.serviceUptime}`;
+        logEntry.textContent = log;
         logsList.prepend(logEntry);
     });
 
@@ -605,27 +614,21 @@ function filterLogsByLevel(level) {
     currentLogFilter = level;
     const logs = document.querySelectorAll('.log-entry');
     const filterButton = document.querySelector('.filter-button span');
-    
+
     // Update filter button text
     filterButton.textContent = level.charAt(0).toUpperCase() + level.slice(1);
-    
+
     // Hide dropdown
     const filterDropdown = document.querySelector('.filter-dropdown .filter-options');
     if (filterDropdown) {
         filterDropdown.classList.remove('show');
     }
-    
-    // Filter logs
+
+    // Since logs have no level metadata, simply show all
     logs.forEach(entry => {
-        const logLevel = entry.querySelector('.log-level').className.split(' ')[1];
-        if (level === 'all' || logLevel === level) {
-            entry.style.display = 'flex';
-        } else {
-            entry.style.display = 'none';
-        }
+        entry.style.display = 'flex';
     });
-    
-    // Update stats
+
     updateLogStats();
 }
 
@@ -633,14 +636,7 @@ function filterLogsByLevel(level) {
 function updateLogStats() {
     const logs = serviceLogs[activeServiceId] || [];
     const totalStat = document.querySelector('.log-stat.total strong');
-    const infoStat = document.querySelector('.log-stat[data-level="info"] span');
-    const warningStat = document.querySelector('.log-stat[data-level="warning"] span');
-    const errorStat = document.querySelector('.log-stat[data-level="error"] span');
-
     if (totalStat) totalStat.textContent = logs.length;
-    if (infoStat) infoStat.textContent = 0;
-    if (warningStat) warningStat.textContent = 0;
-    if (errorStat) errorStat.textContent = 0;
 }
 
 // Function to export logs to CSV
@@ -654,17 +650,12 @@ function exportLogs() {
     }
     
     // Create CSV content
-    let csvContent = 'Timestamp,Level,Message\n';
-    
+    let csvContent = 'Message\n';
+
     visibleLogs.forEach(entry => {
-        const timestamp = entry.querySelector('.log-timestamp').textContent;
-        const level = entry.querySelector('.log-level').className.split(' ')[1];
-        const message = entry.querySelector('.log-message').textContent;
-        
-        // Escape commas and quotes in the message
+        const message = entry.textContent;
         const escapedMessage = message.replace(/"/g, '""');
-        
-        csvContent += `${timestamp},${level},"${escapedMessage}"\n`;
+        csvContent += `"${escapedMessage}"\n`;
     });
     
     // Create and trigger download
