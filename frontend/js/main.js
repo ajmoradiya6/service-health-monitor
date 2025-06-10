@@ -319,6 +319,34 @@ function parseMetricValue(value, isPercentage = false) {
     return value || 0;
 }
 
+function parseLogEntry(log) {
+    if (typeof log === 'object' && log !== null) {
+        return {
+            level: (log.level || 'info').toLowerCase(),
+            timestamp: log.timestamp || new Date().toLocaleTimeString(),
+            message: log.message || ''
+        };
+    }
+
+    const logStr = String(log);
+    const match = logStr.match(/^(.*?)\s*\[(\w+)\]\s*(.*)$/);
+    if (match) {
+        const [, time, code, msg] = match;
+        let level = 'info';
+        const upper = code.toUpperCase();
+        if (upper.startsWith('WRN')) level = 'warning';
+        else if (upper.startsWith('ERR')) level = 'error';
+        else if (upper.startsWith('INF')) level = 'info';
+        return { level, timestamp: time.trim(), message: msg };
+    }
+
+    return {
+        level: 'info',
+        timestamp: new Date().toLocaleTimeString(),
+        message: logStr
+    };
+}
+
 function connectToSignalR(serviceData) {
     if (serviceConnections[serviceData.id]) {
         return serviceConnections[serviceData.id];
@@ -409,17 +437,7 @@ function connectToSignalR(serviceData) {
             if (!serviceLogs[serviceData.id]) serviceLogs[serviceData.id] = [];
             if (Array.isArray(data.applicationLogs)) {
                 data.applicationLogs.forEach((log) => {
-                    const entry = typeof log === 'object' && log !== null
-                        ? {
-                            level: (log.level || 'info').toLowerCase(),
-                            timestamp: log.timestamp || new Date().toLocaleTimeString(),
-                            message: log.message || ''
-                        }
-                        : {
-                            level: 'info',
-                            timestamp: new Date().toLocaleTimeString(),
-                            message: String(log)
-                        };
+                    const entry = parseLogEntry(log);
                     serviceLogs[serviceData.id].push(entry);
                     if (serviceLogs[serviceData.id].length > MAX_LOGS) {
                         serviceLogs[serviceData.id].shift();
@@ -447,17 +465,7 @@ function connectToSignalR(serviceData) {
                 const logsList = document.getElementById("logs-list");
                 if (logsList && Array.isArray(data.applicationLogs)) {
                     data.applicationLogs.forEach((log) => {
-                        const entry = typeof log === 'object' && log !== null
-                            ? {
-                                level: (log.level || 'info').toLowerCase(),
-                                timestamp: log.timestamp || new Date().toLocaleTimeString(),
-                                message: log.message || ''
-                            }
-                            : {
-                                level: 'info',
-                                timestamp: new Date().toLocaleTimeString(),
-                                message: String(log)
-                            };
+                        const entry = parseLogEntry(log);
 
                         const logDiv = document.createElement('div');
                         logDiv.className = `log-entry ${entry.level}`;
