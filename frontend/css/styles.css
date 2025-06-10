@@ -1276,6 +1276,7 @@
             flex-direction: column;
             gap: 8px;
             width: 100%; /* Ensure logs list takes full width */
+            min-height: 0; /* Allow scrolling within the container */
         }
 
         .log-entry {

@@ -465,7 +465,7 @@ function connectToSignalR(serviceData) {
                 const logsList = document.getElementById("logs-list");
                 if (logsList && Array.isArray(data.applicationLogs)) {
                     const wasAtBottom =
-                        Math.abs(logsList.scrollHeight - logsList.clientHeight - logsList.scrollTop) <= 1;
+                        Math.abs(logsList.scrollHeight - logsList.clientHeight - logsList.scrollTop) <= 5;
                     data.applicationLogs.forEach((log) => {
                         const entry = parseLogEntry(log);
 
