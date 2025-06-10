@@ -36,10 +36,8 @@
       };
       
       // Construct the inner HTML with status dot, service name, and actions (ellipsis)
-      const statusColor = 'var(--green-primary)'; // Placeholder
-      
       div.innerHTML = `
-          <div class="status-dot" style="background-color: ${statusColor};"></div>
+          <div class="status-dot"></div>
           <span class="service-name">${service.name}</span>
           <div class="service-actions" data-service-id="${service.id}"><i data-lucide="more-vertical"></i></div>
       `;
