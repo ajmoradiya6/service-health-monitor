@@ -436,7 +436,7 @@
             height: 8px;
             border-radius: 50%;
             margin-right: 10px;
-            background-color: var(--green-primary);
+            background-color: var(--dot-color, var(--green-primary));
             position: relative;
             transition: color 0.3s ease;
         }
@@ -449,7 +449,7 @@
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            background-color: var(--green-primary);
+            background-color: var(--dot-color, var(--green-primary));
             opacity: 0.3;
             animation: pulse-dot 2s infinite;
         }
@@ -751,7 +751,7 @@
         }
 
         .status-running span {
-            color: var(--green-primary);
+            color: var(--dot-color, var(--green-primary));
         }
 
         @keyframes statusPulse {

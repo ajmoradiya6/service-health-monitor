@@ -328,7 +328,7 @@ function connectToSignalR(serviceData) {
     if (activeServiceId === serviceData.id && statusElement) {
         const statusDot = statusElement.querySelector('.status-dot');
         const statusText = statusElement.querySelector('span');
-        statusDot.style.backgroundColor = '#FFD700';
+        statusDot.style.setProperty('--dot-color', 'var(--yellow-primary)');
         statusText.textContent = 'Connecting...';
     }
 
@@ -337,7 +337,7 @@ function connectToSignalR(serviceData) {
     if (serviceItem) {
         const serviceDot = serviceItem.querySelector('.status-dot');
         if (serviceDot) {
-            serviceDot.style.backgroundColor = '#FFD700'; // Yellow color
+            serviceDot.style.setProperty('--dot-color', 'var(--yellow-primary)'); // Yellow color
         }
     }
 
@@ -351,10 +351,10 @@ function connectToSignalR(serviceData) {
             const statusText = statusElement.querySelector('span');
 
             if (isRunning) {
-                statusDot.style.backgroundColor = 'var(--green-primary)';
+                statusDot.style.setProperty('--dot-color', 'var(--green-primary)');
                 statusText.textContent = 'Running';
             } else {
-                statusDot.style.backgroundColor = 'var(--red-primary)';
+                statusDot.style.setProperty('--dot-color', 'var(--red-primary)');
                 statusText.textContent = 'Stopped';
             }
         }
@@ -364,7 +364,8 @@ function connectToSignalR(serviceData) {
         if (serviceItem) {
             const serviceDot = serviceItem.querySelector('.status-dot');
             if (serviceDot) {
-                serviceDot.style.backgroundColor = isRunning ? 'var(--green-primary)' : 'var(--red-primary)';
+                const color = isRunning ? 'var(--green-primary)' : 'var(--red-primary)';
+                serviceDot.style.setProperty('--dot-color', color);
             }
         }
     }
@@ -492,7 +493,7 @@ function selectService(element, index, service) {
         if (statusElement) {
             const statusDot = statusElement.querySelector('.status-dot');
             const statusText = statusElement.querySelector('span');
-            statusDot.style.backgroundColor = '#FFD700';
+            statusDot.style.setProperty('--dot-color', 'var(--yellow-primary)');
             statusText.textContent = 'Connecting...';
         }
     }
@@ -583,10 +584,10 @@ function renderServiceMetrics(serviceId) {
         const statusDot = statusElement.querySelector('.status-dot');
         const statusText = statusElement.querySelector('span');
         if (metrics.serviceRunning) {
-            statusDot.style.backgroundColor = 'var(--green-primary)';
+            statusDot.style.setProperty('--dot-color', 'var(--green-primary)');
             statusText.textContent = 'Running';
         } else {
-            statusDot.style.backgroundColor = 'var(--red-primary)';
+            statusDot.style.setProperty('--dot-color', 'var(--red-primary)');
             statusText.textContent = 'Stopped';
         }
     }
