@@ -989,12 +989,15 @@
             border-color: rgba(148, 163, 184, 0.5);
         }
 
-        .logs-header {
-            display: flex;
-            align-items: center;
-            flex-direction: column;
-            gap: 20px; /* Space between controls and stats */
-        }
+.logs-header {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 20px; /* Space between controls and stats */
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
 
         .logs-controls-top {
             display: flex;
@@ -1457,6 +1460,9 @@
                 flex-direction: column;
                 align-items: stretch;
                 gap: 12px;
+                flex: 1;
+                min-height: 0;
+                overflow: auto;
             }
 
             .search-box {
