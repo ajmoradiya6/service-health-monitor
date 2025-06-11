@@ -1973,6 +1973,8 @@
         /* Settings modal layout */
         #settings-modal .settings-modal-content {
             max-width: 760px;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         .settings-container {
@@ -1983,8 +1985,7 @@
         .settings-list {
             flex: 0 0 220px;
             padding: 24px;
-            background-color: var(--bg-secondary);
-            border-radius: var(--card-radius);
+            border-right: 1px solid var(--border-color);
         }
 
         .settings-list ul {
@@ -2023,8 +2024,6 @@
         .settings-details {
             flex: 1;
             padding: 24px;
-            background-color: var(--bg-secondary);
-            border-radius: var(--card-radius);
         }
 
         .checkbox-group label {
@@ -2037,7 +2036,7 @@
         .settings-section {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
         }
 
         .settings-section .form-group {
@@ -2055,7 +2054,7 @@
         }
 
         .settings-section .form-group + .form-group {
-            margin-top: 16px;
+            margin-top: 12px;
         }
 
         .settings-section input[type="checkbox"] {

@@ -262,6 +262,9 @@ function closeEditServiceModal() {
 function openSettingsModal() {
     if (settingsModal) {
         settingsModal.style.display = 'flex';
+        if (window.lucide) {
+            lucide.createIcons();
+        }
     }
 }
 
