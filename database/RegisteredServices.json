@@ -9,6 +9,6 @@
     "id": "a20fa5e1-c904-4e60-8384-b1187a50f458",
     "name": "PDF Serive",
     "url": "http://localhost",
-    "port": "3000"
+    "port": "8005"
   }
 ]
