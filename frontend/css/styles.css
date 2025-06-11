@@ -1980,15 +1980,16 @@
 
         .settings-container {
             display: flex;
-            gap: 24px;
+            /* gap: 24px; */
             flex: 1;
             min-height: 0;
         }
 
         .settings-list {
             flex: 0 0 220px;
-            padding: 24px;
-            border-right: 1px solid var(--border-color);
+            padding-right: 20px;
+            /* padding: 24px; */
+            /* border-right: 1px solid var(--border-color); */
             display: flex;
             flex-direction: column;
             align-self: stretch;
@@ -2033,12 +2034,20 @@
             height: 14px;
         }
 
+        .settings-save-container{
+            padding-right: 12px;
+        }
+
         .settings-details {
+            border: 1px solid var(--border-color);
             flex: 1;
             padding: 24px;
+            padding-right: 12px;
             display: flex;
             flex-direction: column;
             min-height: 0;
+            border-radius: var(--card-radius);
+            overflow: hidden;
         }
 
         .settings-scroll {
@@ -2050,20 +2059,29 @@
             padding-right: 8px;
             min-height: 0;
             max-height: 100%;
+            background: transparent;
+            overflow-x: visible;
         }
 
-        .checkbox-group label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 4px;
+        /* Remove scrollbar background for settings modal */
+        #settings-modal .settings-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #settings-modal .settings-scroll::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.2);
+            border-radius: 4px;
+        }
+
+        #settings-modal .settings-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.4);
         }
 
         .settings-section {
             display: flex;
             flex-direction: column;
             flex: 1;
-            gap: 8px;
+            overflow: visible;
         }
 
         .settings-section .form-group {
@@ -2077,13 +2095,11 @@
             justify-content: space-between;
             transition: var(--transition-normal);
             position: relative;
-            overflow: hidden;
             box-shadow: var(--shadow-sm);
             margin-bottom: 16px;
         }
 
         .settings-section .form-group:hover {
-            box-shadow: var(--shadow-lg);
             border-color: rgba(78, 93, 120, 0.4);
             background-color: rgba(30, 41, 59, 0.7);
         }
@@ -2133,5 +2149,17 @@
 
         #settings-modal .settings-save:active {
             background-color: #1d4fbc;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .settings-icon {
+            width: 18px;
+            height: 18px;
         }
 
