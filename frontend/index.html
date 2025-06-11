@@ -34,7 +34,7 @@
                 <i data-lucide="plus" class="expand-icon" onclick="addIconAnimation(this, 'plus-bounce')"></i>
             </div>
             <ul class="service-list" id="service-list">
-                <li class="service-item active" onclick="selectService(this, 0)">
+                <li class="service-item" onclick="selectService(this, 0)">
                     <div class="status-dot"></div>
                     <div class="service-name">File Manager Service</div>
                 </li>
@@ -78,9 +78,51 @@
                     <div class="action-button theme-button" onclick="toggleTheme()">
                         <div class="theme-icon-container">
                             <i data-lucide="sun" class="theme-icon" id="theme-icon"></i>
+</div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settings-modal" class="modal">
+    <div class="modal-content settings-modal-content">
+        <i data-lucide="x" class="close-button"></i>
+        <h2>Settings</h2>
+        <div class="settings-container">
+            <div class="settings-list">
+                <div class="settings-item active" data-target="notification-settings">Notification</div>
+            </div>
+            <div class="settings-details">
+                <div id="notification-settings" class="settings-section">
+                    <div class="form-group">
+                        <label>Notification Methods</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" id="notif-inapp"> In-app</label>
+                            <label><input type="checkbox" id="notif-email"> Email</label>
+                            <label><input type="checkbox" id="notif-sms"> SMS</label>
                         </div>
                     </div>
-                    <div class="action-button">
+                    <div class="form-group">
+                        <label>Service Status Notifications</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" id="notif-down"> Service Down</label>
+                            <label><input type="checkbox" id="notif-error"> Service Error</label>
+                            <label><input type="checkbox" id="notif-restart"> Service Restart</label>
+                            <label><input type="checkbox" id="notif-start"> Service Start</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Resource Usage Notifications</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" id="notif-high-cpu"> High CPU Usage</label>
+                            <label><input type="checkbox" id="notif-high-memory"> High Memory Usage</label>
+                        </div>
+                    </div>
+                    <button type="button" onclick="closeSettingsModal()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+                    <div class="action-button" onclick="openSettingsModal()">
                         <i data-lucide="settings" class="icon-button"></i>
                     </div>
                 </div>
@@ -95,7 +137,7 @@
                     </div>
                     <div class="metric-value status-running">
                         <div class="status-dot"></div>
-                        <span>Running</span>
+                        <span>--</span>
                     </div>
                 </div>
                 <div class="metric-card">
@@ -103,21 +145,21 @@
                         <i data-lucide="database" class="metric-icon"></i>
                         <div class="metric-label">Memory</div>
                     </div>
-                    <div class="metric-value" id="memory-value">35.4%</div>
+                    <div class="metric-value" id="memory-value">--</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-header">
                         <i data-lucide="cpu" class="metric-icon"></i>
                         <div class="metric-label">CPU</div>
                     </div>
-                    <div class="metric-value" id="cpu-value">20.5%</div>
+                    <div class="metric-value" id="cpu-value">--</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-header">
                         <i data-lucide="users" class="metric-icon"></i>
                         <div class="metric-label">Connections</div>
                     </div>
-                    <div class="metric-value" id="connections-value">77</div>
+                    <div class="metric-value" id="connections-value">--</div>
                 </div>
             </div>
 
@@ -178,10 +220,10 @@
                     </div>
 
                 <div class="logs-stats">
-                    <div class="log-stat total">Total: <strong>29</strong></div>
-                    <div class="log-stat info">Info: <strong>12</strong></div>
-                    <div class="log-stat warning">Warnings: <strong>8</strong></div>
-                    <div class="log-stat error">Errors: <strong>9</strong></div>
+                    <div class="log-stat total">Total: <strong>0</strong></div>
+                    <div class="log-stat info">Info: <strong>0</strong></div>
+                    <div class="log-stat warning">Warnings: <strong>0</strong></div>
+                    <div class="log-stat error">Errors: <strong>0</strong></div>
                 </div>
 
                 <div class="logs-list" id="logs-list">

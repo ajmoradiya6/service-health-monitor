@@ -12,6 +12,7 @@
             --blue-glow: rgba(59, 130, 246, 0.3);
             --purple-primary: #8b5cf6;
             --green-primary: #10b981;
+            --gray-primary: #6b7280;
             --red-primary: #ef4444;
             --yellow-primary: #f59e0b;
             --card-radius: 12px;
@@ -217,6 +218,7 @@
             --blue-glow: rgba(59, 130, 246, 0.3);
             --purple-primary: #8b5cf6;
             --green-primary: #10b981;
+            --gray-primary: #9ca3af;
             --red-primary: #ef4444;
             --yellow-primary: #f59e0b;
             --card-radius: 12px;
@@ -399,6 +401,11 @@
             position: relative;
             overflow: hidden;
             height: 36px;
+            color: var(--text-secondary);
+        }
+
+        .service-item.connected {
+            color: var(--text-primary);
         }
 
         .service-item.active {
@@ -436,7 +443,7 @@
             height: 8px;
             border-radius: 50%;
             margin-right: 10px;
-            background-color: var(--green-primary);
+            background-color: var(--dot-color, var(--gray-primary));
             position: relative;
             transition: color 0.3s ease;
         }
@@ -449,7 +456,7 @@
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            background-color: var(--green-primary);
+            background-color: var(--dot-color, var(--gray-primary));
             opacity: 0.3;
             animation: pulse-dot 2s infinite;
         }
@@ -751,7 +758,7 @@
         }
 
         .status-running span {
-            color: var(--green-primary);
+            color: var(--dot-color, var(--gray-primary));
         }
 
         @keyframes statusPulse {
@@ -982,12 +989,15 @@
             border-color: rgba(148, 163, 184, 0.5);
         }
 
-        .logs-header {
-            display: flex;
-            align-items: center;
-            flex-direction: column;
-            gap: 20px; /* Space between controls and stats */
-        }
+.logs-header {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 20px; /* Space between controls and stats */
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
 
         .logs-controls-top {
             display: flex;
@@ -1269,6 +1279,7 @@
             flex-direction: column;
             gap: 8px;
             width: 100%; /* Ensure logs list takes full width */
+            min-height: 0; /* Allow scrolling within the container */
         }
 
         .log-entry {
@@ -1449,6 +1460,9 @@
                 flex-direction: column;
                 align-items: stretch;
                 gap: 12px;
+                flex: 1;
+                min-height: 0;
+                overflow: auto;
             }
 
             .search-box {
@@ -1903,28 +1917,41 @@
         }
 
         .service-item.selected .service-name,
+        .service-item.active .service-name,
         .service-item.selected .service-status,
+        .service-item.active .service-status,
         .service-item.selected .service-actions,
+        .service-item.active .service-actions,
         .service-item.selected .service-actions i,
+        .service-item.active .service-actions i,
         .service-item.selected .service-actions i svg,
-        .service-item.selected .service-actions i svg path {
+        .service-item.active .service-actions i svg,
+        .service-item.selected .service-actions i svg path,
+        .service-item.active .service-actions i svg path {
             color: #ffffff !important;
             fill: #ffffff !important;
             stroke: #ffffff !important;
         }
 
         [data-theme="light"] .service-item.selected .service-name,
+        [data-theme="light"] .service-item.active .service-name,
         [data-theme="light"] .service-item.selected .service-status,
+        [data-theme="light"] .service-item.active .service-status,
         [data-theme="light"] .service-item.selected .service-actions,
+        [data-theme="light"] .service-item.active .service-actions,
         [data-theme="light"] .service-item.selected .service-actions i,
+        [data-theme="light"] .service-item.active .service-actions i,
         [data-theme="light"] .service-item.selected .service-actions i svg,
-        [data-theme="light"] .service-item.selected .service-actions i svg path {
+        [data-theme="light"] .service-item.active .service-actions i svg,
+        [data-theme="light"] .service-item.selected .service-actions i svg path,
+        [data-theme="light"] .service-item.active .service-actions i svg path {
             color: #ffffff !important;
             fill: #ffffff !important;
             stroke: #ffffff !important;
         }
 
-        .service-item.selected .service-actions i svg[style] {
+        .service-item.selected .service-actions i svg[style],
+        .service-item.active .service-actions i svg[style] {
             color: #ffffff !important;
             fill: none !important;
             stroke: #ffffff !important;
@@ -1933,11 +1960,48 @@
             stroke-linejoin: round !important;
         }
 
-        [data-theme="light"] .service-item.selected .service-actions i svg[style] {
+        [data-theme="light"] .service-item.selected .service-actions i svg[style],
+       [data-theme="light"] .service-item.active .service-actions i svg[style] {
             color: #ffffff !important;
             fill: none !important;
             stroke: #ffffff !important;
             stroke-width: 2 !important;
             stroke-linecap: round !important;
             stroke-linejoin: round !important;
+        }
+
+        /* Settings modal layout */
+        #settings-modal .settings-modal-content {
+            max-width: 700px;
+        }
+
+        .settings-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .settings-list {
+            width: 30%;
+            border-right: 1px solid var(--border-color);
+            padding-right: 20px;
+        }
+
+        .settings-item {
+            padding: 8px 0;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .settings-item.active {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .settings-details {
+            flex: 1;
+        }
+
+        .checkbox-group label {
+            display: block;
+            margin-bottom: 5px;
         }

@@ -36,10 +36,8 @@
       };
       
       // Construct the inner HTML with status dot, service name, and actions (ellipsis)
-      const statusColor = 'var(--green-primary)'; // Placeholder
-      
       div.innerHTML = `
-          <div class="status-dot" style="background-color: ${statusColor};"></div>
+          <div class="status-dot"></div>
           <span class="service-name">${service.name}</span>
           <div class="service-actions" data-service-id="${service.id}"><i data-lucide="more-vertical"></i></div>
       `;
@@ -58,6 +56,20 @@
     // Add event listener for service actions (ellipsis) using delegation
     container.addEventListener('click', handleServiceActionsClick);
 
+    // Auto-select the first service and attempt connections to all services
+    if (services.length > 0) {
+        const firstItem = container.querySelector('.service-item');
+        if (firstItem) {
+            selectService(firstItem, 0, services[0]);
+        }
+
+        services.forEach((srv, idx) => {
+            if (idx !== 0) {
+                connectToSignalR(srv);
+            }
+        });
+    }
+
   } catch (error) {
     console.error('Network error or exception while loading services:', error);
   }
@@ -67,17 +79,24 @@ window.onload = loadServices;
 
 // ===== GLOBAL VARIABLES =====
 let chartData = [];
-let activeService = 0;
+let activeServiceId = null;
 let activeTab = 'metrics';
 const canvas = document.getElementById('chartCanvas');
 const ctx = canvas.getContext('2d');
 let animationFrame;
+
+// Maintain connections and data per service
+const serviceConnections = {};
+const serviceLogs = {};
+const serviceMetrics = {};
+const MAX_LOGS = 200; // limit stored logs per service
 
 // Get modal elements and forms
 const registerServiceModal = document.getElementById('register-service-modal');
 const registerServiceForm = document.getElementById('register-service-form');
 const editServiceModal = document.getElementById('edit-service-modal');
 const editServiceForm = document.getElementById('edit-service-form');
+const settingsModal = document.getElementById('settings-modal');
 
 // Get confirmation modal elements
 const confirmationModal = document.getElementById('confirmation-modal');
@@ -239,6 +258,20 @@ function closeEditServiceModal() {
     }
 }
 
+// Function to open the Settings modal
+function openSettingsModal() {
+    if (settingsModal) {
+        settingsModal.style.display = 'flex';
+    }
+}
+
+// Function to close the Settings modal
+function closeSettingsModal() {
+    if (settingsModal) {
+        settingsModal.style.display = 'none';
+    }
+}
+
 // ===== SIDEBAR FUNCTIONS =====
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
@@ -268,7 +301,7 @@ function closeSidebar() {
 const outputToConsole = true; // set false to disable console logs
 
 // Add animation function
-function animateValue(element, start, end, duration, suffix = '') {
+function animateValue(element, start, end, duration, suffix = '', decimals = 1) {
     const startTime = performance.now();
     
     function updateValue(timestamp) {
@@ -279,13 +312,13 @@ function animateValue(element, start, end, duration, suffix = '') {
             : 1 - Math.pow(-2 * progress + 2, 2) / 2; // Ease in-out quad
         
         const value = start + (end - start) * easeProgress;
-        element.textContent = `${value.toFixed(1)}${suffix}`;
+        element.textContent = `${value.toFixed(decimals)}${suffix}`;
         
         if (progress < 1) {
             requestAnimationFrame(updateValue);
         } else {
-            // Always show one decimal place for the final value
-            element.textContent = `${Number(end).toFixed(1)}${suffix}`;
+            // Always show the specified number of decimal places for the final value
+            element.textContent = `${Number(end).toFixed(decimals)}${suffix}`;
         }
     }
     
@@ -301,7 +334,38 @@ function parseMetricValue(value, isPercentage = false) {
     return value || 0;
 }
 
+function parseLogEntry(log) {
+    if (typeof log === 'object' && log !== null) {
+        return {
+            level: (log.level || 'info').toLowerCase(),
+            timestamp: log.timestamp || new Date().toLocaleTimeString(),
+            message: log.message || ''
+        };
+    }
+
+    const logStr = String(log);
+    const match = logStr.match(/^(.*?)\s*\[(\w+)\]\s*(.*)$/);
+    if (match) {
+        const [, time, code, msg] = match;
+        let level = 'info';
+        const upper = code.toUpperCase();
+        if (upper.startsWith('WRN')) level = 'warning';
+        else if (upper.startsWith('ERR')) level = 'error';
+        else if (upper.startsWith('INF')) level = 'info';
+        return { level, timestamp: time.trim(), message: msg };
+    }
+
+    return {
+        level: 'info',
+        timestamp: new Date().toLocaleTimeString(),
+        message: logStr
+    };
+}
+
 function connectToSignalR(serviceData) {
+    if (serviceConnections[serviceData.id]) {
+        return serviceConnections[serviceData.id];
+    }
     // Build the SignalR URL from service data
     const baseUrl = serviceData.url.replace('https://', 'http://'); // Convert https to http for local development
     const port = serviceData.port;
@@ -315,12 +379,11 @@ function connectToSignalR(serviceData) {
     let hasShownInitialStatus = false;
     let isServiceRunning = false;
 
-    // Reset status display when switching services
+    // Reset status display when connecting if this service is active
     const statusElement = document.querySelector('.status-running');
-    if (statusElement) {
-        const statusDot = statusElement.querySelector('.status-dot');
+    if (activeServiceId === serviceData.id && statusElement) {
+        statusElement.style.setProperty('--dot-color', 'var(--yellow-primary)');
         const statusText = statusElement.querySelector('span');
-        statusDot.style.backgroundColor = '#FFD700'; // Yellow color
         statusText.textContent = 'Connecting...';
     }
 
@@ -329,26 +392,20 @@ function connectToSignalR(serviceData) {
     if (serviceItem) {
         const serviceDot = serviceItem.querySelector('.status-dot');
         if (serviceDot) {
-            serviceDot.style.backgroundColor = '#FFD700'; // Yellow color
+            serviceDot.style.setProperty('--dot-color', 'var(--yellow-primary)'); // Yellow color
         }
+        serviceItem.classList.add('connected');
     }
 
     function updateServiceStatus(isRunning) {
         isServiceRunning = isRunning;
-        
-        // Update status in the metrics card
+
+        // Update status in the metrics card only for the active service
         const statusElement = document.querySelector('.status-running');
-        if (statusElement) {
-            const statusDot = statusElement.querySelector('.status-dot');
+        if (activeServiceId === serviceData.id && statusElement) {
+            statusElement.style.setProperty('--dot-color', isRunning ? 'var(--green-primary)' : 'var(--red-primary)');
             const statusText = statusElement.querySelector('span');
-            
-            if (isRunning) {
-                statusDot.style.backgroundColor = 'var(--green-primary)';
-                statusText.textContent = 'Running';
-            } else {
-                statusDot.style.backgroundColor = 'var(--red-primary)';
-                statusText.textContent = 'Stopped';
-            }
+            statusText.textContent = isRunning ? 'Running' : 'Stopped';
         }
 
         // Update the service dot in the sidebar
@@ -356,8 +413,10 @@ function connectToSignalR(serviceData) {
         if (serviceItem) {
             const serviceDot = serviceItem.querySelector('.status-dot');
             if (serviceDot) {
-                serviceDot.style.backgroundColor = isRunning ? 'var(--green-primary)' : 'var(--red-primary)';
+                const color = isRunning ? 'var(--green-primary)' : 'var(--red-primary)';
+                serviceDot.style.setProperty('--dot-color', color);
             }
+            serviceItem.classList.add('connected');
         }
     }
 
@@ -372,42 +431,78 @@ function connectToSignalR(serviceData) {
             .build();
 
         connection.on("ReceiveHealthUpdate", (data) => {
-            // Clear any existing timeout
             clearTimeout(dataTimeout);
-            
-            // Update status to running on first data
+
             if (isFirstData) {
                 hasShownInitialStatus = true;
                 updateServiceStatus(true);
                 isFirstData = false;
             }
 
-            // Get current values
-            const cpuElement = document.getElementById("cpu-value");
-            const memoryElement = document.getElementById("memory-value");
-            const connectionsElement = document.getElementById("connections-value");
+            // Store latest metrics
+            serviceMetrics[serviceData.id] = {
+                cpuUsage: data.cpuUsage,
+                memoryUsage: data.memoryUsage,
+                activeConnections: data.activeConnections,
+                serviceRunning: true,
+                serviceUptime: data.serviceUptime,
+                timestamp: data.timestamp
+            };
 
-            // Parse current values
-            const currentCpu = parseMetricValue(cpuElement.textContent, true);
-            const currentMemory = parseMetricValue(memoryElement.textContent, true);
-            const currentConnections = parseMetricValue(connectionsElement.textContent);
+            if (!serviceLogs[serviceData.id]) serviceLogs[serviceData.id] = [];
+            if (Array.isArray(data.applicationLogs)) {
+                data.applicationLogs.forEach((log) => {
+                    const entry = parseLogEntry(log);
+                    serviceLogs[serviceData.id].push(entry);
+                    if (serviceLogs[serviceData.id].length > MAX_LOGS) {
+                        serviceLogs[serviceData.id].shift();
+                    }
+                });
+            }
 
-            // Parse new values
-            const newCpu = parseMetricValue(data.cpuUsage, true);
-            const newMemory = parseMetricValue(data.memoryUsage, true);
-            const newConnections = parseMetricValue(data.activeConnections);
+            if (activeServiceId === serviceData.id) {
+                const cpuElement = document.getElementById("cpu-value");
+                const memoryElement = document.getElementById("memory-value");
+                const connectionsElement = document.getElementById("connections-value");
 
-            // Animate the values
-            animateValue(cpuElement, currentCpu, newCpu, 1000, '%');
-            animateValue(memoryElement, currentMemory, newMemory, 1000, '%');
-            animateValue(connectionsElement, currentConnections, newConnections, 1000);
+                const currentCpu = parseMetricValue(cpuElement.textContent, true);
+                const currentMemory = parseMetricValue(memoryElement.textContent, true);
+                const currentConnections = parseMetricValue(connectionsElement.textContent);
 
-            // For logs
-            const logsList = document.getElementById("logs-list");
-            const newLog = document.createElement("div");
-            newLog.className = "log-entry";
-            newLog.textContent = `${new Date(data.timestamp).toLocaleTimeString()} - Service Uptime: ${data.serviceUptime}`;
-            logsList.prepend(newLog);
+                const newCpu = parseMetricValue(data.cpuUsage, true);
+                const newMemory = parseMetricValue(data.memoryUsage, true);
+                const newConnections = parseMetricValue(data.activeConnections);
+
+                animateValue(cpuElement, currentCpu, newCpu, 1000, '%', 2);
+                animateValue(memoryElement, currentMemory, newMemory, 1000, '%', 2);
+                animateValue(connectionsElement, currentConnections, newConnections, 1000, '', 1);
+
+                const logsList = document.getElementById("logs-list");
+                if (logsList && Array.isArray(data.applicationLogs)) {
+                    const wasAtBottom =
+                        Math.abs(logsList.scrollHeight - logsList.clientHeight - logsList.scrollTop) <= 5;
+                    data.applicationLogs.forEach((log) => {
+                        const entry = parseLogEntry(log);
+
+                        const logDiv = document.createElement('div');
+                        logDiv.className = `log-entry ${entry.level}`;
+                        logDiv.innerHTML = `
+                            <div class="log-level ${entry.level}">${entry.level}</div>
+                            <div class="log-timestamp">${entry.timestamp}</div>
+                            <div class="log-message">${entry.message}</div>
+                        `;
+                        logsList.appendChild(logDiv);
+                    });
+                    if (wasAtBottom) {
+                        logsList.scrollTop = logsList.scrollHeight;
+                    }
+                }
+
+                updateLogStats();
+            } else {
+                // Update sidebar dot only
+                updateServiceStatus(true);
+            }
         });
 
         connection
@@ -432,9 +527,11 @@ function connectToSignalR(serviceData) {
             clearTimeout(dataTimeout);
             hasShownInitialStatus = true;
             updateServiceStatus(false);
+            if (serviceMetrics[serviceData.id]) {
+                serviceMetrics[serviceData.id].serviceRunning = false;
+            }
             isFirstData = true; // Reset first data flag when connection closes
-            
-            // Try to reconnect after a delay
+
             reconnectTimeout = setTimeout(() => {
                 startConnection();
             }, RECONNECT_INTERVAL);
@@ -443,8 +540,9 @@ function connectToSignalR(serviceData) {
         return connection;
     }
 
-    // Start the initial connection
-    return startConnection();
+    const conn = startConnection();
+    serviceConnections[serviceData.id] = conn;
+    return conn;
 }
 
 // Modify the selectService function to establish SignalR connection
@@ -453,17 +551,30 @@ function selectService(element, index, service) {
         item.classList.remove('active');
     });
     element.classList.add('active');
-    activeService = index;
-    
+
     // Get the service data from the data attribute
     const serviceData = JSON.parse(element.dataset.service);
+    activeServiceId = serviceData.id;
     console.log('Selected service data:', serviceData);
 
-    // Connect to SignalR for this service
-    const connection = connectToSignalR(serviceData);
+    // If this service has never been connected, show "Connecting..." feedback
+    if (!serviceConnections[serviceData.id]) {
+        const statusElement = document.querySelector('.status-running');
+        if (statusElement) {
+            statusElement.style.setProperty('--dot-color', 'var(--yellow-primary)');
+            const statusText = statusElement.querySelector('span');
+            statusText.textContent = 'Connecting...';
+        }
+    }
 
-    // Store the connection in the element for cleanup if needed
-    element.dataset.signalRConnection = connection;
+    // Connect to SignalR for this service if not already connected
+    if (!serviceConnections[serviceData.id]) {
+        serviceConnections[serviceData.id] = connectToSignalR(serviceData);
+    }
+
+    // Render cached metrics and logs
+    renderServiceMetrics(serviceData.id);
+    populateLogs(serviceData.id);
 
     // Close sidebar on mobile after selection
     if (window.innerWidth <= 768) {
@@ -495,10 +606,11 @@ function switchTab(element, tabName, index) {
     if (tabName === 'metrics') {
         chartContainer.style.display = 'block';
         logsContainer.classList.remove('active');
+        renderServiceMetrics(activeServiceId);
     } else if (tabName === 'logs') {
         chartContainer.style.display = 'none';
         logsContainer.classList.add('active');
-        populateLogs();
+        populateLogs(activeServiceId);
     }
     
     // Add animation to tab icon
@@ -507,25 +619,50 @@ function switchTab(element, tabName, index) {
 }
 
 // ===== LOGS FUNCTIONS =====
-function populateLogs() {
+function populateLogs(serviceId) {
     const logsList = document.getElementById('logs-list');
     if (!logsList) return;
 
     logsList.innerHTML = '';
-    
-    logData.forEach((log, index) => {
+    const logs = serviceLogs[serviceId] || [];
+
+    logs.forEach((log) => {
+        if (currentLogFilter !== 'all' && log.level !== currentLogFilter) {
+            return;
+        }
         const logEntry = document.createElement('div');
         logEntry.className = `log-entry ${log.level}`;
-        logEntry.style.animationDelay = `${index * 0.05}s`;
-        
         logEntry.innerHTML = `
             <div class="log-level ${log.level}">${log.level}</div>
             <div class="log-timestamp">${log.timestamp}</div>
             <div class="log-message">${log.message}</div>
         `;
-        
         logsList.appendChild(logEntry);
     });
+
+    logsList.scrollTop = logsList.scrollHeight;
+
+    updateLogStats();
+}
+
+function renderServiceMetrics(serviceId) {
+    const metrics = serviceMetrics[serviceId];
+    if (!metrics) return;
+
+    const cpuElement = document.getElementById('cpu-value');
+    const memoryElement = document.getElementById('memory-value');
+    const connectionsElement = document.getElementById('connections-value');
+
+    if (cpuElement) cpuElement.textContent = parseMetricValue(metrics.cpuUsage, true).toFixed(2) + '%';
+    if (memoryElement) memoryElement.textContent = parseMetricValue(metrics.memoryUsage, true).toFixed(2) + '%';
+    if (connectionsElement) connectionsElement.textContent = parseMetricValue(metrics.activeConnections).toFixed(1);
+
+    const statusElement = document.querySelector('.status-running');
+    if (statusElement) {
+        statusElement.style.setProperty('--dot-color', metrics.serviceRunning ? 'var(--green-primary)' : 'var(--red-primary)');
+        const statusText = statusElement.querySelector('span');
+        statusText.textContent = metrics.serviceRunning ? 'Running' : 'Stopped';
+    }
 }
 
 // Function to toggle filter dropdown
@@ -539,56 +676,42 @@ function toggleFilter() {
 // Function to filter logs by level
 function filterLogsByLevel(level) {
     currentLogFilter = level;
-    const logs = document.querySelectorAll('.log-entry');
     const filterButton = document.querySelector('.filter-button span');
-    
+
     // Update filter button text
     filterButton.textContent = level.charAt(0).toUpperCase() + level.slice(1);
-    
+
     // Hide dropdown
     const filterDropdown = document.querySelector('.filter-dropdown .filter-options');
     if (filterDropdown) {
         filterDropdown.classList.remove('show');
     }
-    
-    // Filter logs
-    logs.forEach(entry => {
-        const logLevel = entry.querySelector('.log-level').className.split(' ')[1];
-        if (level === 'all' || logLevel === level) {
-            entry.style.display = 'flex';
-        } else {
-            entry.style.display = 'none';
-        }
-    });
-    
-    // Update stats
-    updateLogStats();
+
+    populateLogs(activeServiceId);
 }
 
 // Function to update log statistics
-function updateLogStats() {
-    const logs = document.querySelectorAll('.log-entry');
-    const stats = {
-        info: 0,
-        warning: 0,
-        error: 0
-    };
-    
+function updateLogStats(serviceId = activeServiceId) {
+    const logs = serviceLogs[serviceId] || [];
+    let info = 0, warning = 0, error = 0;
+
     logs.forEach(entry => {
-        if (entry.style.display !== 'none') {
-            const logLevel = entry.querySelector('.log-level').className.split(' ')[1];
-            stats[logLevel]++;
-        }
+        if (entry.level === 'info') info++;
+        else if (entry.level === 'warning') warning++;
+        else if (entry.level === 'error') error++;
     });
-    
-    // Update stats display
-    const infoStat = document.querySelector('.log-stat[data-level="info"] span');
-    const warningStat = document.querySelector('.log-stat[data-level="warning"] span');
-    const errorStat = document.querySelector('.log-stat[data-level="error"] span');
-    
-    if (infoStat) infoStat.textContent = stats.info;
-    if (warningStat) warningStat.textContent = stats.warning;
-    if (errorStat) errorStat.textContent = stats.error;
+
+    const total = logs.length;
+
+    const totalStat = document.querySelector('.log-stat.total strong');
+    const infoStat = document.querySelector('.log-stat.info strong');
+    const warnStat = document.querySelector('.log-stat.warning strong');
+    const errorStat = document.querySelector('.log-stat.error strong');
+
+    if (totalStat) totalStat.textContent = total;
+    if (infoStat) infoStat.textContent = info;
+    if (warnStat) warnStat.textContent = warning;
+    if (errorStat) errorStat.textContent = error;
 }
 
 // Function to export logs to CSV
@@ -603,15 +726,12 @@ function exportLogs() {
     
     // Create CSV content
     let csvContent = 'Timestamp,Level,Message\n';
-    
+
     visibleLogs.forEach(entry => {
         const timestamp = entry.querySelector('.log-timestamp').textContent;
-        const level = entry.querySelector('.log-level').className.split(' ')[1];
+        const level = entry.querySelector('.log-level').textContent;
         const message = entry.querySelector('.log-message').textContent;
-        
-        // Escape commas and quotes in the message
         const escapedMessage = message.replace(/"/g, '""');
-        
         csvContent += `${timestamp},${level},"${escapedMessage}"\n`;
     });
     
@@ -963,6 +1083,9 @@ window.addEventListener('click', function(event) {
     if (editServiceModal && event.target == editServiceModal) {
         closeEditServiceModal();
     }
+    if (settingsModal && event.target == settingsModal) {
+        closeSettingsModal();
+    }
 });
 
 // ===== INITIALIZATION =====
@@ -1052,6 +1175,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     } else {
         console.error('Register modal content #register-service-modal .modal-content not found for close button event delegation.');
+    }
+
+    // Event delegation for the Settings modal close button
+    const settingsModalContent = document.querySelector('#settings-modal .modal-content');
+    if (settingsModalContent) {
+        settingsModalContent.addEventListener('click', function(event) {
+            const closeButton = event.target.closest('.close-button');
+            if (closeButton) {
+                closeSettingsModal();
+            }
+        });
     }
 
     // Event listener for the Edit Service form submission
