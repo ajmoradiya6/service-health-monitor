@@ -2005,3 +2005,27 @@
             display: block;
             margin-bottom: 5px;
         }
+
+        /* Settings modal button styling to match other modals */
+        #settings-modal .modal-content button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: var(--blue-accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: var(--transition-normal);
+            margin-top: 20px;
+        }
+
+        #settings-modal .modal-content button:hover {
+            background-color: var(--blue-accent);
+        }
+
+        #settings-modal .modal-content button:active {
+            background-color: #1d4fbc;
+        }
