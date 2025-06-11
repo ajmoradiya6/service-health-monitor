@@ -1973,7 +1973,7 @@
         /* Settings modal layout */
         #settings-modal .settings-modal-content {
             max-width: 760px;
-            max-height: 80vh;
+            height: 80vh;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -1982,12 +1982,16 @@
         .settings-container {
             display: flex;
             gap: 24px;
+            flex: 1;
         }
 
         .settings-list {
             flex: 0 0 220px;
             padding: 24px;
             border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-self: stretch;
         }
 
         .settings-list ul {
@@ -1999,12 +2003,13 @@
         .settings-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
+            gap: 8px;
+            padding: 8px 10px;
             border-radius: 8px;
             cursor: pointer;
             color: var(--text-secondary);
             transition: var(--transition-normal);
+            font-size: 14px;
         }
 
         .settings-item.active,
@@ -2024,8 +2029,8 @@
         }
 
         .settings-item i {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
         }
 
         .settings-details {
@@ -2046,10 +2051,10 @@
         .settings-section {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            flex: 1;
+            gap: 8px;
             overflow-y: auto;
             padding-right: 8px;
-            padding-bottom: 60px; /* space for sticky button */
         }
 
         .settings-section .form-group {
@@ -2067,7 +2072,7 @@
         }
 
         .settings-section .form-group + .form-group {
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         .settings-section input[type="checkbox"] {
@@ -2087,9 +2092,7 @@
             font-size: 16px;
             font-weight: 500;
             transition: var(--transition-normal);
-            margin-top: 12px;
-            position: sticky;
-            bottom: 0;
+            margin-top: auto;
             box-shadow: var(--shadow-sm);
         }
 
