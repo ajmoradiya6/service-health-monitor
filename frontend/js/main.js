@@ -1405,12 +1405,16 @@ async function loadSettingsFromBackendOrCache() {
         const response = await fetch('/api/user-settings');
         if (!response.ok) throw new Error('Backend fetch failed');
         const data = await response.json();
+        console.log('Received data from backend:', data); // Debug log
         // Update localStorage cache for faster reloads
         localStorage.setItem('userSettings', JSON.stringify(data));
         return data;
     } catch (err) {
+        console.error('Error loading settings:', err); // Debug log
         // Fallback to localStorage
-        return JSON.parse(localStorage.getItem('userSettings')) || {};
+        const cachedData = JSON.parse(localStorage.getItem('userSettings')) || {};
+        console.log('Using cached data:', cachedData); // Debug log
+        return cachedData;
     }
 }
 
@@ -1418,10 +1422,20 @@ async function loadSettingsFromBackendOrCache() {
 async function initializeNotificationSettings() {
     console.log('Initializing notification settings...'); // Debug log
     const savedSettings = await loadSettingsFromBackendOrCache();
-    const notificationSettings = savedSettings.notificationSettings || {};
-    const emailConfig = savedSettings.emailConfig || {};
+    console.log('Loaded settings:', savedSettings); // Debug log
+    
+    // Handle both single and double nested user-settings
+    const userSettings = savedSettings['user-settings']?.['user-settings'] || savedSettings['user-settings'] || {};
+    console.log('User settings:', userSettings); // Debug log
+    
+    const notificationSettings = userSettings.notificationSettings || {};
+    console.log('Notification settings:', notificationSettings); // Debug log
+    
+    const emailConfig = userSettings.emailConfig || {};
+    console.log('Email config:', emailConfig); // Debug log
 
     // Apply toggle states
+    console.log('Setting toggle states...'); // Debug log
     notifEmailToggle.checked = notificationSettings.emailEnabled || false;
     notifSmsToggle.checked = notificationSettings.smsEnabled || false;
     document.getElementById('notif-inapp').checked = notificationSettings.inAppEnabled || false;
@@ -1433,20 +1447,24 @@ async function initializeNotificationSettings() {
     document.getElementById('notif-high-memory').checked = notificationSettings.highMemoryEnabled || false;
 
     // Load and render emails
+    console.log('Loading emails...'); // Debug log
     const savedEmails = notificationSettings.emails || [];
     emailListContainer.innerHTML = '';
     savedEmails.forEach(email => addEmailToList(email, false));
 
     // Load and render phone numbers
+    console.log('Loading phone numbers...'); // Debug log
     const savedPhones = notificationSettings.phones || [];
     phoneListContainer.innerHTML = '';
     savedPhones.forEach(phone => addPhoneToList(phone, false));
 
     // Set initial visibility of subsections
+    console.log('Setting subsection visibility...'); // Debug log
     toggleSubsection(emailSubsection, notifEmailToggle.checked);
     toggleSubsection(smsSubsection, notifSmsToggle.checked);
 
     // Initialize email configuration fields
+    console.log('Initializing email config fields...'); // Debug log
     smtpHost.value = emailConfig.host || '';
     smtpPort.value = emailConfig.port || '';
     smtpUsername.value = emailConfig.username || '';
@@ -1467,6 +1485,8 @@ async function initializeNotificationSettings() {
     // Add event listeners for add buttons
     addEmailBtn.addEventListener('click', handleAddEmail);
     addPhoneBtn.addEventListener('click', handleAddPhone);
+    
+    console.log('Settings initialization complete'); // Debug log
 }
 
 function toggleSubsection(subsection, isChecked) {
@@ -1606,27 +1626,29 @@ function removePhoneFromStorage(phone) {
 // Save settings to backend and update localStorage
 async function saveAllSettingsToBackend() {
     const settings = {
-        notificationSettings: {
-            inAppEnabled: document.getElementById('notif-inapp').checked,
-            emailEnabled: notifEmailToggle.checked,
-            smsEnabled: notifSmsToggle.checked,
-            serviceDownEnabled: document.getElementById('notif-down').checked,
-            serviceErrorEnabled: document.getElementById('notif-error').checked,
-            serviceRestartEnabled: document.getElementById('notif-restart').checked,
-            serviceStartEnabled: document.getElementById('notif-start').checked,
-            highCpuEnabled: document.getElementById('notif-high-cpu').checked,
-            highMemoryEnabled: document.getElementById('notif-high-memory').checked,
-            emails: Array.from(emailListContainer.querySelectorAll('.list-item span')).map(e => e.textContent),
-            phones: Array.from(phoneListContainer.querySelectorAll('.list-item span')).map(e => e.textContent)
-        },
-        emailConfig: {
-            host: smtpHost.value,
-            port: smtpPort.value,
-            username: smtpUsername.value,
-            password: smtpPassword.value,
-            fromEmail: smtpFromEmail.value,
-            fromName: smtpFromName.value,
-            useSsl: smtpSsl.checked
+        'user-settings': {
+            notificationSettings: {
+                inAppEnabled: document.getElementById('notif-inapp').checked,
+                emailEnabled: notifEmailToggle.checked,
+                smsEnabled: notifSmsToggle.checked,
+                serviceDownEnabled: document.getElementById('notif-down').checked,
+                serviceErrorEnabled: document.getElementById('notif-error').checked,
+                serviceRestartEnabled: document.getElementById('notif-restart').checked,
+                serviceStartEnabled: document.getElementById('notif-start').checked,
+                highCpuEnabled: document.getElementById('notif-high-cpu').checked,
+                highMemoryEnabled: document.getElementById('notif-high-memory').checked,
+                emails: Array.from(emailListContainer.querySelectorAll('.list-item span')).map(e => e.textContent),
+                phones: Array.from(phoneListContainer.querySelectorAll('.list-item span')).map(e => e.textContent)
+            },
+            emailConfig: {
+                host: smtpHost.value,
+                port: smtpPort.value,
+                username: smtpUsername.value,
+                password: smtpPassword.value,
+                fromEmail: smtpFromEmail.value,
+                fromName: smtpFromName.value,
+                useSsl: smtpSsl.checked
+            }
         }
     };
 

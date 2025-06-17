@@ -78,8 +78,11 @@ router.post('/user-settings', async (req, res) => {
             allSettings = fileContent ? JSON.parse(fileContent) : {};
         }
 
-        // Update notificationSettings
-        allSettings.notificationSettings = userSettings;
+        // Extract the actual settings data, removing any nested user-settings
+        const settingsData = userSettings['user-settings'] || userSettings;
+
+        // Update user-settings with the clean data
+        allSettings['user-settings'] = settingsData;
 
         // Write the updated settings back to the file
         await fs.writeFile(settingsFilePath, JSON.stringify(allSettings, null, 2), 'utf8');
