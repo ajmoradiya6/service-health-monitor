@@ -1422,7 +1422,7 @@ function addEmailToList(email, save = true) {
     listItem.className = 'list-item';
     listItem.innerHTML = `
         <span>${email}</span>
-        <i data-lucide="trash-2" class="delete-icon"></i>
+        <button class="delete-icon"><i data-lucide="trash-2"></i></button>
     `;
     emailListContainer.appendChild(listItem);
 
@@ -1451,7 +1451,7 @@ function addPhoneToList(phone, save = true) {
     listItem.className = 'list-item';
     listItem.innerHTML = `
         <span>${phone}</span>
-        <i data-lucide="trash-2" class="delete-icon"></i>
+        <button class="delete-icon"><i data-lucide="trash-2"></i></button>
     `;
     phoneListContainer.appendChild(listItem);
 

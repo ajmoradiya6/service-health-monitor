@@ -2356,12 +2356,12 @@
         }
 
         .notification-subsection .list-container {
-            border: 1px solid var(--border-color);
+            /* border: 1px solid var(--border-color); */
             border-radius: 8px;
             padding: 4px;
             max-height: 100px;
             overflow-y: auto;
-            background-color: var(--bg-secondary);
+            /* background-color: var(--bg-secondary); */
             margin-bottom: 4px;
         }
 
@@ -2400,35 +2400,67 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1px 6px; /* Keep this padding for readability */
-            border-bottom: 1px solid var(--border-color);
+            padding: 8px 10px; /* Adjusted padding to create space inside the box */
+            border: 1px solid var(--border-color); /* Add border to the list item */
+            border-radius: 8px; /* Add border-radius for rounded corners */
+            margin-bottom: 8px; /* Space between list items */
             color: var(--text-primary);
             font-size: 13px;
         }
 
         .notification-subsection .list-item:last-child {
+            margin-bottom: 0; /* No margin for the last item */
             border-bottom: none;
         }
 
         [data-theme="light"] .notification-subsection .list-item {
-            border-bottom-color: var(--border-color-light);
+            border-color: var(--border-color-light);
         }
 
         .notification-subsection .delete-icon {
             cursor: pointer;
-            color: var(--red-primary);
             transition: var(--transition-normal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px; /* Set to 14px to precisely match the plus icon's SVG size */
+            height: 14px; /* Set to 14px to precisely match the plus icon's SVG size */
+            border-radius: 4px; /* Match add button border-radius */
+            background: none; /* Remove default button background */
+            border: none; /* Remove default button border */
+            padding: 0; /* Remove default button padding */
         }
 
         .notification-subsection .delete-icon:hover {
-            transform: scale(1.1);
+            /* Remove scale transform */
             opacity: 0.8;
         }
 
+        [data-theme="dark"] .notification-subsection .delete-icon {
+            background-color: rgba(255, 255, 255, 0.12); /* Default background for dark theme */
+        }
+
+        [data-theme="dark"] .notification-subsection .delete-icon:hover {
+            background-color: rgba(255, 255, 255, 0.2); /* Darker on hover for dark theme */
+        }
+
+        [data-theme="light"] .notification-subsection .delete-icon {
+            background-color: rgba(0, 0, 0, 0.05); /* Initial subtle background for light theme */
+        }
+
+        [data-theme="light"] .notification-subsection .delete-icon:hover {
+            background-color: rgba(0, 0, 0, 0.1); /* Slightly darker background on hover for light theme */
+        }
+
         .notification-subsection .delete-icon svg {
-            width: 8px; /* Further reduced icon size */
-            height: 8px; /* Further reduced icon size */
-            stroke-width: 2.5px;
+            width: 14px; /* Match plus icon size */
+            height: 14px; /* Match plus icon size */
+            stroke-width: 2px; /* Match plus icon stroke width */
+            color: var(--text-secondary); /* Default icon color */
+        }
+
+        .notification-subsection .delete-icon:hover svg {
+            color: var(--text-primary); /* Icon color on hover */
         }
 
         /* Adjust margin-bottom for checkbox-group labels to control space before subsections */
