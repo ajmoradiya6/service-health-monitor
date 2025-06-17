@@ -98,6 +98,16 @@ const editServiceModal = document.getElementById('edit-service-modal');
 const editServiceForm = document.getElementById('edit-service-form');
 const settingsModal = document.getElementById('settings-modal');
 
+// Get SMTP configuration elements
+const smtpHost = document.getElementById('smtp-host');
+const smtpPort = document.getElementById('smtp-port');
+const smtpUsername = document.getElementById('smtp-username');
+const smtpPassword = document.getElementById('smtp-password');
+const smtpFromEmail = document.getElementById('smtp-from-email');
+const smtpFromName = document.getElementById('smtp-from-name');
+const smtpSsl = document.getElementById('smtp-ssl');
+const testEmailConfig = document.getElementById('test-email-config');
+
 // Get confirmation modal elements
 const confirmationModal = document.getElementById('confirmation-modal');
 const confirmDeleteButton = document.getElementById('confirm-delete-btn');
@@ -135,16 +145,6 @@ const smsSubsection = document.getElementById('sms-settings-subsection');
 const phoneInput = document.getElementById('phone-input');
 const addPhoneBtn = document.getElementById('add-phone-btn');
 const phoneListContainer = document.getElementById('phone-list');
-
-// Email configuration elements
-const smtpHost = document.getElementById('smtp-host');
-const smtpPort = document.getElementById('smtp-port');
-const smtpUsername = document.getElementById('smtp-username');
-const smtpPassword = document.getElementById('smtp-password');
-const smtpFromEmail = document.getElementById('smtp-from-email');
-const smtpFromName = document.getElementById('smtp-from-name');
-const smtpSsl = document.getElementById('smtp-ssl');
-const testEmailConfig = document.getElementById('test-email-config');
 
 // ===== ANIMATION FUNCTIONS =====
 function addIconAnimation(element, animationClass) {
@@ -1632,17 +1632,13 @@ async function saveAllSettingsToBackend() {
         localStorage.setItem('notificationSettings', JSON.stringify(settings));
         localStorage.setItem('notificationEmails', JSON.stringify(settings.emails));
         localStorage.setItem('notificationPhones', JSON.stringify(settings.phones));
-        // Optionally show a success message
-        // alert('Settings saved!');
+        // Close the modal after successful save
+        closeSettingsModal();
+        // Show success message
+        showNotification('Settings saved successfully', 'success');
     } catch (err) {
-        alert('Failed to save settings: ' + err.message);
+        showNotification('Failed to save settings: ' + err.message, 'error');
     }
-}
-
-// Attach to Save button
-const saveBtn = document.querySelector('.settings-save');
-if (saveBtn) {
-    saveBtn.addEventListener('click', saveAllSettingsToBackend);
 }
 
 // Function to initialize settings sections
@@ -1675,7 +1671,7 @@ document.querySelectorAll('.settings-item').forEach(item => {
 });
 
 // Add event listener for test email configuration
-testEmailConfig.addEventListener('click', async () => {
+document.getElementById('test-email-config').addEventListener('click', async () => {
     try {
         const emailConfig = gatherAllSettings().emailConfig;
         
@@ -1692,32 +1688,12 @@ testEmailConfig.addEventListener('click', async () => {
         }
 
         // Show success message
-        const successMessage = document.createElement('div');
-        successMessage.className = 'success-message';
-        successMessage.textContent = 'Test email sent successfully';
-        document.body.appendChild(successMessage);
-        // Trigger reflow
-        successMessage.offsetHeight;
-        successMessage.classList.add('show');
-        setTimeout(() => {
-            successMessage.classList.remove('show');
-            setTimeout(() => successMessage.remove(), 300);
-        }, 3000);
+        showNotification('Test email sent successfully', 'success');
 
     } catch (error) {
         console.error('Error testing email configuration:', error);
         // Show error message
-        const errorMessage = document.createElement('div');
-        errorMessage.className = 'error-message';
-        errorMessage.textContent = 'Failed to test email configuration';
-        document.body.appendChild(errorMessage);
-        // Trigger reflow
-        errorMessage.offsetHeight;
-        errorMessage.classList.add('show');
-        setTimeout(() => {
-            errorMessage.classList.remove('show');
-            setTimeout(() => errorMessage.remove(), 300);
-        }, 3000);
+        showNotification('Failed to test email configuration', 'error');
     }
 });
 
