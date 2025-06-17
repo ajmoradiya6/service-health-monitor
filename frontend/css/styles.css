@@ -2201,13 +2201,9 @@
 
         .settings-section .form-group .checkbox-group label {
             display: flex;
-            justify-content: space-between; /* Pushes content to edges */
             align-items: center;
-            width: 100%;
-        }
-
-        .settings-section .form-group .checkbox-group label .toggle-switch {
-            /* margin-left: auto; */ /* Removed as justify-content handles it */
+            gap: 6px;
+            margin-bottom: 8px; /* Added space below the toggle to separate from subsection */
         }
 
         .checkbox-group label {
@@ -2254,104 +2250,160 @@
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease-out, padding 0.3s ease-out, border-color 0.3s ease-out, border-width 0.3s ease-out;
-            padding: 0 10px;
+            padding: 0 6px;
             box-sizing: border-box;
-            border: 1px solid transparent; /* Start with transparent border */
+            border: 1px solid transparent;
             border-radius: var(--card-radius);
+            /* Removed margin-top: 0px; to allow natural flow */
         }
 
         .notification-subsection.expanded {
-            max-height: 200px; /* Adjust based on content height */
-            padding: 10px 10px; /* Reduced padding for compactness */
-            border-color: var(--border-color); /* Visible border when expanded */
+            max-height: 200px;
+            padding: 6px; /* Adjusted padding inside the bordered subsection */
+            border-color: var(--border-color);
         }
 
         [data-theme="light"] .notification-subsection.expanded {
             border-color: var(--border-color-light);
         }
 
-        .notification-subsection .input-group {
+        /* New style for input with button inside */
+        .notification-subsection .input-with-button {
             display: flex;
-            gap: 8px; /* Slightly reduced gap */
-            margin-bottom: 8px; /* Slightly reduced margin */
-        }
-
-        .notification-subsection .input-group input {
-            flex-grow: 1;
-            padding: 8px 10px; /* Reduced padding */
+            align-items: center;
             border: 1px solid var(--border-color);
-            border-radius: 8px; /* Slightly smaller border-radius for inputs */
+            border-radius: 8px;
             background-color: var(--bg-secondary);
-            color: var(--text-primary);
-            font-size: 13px; /* Slightly reduced font size */
             transition: var(--transition-normal);
+            padding-right: 4px; /* Maintain very small space for the button inside */
+            height: 30px; /* Further reduced height for extreme compactness */
         }
 
-        .notification-subsection .input-group input:focus {
+        .notification-subsection .input-with-button:focus-within {
             border-color: var(--blue-primary);
-            outline: none;
             box-shadow: 0 0 0 3px var(--blue-glow);
+            outline: none;
         }
 
-        [data-theme="light"] .notification-subsection .input-group input {
+        [data-theme="light"] .notification-subsection .input-with-button {
             background-color: var(--bg-card);
             border-color: var(--border-color-light);
-            color: var(--text-primary);
         }
 
-        .notification-subsection .add-btn {
-            background-color: var(--blue-primary);
-            color: white;
+        .notification-subsection .input-with-button input {
+            flex-grow: 1;
             border: none;
-            border-radius: 8px; /* Slightly smaller border-radius for buttons */
-            padding: 8px 12px; /* Reduced padding */
+            background: transparent;
+            padding: 2px 0px 2px 8px; /* Further reduced vertical padding, slightly less left padding */
+            color: var(--text-primary);
+            font-size: 12px; /* Slightly reduced font size for input */
+            height: 100%;
+            outline: none;
+        }
+
+        /* New style for inline add button */
+        .notification-subsection .add-btn-inline {
+            background-color: transparent; /* Set to transparent by default */
+            border: none;
+            border-radius: 4px;
+            padding: 0px;
             cursor: pointer;
-            font-size: 13px; /* Slightly reduced font size */
-            font-weight: 600;
+            font-size: 0;
+            font-weight: 400;
             transition: var(--transition-normal);
             white-space: nowrap;
+            height: 22px;
+            width: 23px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .notification-subsection .add-btn:hover {
-            background-color: var(--blue-accent);
-            box-shadow: 0 4px 8px var(--blue-glow); /* Adjusted shadow */
+        .notification-subsection .add-btn-inline:hover {
+            /* This rule will be overridden by theme-specific hover rules below */
+            box-shadow: none;
         }
 
-        .notification-subsection .add-btn:active {
-            transform: translateY(1px);
+        .notification-subsection .add-btn-inline:active {
+            transform: translateY(0px);
         }
 
-        [data-theme="light"] .notification-subsection .add-btn {
-            background-color: var(--blue-primary);
-            color: white;
+        [data-theme="dark"] .notification-subsection .add-btn-inline {
+            background-color: rgba(255, 255, 255, 0.12) !important; /* Default background for dark theme, forced with !important */
         }
 
-        [data-theme="light"] .notification-subsection .add-btn:hover {
-            background-color: var(--blue-accent);
+        [data-theme="dark"] .notification-subsection .add-btn-inline:hover {
+            background-color: rgba(255, 255, 255, 0.2); /* Darker on hover for dark theme */
+        }
+
+        [data-theme="light"] .notification-subsection .add-btn-inline {
+            background-color: rgba(0, 0, 0, 0.05); /* Initial subtle background for light theme */
+        }
+
+        [data-theme="light"] .notification-subsection .add-btn-inline:hover {
+            background-color: rgba(0, 0, 0, 0.1); /* Slightly darker background on hover for light theme */
+        }
+
+        .notification-subsection .add-btn-inline svg {
+            width: 14px; /* Size of the plus icon */
+            height: 14px; /* Size of the plus icon */
+            stroke-width: 2px; /* Revert to default stroke width */
+            color: var(--text-secondary); /* Default icon color */
+        }
+
+        .notification-subsection .add-btn-inline:hover svg {
+            color: var(--text-primary); /* Icon color on hover */
         }
 
         .notification-subsection .list-container {
             border: 1px solid var(--border-color);
-            border-radius: 8px; /* Slightly smaller border-radius */
-            padding: 8px; /* Reduced padding */
-            max-height: 100px; /* Adjusted max-height */
+            border-radius: 8px;
+            padding: 4px;
+            max-height: 100px;
             overflow-y: auto;
             background-color: var(--bg-secondary);
+            margin-bottom: 4px;
         }
 
-        [data-theme="light"] .notification-subsection .list-container {
-            background-color: var(--bg-card);
-            border-color: var(--border-color-light);
+        /* Scrollbar styles for list containers */
+        .notification-subsection .list-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .notification-subsection .list-container::-webkit-scrollbar-track {
+            background: transparent;
+            border-radius: 10px;
+        }
+
+        .notification-subsection .list-container::-webkit-scrollbar-thumb {
+            background: var(--gray-primary);
+            border-radius: 10px;
+        }
+
+        .notification-subsection .list-container::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        [data-theme="dark"] .notification-subsection .list-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        [data-theme="dark"] .notification-subsection .list-container::-webkit-scrollbar-thumb {
+            background: var(--gray-primary);
+        }
+
+        [data-theme="dark"] .notification-subsection .list-container::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
         }
 
         .notification-subsection .list-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 6px 8px; /* Reduced padding */
+            padding: 1px 6px; /* Keep this padding for readability */
             border-bottom: 1px solid var(--border-color);
             color: var(--text-primary);
-            font-size: 13px; /* Slightly reduced font size */
+            font-size: 13px;
         }
 
         .notification-subsection .list-item:last-child {
@@ -2374,8 +2426,13 @@
         }
 
         .notification-subsection .delete-icon svg {
-            width: 16px; /* Reduced icon size */
-            height: 16px; /* Reduced icon size */
+            width: 8px; /* Further reduced icon size */
+            height: 8px; /* Further reduced icon size */
             stroke-width: 2.5px;
+        }
+
+        /* Adjust margin-bottom for checkbox-group labels to control space before subsections */
+        .settings-section .form-group .checkbox-group label {
+            margin-bottom: 4px; /* Consistent spacing */
         }
 

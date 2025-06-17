@@ -1387,6 +1387,9 @@ function initializeNotificationSettings() {
     toggleSubsection(emailSubsection, notifEmailToggle.checked);
     toggleSubsection(smsSubsection, notifSmsToggle.checked);
 
+    // Ensure all lucide icons in the settings modal are created
+    lucide.createIcons({ parentElement: settingsModal });
+
     // Add event listeners for toggles
     notifEmailToggle.addEventListener('change', () => toggleSubsection(emailSubsection, notifEmailToggle.checked));
     notifSmsToggle.addEventListener('change', () => toggleSubsection(smsSubsection, notifSmsToggle.checked));
