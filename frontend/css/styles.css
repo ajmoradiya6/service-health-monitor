@@ -2001,7 +2001,7 @@
             cursor: pointer;
             color: var(--text-secondary);
             transition: var(--transition-normal);
-            font-size: 14px;
+            font-size: 13px;
             margin-bottom: 4px; /* Add space between items */
         }
 
@@ -2230,7 +2230,7 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 13px;
             font-weight: 500;
             transition: var(--transition-normal);
             margin-top: 16px;
@@ -2248,8 +2248,8 @@
         }
 
         .settings-icon {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
         }
 
         /* Notification Subsections (Email/SMS) */
