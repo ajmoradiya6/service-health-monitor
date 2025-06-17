@@ -2275,8 +2275,8 @@
             border-radius: 8px;
             background-color: var(--bg-secondary);
             transition: var(--transition-normal);
-            padding-right: 4px; /* Maintain very small space for the button inside */
-            height: 30px; /* Further reduced height for extreme compactness */
+            padding-right: 6px; /* Maintain very small space for the button inside */
+            height: 38px; /* Increased height to match email entries */
         }
 
         .notification-subsection .input-with-button:focus-within {
@@ -2294,7 +2294,7 @@
             flex-grow: 1;
             border: none;
             background: transparent;
-            padding: 2px 0px 2px 8px; /* Further reduced vertical padding, slightly less left padding */
+            padding: 10px 0px 10px 8px; /* Adjusted vertical padding to match email entries */
             color: var(--text-primary);
             font-size: 12px; /* Slightly reduced font size for input */
             height: 100%;
@@ -2312,8 +2312,8 @@
             font-weight: 400;
             transition: var(--transition-normal);
             white-space: nowrap;
-            height: 22px;
-            width: 23px;
+            height: 25px; /* Match new input height */
+            width: 25px; /* Match new input height for a square button */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -2399,9 +2399,11 @@
         .notification-subsection .list-item {
             display: flex;
             justify-content: space-between;
+            padding-right: 6px;
             align-items: center;
-            padding: 8px 10px; /* Adjusted padding to create space inside the box */
+            padding: 6px 10px; /* Adjusted padding to create space inside the box */
             border: 1px solid var(--border-color); /* Add border to the list item */
+            padding-right: 6px;
             border-radius: 8px; /* Add border-radius for rounded corners */
             margin-bottom: 8px; /* Space between list items */
             color: var(--text-primary);
@@ -2410,7 +2412,7 @@
 
         .notification-subsection .list-item:last-child {
             margin-bottom: 0; /* No margin for the last item */
-            border-bottom: none;
+            /* border-bottom: none; */
         }
 
         [data-theme="light"] .notification-subsection .list-item {
@@ -2423,8 +2425,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 14px; /* Set to 14px to precisely match the plus icon's SVG size */
-            height: 14px; /* Set to 14px to precisely match the plus icon's SVG size */
+            width: 25px; /* Set to 23px */
+            height: 25px; /* Set to 23px */
             border-radius: 4px; /* Match add button border-radius */
             background: none; /* Remove default button background */
             border: none; /* Remove default button border */
