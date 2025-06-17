@@ -1445,9 +1445,28 @@ function toggleSubsection(subsection, isChecked) {
     }
 }
 
+// Function to show notification
+function showNotification(message, type = 'error') {
+    const notification = document.createElement('div');
+    notification.className = `${type}-message`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    // Trigger reflow
+    notification.offsetHeight;
+    notification.classList.add('show');
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
 function addEmailToList(email, save = true) {
-    if (!email || !isValidEmail(email)) {
-        alert('Please enter a valid email address.');
+    if (!email) {
+        showNotification('Please enter an email address');
+        return;
+    }
+    if (!isValidEmail(email)) {
+        showNotification('Please enter a valid email address');
         return;
     }
 
@@ -1475,8 +1494,12 @@ function addEmailToList(email, save = true) {
 }
 
 function addPhoneToList(phone, save = true) {
-    if (!phone || !isValidPhoneNumber(phone)) {
-        alert('Please enter a valid phone number (e.g., +1234567890 or 123-456-7890).');
+    if (!phone) {
+        showNotification('Please enter a phone number');
+        return;
+    }
+    if (!isValidPhoneNumber(phone)) {
+        showNotification('Please enter a valid phone number (e.g., +1234567890 or 123-456-7890)');
         return;
     }
 

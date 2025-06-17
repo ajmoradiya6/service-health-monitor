@@ -17,7 +17,7 @@
     ],
     "emailConfig": {
       "host": "",
-      "port": "1",
+      "port": "",
       "username": "",
       "password": "",
       "fromEmail": "",
