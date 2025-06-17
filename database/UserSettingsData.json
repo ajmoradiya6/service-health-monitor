@@ -1,0 +1,19 @@
+{
+  "notificationSettings": {
+    "inAppEnabled": true,
+    "emailEnabled": true,
+    "smsEnabled": true,
+    "serviceDownEnabled": true,
+    "serviceErrorEnabled": true,
+    "serviceRestartEnabled": true,
+    "serviceStartEnabled": true,
+    "highCpuEnabled": false,
+    "highMemoryEnabled": false,
+    "emails": [
+      "asasasa@gmail.com"
+    ],
+    "phones": [
+      "1234567891"
+    ]
+  }
+}

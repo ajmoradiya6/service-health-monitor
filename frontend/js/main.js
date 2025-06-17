@@ -1360,9 +1360,29 @@ function closeConfirmationModal() {
 }
 
 // ===== NEW NOTIFICATION SETTINGS FUNCTIONS =====
-function initializeNotificationSettings() {
-    // Load saved settings from local storage
-    const savedSettings = JSON.parse(localStorage.getItem('notificationSettings')) || {};
+// Helper to load settings from backend or localStorage
+async function loadSettingsFromBackendOrCache() {
+    try {
+        const response = await fetch('/api/user-settings');
+        if (!response.ok) throw new Error('Backend fetch failed');
+        const data = await response.json();
+        // Update localStorage cache for faster reloads
+        localStorage.setItem('notificationSettings', JSON.stringify(data));
+        if (Array.isArray(data.emails)) localStorage.setItem('notificationEmails', JSON.stringify(data.emails));
+        if (Array.isArray(data.phones)) localStorage.setItem('notificationPhones', JSON.stringify(data.phones));
+        return data;
+    } catch (err) {
+        // Fallback to localStorage
+        const settings = JSON.parse(localStorage.getItem('notificationSettings')) || {};
+        settings.emails = JSON.parse(localStorage.getItem('notificationEmails')) || [];
+        settings.phones = JSON.parse(localStorage.getItem('notificationPhones')) || [];
+        return settings;
+    }
+}
+
+// Update initializeNotificationSettings to use backend or cache
+async function initializeNotificationSettings() {
+    const savedSettings = await loadSettingsFromBackendOrCache();
 
     // Apply toggle states
     notifEmailToggle.checked = savedSettings.emailEnabled || false;
@@ -1376,11 +1396,13 @@ function initializeNotificationSettings() {
     document.getElementById('notif-high-memory').checked = savedSettings.highMemoryEnabled || false;
 
     // Load and render emails
-    const savedEmails = JSON.parse(localStorage.getItem('notificationEmails')) || [];
+    const savedEmails = savedSettings.emails || [];
+    emailListContainer.innerHTML = '';
     savedEmails.forEach(email => addEmailToList(email, false));
 
     // Load and render phone numbers
-    const savedPhones = JSON.parse(localStorage.getItem('notificationPhones')) || [];
+    const savedPhones = savedSettings.phones || [];
+    phoneListContainer.innerHTML = '';
     savedPhones.forEach(phone => addPhoneToList(phone, false));
 
     // Set initial visibility of subsections
@@ -1532,5 +1554,53 @@ function saveNotificationSettings() {
 
 // Call initializeNotificationSettings when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', initializeNotificationSettings);
+
+// Helper to gather all settings
+function gatherAllSettings() {
+    // Notification toggles
+    const settings = {
+        inAppEnabled: document.getElementById('notif-inapp').checked,
+        emailEnabled: notifEmailToggle.checked,
+        smsEnabled: notifSmsToggle.checked,
+        serviceDownEnabled: document.getElementById('notif-down').checked,
+        serviceErrorEnabled: document.getElementById('notif-error').checked,
+        serviceRestartEnabled: document.getElementById('notif-restart').checked,
+        serviceStartEnabled: document.getElementById('notif-start').checked,
+        highCpuEnabled: document.getElementById('notif-high-cpu').checked,
+        highMemoryEnabled: document.getElementById('notif-high-memory').checked,
+        emails: Array.from(emailListContainer.querySelectorAll('.list-item span')).map(e => e.textContent),
+        phones: Array.from(phoneListContainer.querySelectorAll('.list-item span')).map(e => e.textContent)
+    };
+    return settings;
+}
+
+// Save settings to backend and update localStorage
+async function saveAllSettingsToBackend() {
+    const settings = gatherAllSettings();
+    try {
+        const response = await fetch('/api/user-settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(settings)
+        });
+        if (!response.ok) {
+            throw new Error('Failed to save settings');
+        }
+        // Update localStorage cache after successful save
+        localStorage.setItem('notificationSettings', JSON.stringify(settings));
+        localStorage.setItem('notificationEmails', JSON.stringify(settings.emails));
+        localStorage.setItem('notificationPhones', JSON.stringify(settings.phones));
+        // Optionally show a success message
+        // alert('Settings saved!');
+    } catch (err) {
+        alert('Failed to save settings: ' + err.message);
+    }
+}
+
+// Attach to Save button
+const saveBtn = document.querySelector('.settings-save');
+if (saveBtn) {
+    saveBtn.addEventListener('click', saveAllSettingsToBackend);
+}
 
 

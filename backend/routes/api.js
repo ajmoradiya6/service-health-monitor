@@ -2,6 +2,8 @@
 const router = express.Router();
 const { getAllServices, updateService, deleteService } = require('../services/healthService');
 const registerServiceRouter = require('./registerService');
+const path = require('path');
+const fs = require('fs').promises;
 
 router.get('/services', async (req, res) => {
     const data = await getAllServices();
@@ -47,5 +49,66 @@ router.delete('/services/:id', async (req, res) => {
 });
 
 router.use('/register-service', registerServiceRouter);
+
+// POST endpoint to save user settings (emails, phone numbers, and all settings)
+router.post('/user-settings', async (req, res) => {
+    const userSettings = req.body;
+    const settingsFilePath = path.join(__dirname, '..', '..', 'database', 'UserSettingsData.json');
+
+    try {
+        // Check if the file exists
+        let fileExists = true;
+        try {
+            await fs.access(settingsFilePath);
+        } catch (err) {
+            if (err.code === 'ENOENT') {
+                fileExists = false;
+            } else {
+                throw err;
+            }
+        }
+
+        // If file does not exist, create it with an empty object
+        let allSettings = {};
+        if (!fileExists) {
+            await fs.writeFile(settingsFilePath, JSON.stringify({}, null, 2), 'utf8');
+        } else {
+            // Read existing settings
+            const fileContent = await fs.readFile(settingsFilePath, 'utf8');
+            allSettings = fileContent ? JSON.parse(fileContent) : {};
+        }
+
+        // Update notificationSettings
+        allSettings.notificationSettings = userSettings;
+
+        // Write the updated settings back to the file
+        await fs.writeFile(settingsFilePath, JSON.stringify(allSettings, null, 2), 'utf8');
+
+        res.status(200).json({ message: 'User settings saved successfully.' });
+    } catch (error) {
+        console.error('Error saving user settings:', error);
+        res.status(500).json({ message: 'Failed to save user settings', error: error.message });
+    }
+});
+
+// GET endpoint to fetch user settings
+router.get('/user-settings', async (req, res) => {
+    const settingsFilePath = path.join(__dirname, '..', '..', 'database', 'UserSettingsData.json');
+    try {
+        let data = {};
+        try {
+            const fileContent = await fs.readFile(settingsFilePath, 'utf8');
+            data = fileContent ? JSON.parse(fileContent) : {};
+        } catch (err) {
+            if (err.code !== 'ENOENT') throw err;
+            // If file does not exist, return empty object
+        }
+        // Return only notificationSettings for now (for backward compatibility)
+        res.status(200).json(data.notificationSettings || {});
+    } catch (error) {
+        console.error('Error reading user settings:', error);
+        res.status(500).json({ message: 'Failed to read user settings', error: error.message });
+    }
+});
 
 module.exports = router;
