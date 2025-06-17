@@ -2136,7 +2136,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #ccc;
+            background-color: rgba(0, 0, 0, 0.05);
             transition: .4s;
             border-radius: 9px; /* Half of new height */
         }
@@ -2474,5 +2474,9 @@
         /* Adjust margin-bottom for checkbox-group labels to control space before subsections */
         .settings-section .form-group .checkbox-group label {
             margin-bottom: 4px; /* Consistent spacing */
+        }
+
+        [data-theme="dark"] .toggle-switch .slider {
+            background-color: rgba(255, 255, 255, 0.12);
         }
 
