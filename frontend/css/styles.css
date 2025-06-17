@@ -422,21 +422,7 @@
             background-color: rgba(0, 0, 0, 0.05);
         }
 
-        .service-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background-color: var(--green-primary);
-            opacity: 0;
-            transition: var(--transition-normal);
-        }
-
-        .service-item:not(.active):hover::before {
-            opacity: 0.6;
-        }
+        /* Remove the decorative bar that showed on hover */
 
         .status-dot {
             width: 8px;
