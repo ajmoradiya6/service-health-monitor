@@ -1672,8 +1672,14 @@ testEmailConfig.addEventListener('click', async () => {
         const successMessage = document.createElement('div');
         successMessage.className = 'success-message';
         successMessage.textContent = 'Test email sent successfully';
-        document.querySelector('.settings-save-container').appendChild(successMessage);
-        setTimeout(() => successMessage.remove(), 3000);
+        document.body.appendChild(successMessage);
+        // Trigger reflow
+        successMessage.offsetHeight;
+        successMessage.classList.add('show');
+        setTimeout(() => {
+            successMessage.classList.remove('show');
+            setTimeout(() => successMessage.remove(), 300);
+        }, 3000);
 
     } catch (error) {
         console.error('Error testing email configuration:', error);
@@ -1681,8 +1687,14 @@ testEmailConfig.addEventListener('click', async () => {
         const errorMessage = document.createElement('div');
         errorMessage.className = 'error-message';
         errorMessage.textContent = 'Failed to test email configuration';
-        document.querySelector('.settings-save-container').appendChild(errorMessage);
-        setTimeout(() => errorMessage.remove(), 3000);
+        document.body.appendChild(errorMessage);
+        // Trigger reflow
+        errorMessage.offsetHeight;
+        errorMessage.classList.add('show');
+        setTimeout(() => {
+            errorMessage.classList.remove('show');
+            setTimeout(() => errorMessage.remove(), 300);
+        }, 3000);
     }
 });
 
