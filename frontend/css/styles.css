@@ -2115,6 +2115,108 @@
             accent-color: var(--blue-accent);
         }
 
+        /* Toggle Switch Styling */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 18px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-switch .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 9px; /* Half of new height */
+        }
+
+        .toggle-switch .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .slider {
+            background-color: var(--blue-accent);
+        }
+
+        .toggle-switch input:focus + .slider {
+            box-shadow: 0 0 1px var(--blue-accent);
+        }
+
+        .toggle-switch input:checked + .slider:before {
+            transform: translateX(16px); /* Adjusted based on new width */
+        }
+
+        /* Rounded sliders */
+        .toggle-switch .slider.round {
+            border-radius: 9px;
+        }
+
+        .toggle-switch .slider.round:before {
+            border-radius: 50%;
+        }
+
+        /* Modern look enhancements */
+        .toggle-switch .slider {
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch input:checked + .slider {
+            box-shadow: inset 0 0 5px rgba(37, 99, 235, 0.4);
+        }
+
+        .toggle-switch .slider:before {
+            box-shadow: 0 2px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Align toggle to the right */
+        .settings-section .form-group label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .settings-section .form-group label span:first-child {
+            flex-grow: 1;
+        }
+
+        .settings-section .form-group .checkbox-group label {
+            display: flex;
+            justify-content: space-between; /* Pushes content to edges */
+            align-items: center;
+            width: 100%;
+        }
+
+        .settings-section .form-group .checkbox-group label .toggle-switch {
+            /* margin-left: auto; */ /* Removed as justify-content handles it */
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
         /* Settings modal button styling */
         #settings-modal .settings-save {
             display: block;
@@ -2140,13 +2242,6 @@
 
         #settings-modal .settings-save:active {
             background-color: #1d4fbc;
-        }
-
-        .checkbox-group label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 4px;
         }
 
         .settings-icon {
