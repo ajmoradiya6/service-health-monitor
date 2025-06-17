@@ -2294,11 +2294,17 @@
             flex-grow: 1;
             border: none;
             background: transparent;
-            padding: 10px 0px 10px 8px; /* Adjusted vertical padding to match email entries */
+            padding: 10px 0px 10px 8px;
             color: var(--text-primary);
-            font-size: 12px; /* Slightly reduced font size for input */
+            font-size: 12px;
             height: 100%;
             outline: none;
+        }
+
+        /* Remove input:focus border and box-shadow */
+        .notification-subsection .input-with-button input:focus {
+            border: none;
+            box-shadow: none;
         }
 
         /* New style for inline add button */
