@@ -1374,7 +1374,7 @@
         }
 
         @keyframes slideIn {
-            from { transform: translateX(-20px); opacity: 0; }
+            from { transform: translateX(-10px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
 
@@ -1389,15 +1389,15 @@
         .metric-card:nth-child(4) { animation-delay: 0.4s; }
 
         .service-item {
-            animation: slideIn 0.4s ease forwards;
+            animation: slideIn 0.3s ease forwards;
             opacity: 0;
         }
 
-        .service-item:nth-child(1) { animation-delay: 0.1s; }
-        .service-item:nth-child(2) { animation-delay: 0.15s; }
-        .service-item:nth-child(3) { animation-delay: 0.2s; }
-        .service-item:nth-child(4) { animation-delay: 0.25s; }
-        .service-item:nth-child(5) { animation-delay: 0.3s; }
+        .service-item:nth-child(1) { animation-delay: 0.05s; }
+        .service-item:nth-child(2) { animation-delay: 0.1s; }
+        .service-item:nth-child(3) { animation-delay: 0.15s; }
+        .service-item:nth-child(4) { animation-delay: 0.2s; }
+        .service-item:nth-child(5) { animation-delay: 0.25s; }
 
         .log-entry {
             animation: slideIn 0.3s ease forwards;
@@ -2594,7 +2594,7 @@
 
         @keyframes slideIn {
             from {
-                transform: translateX(100%);
+                transform: translateX(30%);
                 opacity: 0;
             }
             to {

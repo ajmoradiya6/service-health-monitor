@@ -2,22 +2,28 @@
   "user-settings": {
     "notificationSettings": {
       "inAppEnabled": true,
-      "emailEnabled": false,
-      "smsEnabled": false,
+      "emailEnabled": true,
+      "smsEnabled": true,
       "serviceDownEnabled": true,
       "serviceErrorEnabled": true,
       "serviceRestartEnabled": true,
       "serviceStartEnabled": false,
       "highCpuEnabled": false,
       "highMemoryEnabled": false,
-      "emails": [],
-      "phones": []
+      "emails": [
+        "asasasa@gmail.com",
+        "asasasa@gmail.com"
+      ],
+      "phones": [
+        "1234567891",
+        "1234567891"
+      ]
     },
     "emailConfig": {
       "host": "asasasasas",
       "port": "",
-      "username": "",
-      "password": "",
+      "username": "sdsdssdsd",
+      "password": "aasasaasasasasas",
       "fromEmail": "",
       "fromName": "",
       "useSsl": false
