@@ -14,6 +14,15 @@
     ],
     "phones": [
       "1234567891"
-    ]
+    ],
+    "emailConfig": {
+      "host": "",
+      "port": "",
+      "username": "",
+      "password": "",
+      "fromEmail": "",
+      "fromName": "",
+      "useSsl": false
+    }
   }
 }

@@ -2002,6 +2002,7 @@
             color: var(--text-secondary);
             transition: var(--transition-normal);
             font-size: 14px;
+            margin-bottom: 4px; /* Add space between items */
         }
 
         .settings-item.active,
@@ -2012,11 +2013,17 @@
             outline: none;
         }
 
-        .settings-item:hover {
+        /* Remove hover effect for active items */
+        .settings-item.active:hover {
+            background-color: var(--blue-accent);
+        }
+
+        /* Only apply hover effect to non-active items */
+        .settings-item:not(.active):hover {
             background-color: rgba(255, 255, 255, 0.05);
         }
 
-        [data-theme="light"] .settings-item:hover {
+        [data-theme="light"] .settings-item:not(.active):hover {
             background-color: rgba(0, 0, 0, 0.05);
         }
 
@@ -2478,5 +2485,111 @@
 
         [data-theme="dark"] .toggle-switch .slider {
             background-color: rgba(255, 255, 255, 0.12);
+        }
+
+        /* Email configuration specific styles */
+        #email-config-settings .form-group {
+            min-height: auto;
+            padding: 20px;
+        }
+
+        #email-config-settings .form-group > label {
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        #email-config-settings .smtp-settings {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        #email-config-settings .smtp-settings .form-group {
+            padding: 0;
+            margin: 0;
+            min-height: auto;
+            background: none;
+            border: none;
+            box-shadow: none;
+        }
+
+        #email-config-settings .smtp-settings .form-group label {
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: normal;
+        }
+
+        #email-config-settings .form-group input[type="text"],
+        #email-config-settings .form-group input[type="number"],
+        #email-config-settings .form-group input[type="email"],
+        #email-config-settings .form-group input[type="password"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 13px;
+            transition: var(--transition-normal);
+        }
+
+        #email-config-settings .form-group input:focus {
+            outline: none;
+            border-color: var(--blue-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        #test-email-config {
+            background-color: var(--blue-accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            margin-top: 16px;
+        }
+
+        #test-email-config:hover {
+            background-color: var(--blue-primary);
+        }
+
+        .success-message,
+        .error-message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            animation: slideIn 0.3s ease-out;
+            z-index: 1000;
+        }
+
+        .success-message {
+            background-color: #10B981;
+            color: white;
+        }
+
+        .error-message {
+            background-color: #EF4444;
+            color: white;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 

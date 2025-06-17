@@ -136,6 +136,16 @@ const phoneInput = document.getElementById('phone-input');
 const addPhoneBtn = document.getElementById('add-phone-btn');
 const phoneListContainer = document.getElementById('phone-list');
 
+// Email configuration elements
+const smtpHost = document.getElementById('smtp-host');
+const smtpPort = document.getElementById('smtp-port');
+const smtpUsername = document.getElementById('smtp-username');
+const smtpPassword = document.getElementById('smtp-password');
+const smtpFromEmail = document.getElementById('smtp-from-email');
+const smtpFromName = document.getElementById('smtp-from-name');
+const smtpSsl = document.getElementById('smtp-ssl');
+const testEmailConfig = document.getElementById('test-email-config');
+
 // ===== ANIMATION FUNCTIONS =====
 function addIconAnimation(element, animationClass) {
     if (element) {
@@ -275,6 +285,7 @@ function closeEditServiceModal() {
 function openSettingsModal() {
     if (settingsModal) {
         settingsModal.style.display = 'flex';
+        initializeSettingsSections();
         if (window.lucide) {
             lucide.createIcons();
         }
@@ -1557,7 +1568,6 @@ document.addEventListener('DOMContentLoaded', initializeNotificationSettings);
 
 // Helper to gather all settings
 function gatherAllSettings() {
-    // Notification toggles
     const settings = {
         inAppEnabled: document.getElementById('notif-inapp').checked,
         emailEnabled: notifEmailToggle.checked,
@@ -1569,7 +1579,16 @@ function gatherAllSettings() {
         highCpuEnabled: document.getElementById('notif-high-cpu').checked,
         highMemoryEnabled: document.getElementById('notif-high-memory').checked,
         emails: Array.from(emailListContainer.querySelectorAll('.list-item span')).map(e => e.textContent),
-        phones: Array.from(phoneListContainer.querySelectorAll('.list-item span')).map(e => e.textContent)
+        phones: Array.from(phoneListContainer.querySelectorAll('.list-item span')).map(e => e.textContent),
+        emailConfig: {
+            host: smtpHost.value,
+            port: smtpPort.value,
+            username: smtpUsername.value,
+            password: smtpPassword.value,
+            fromEmail: smtpFromEmail.value,
+            fromName: smtpFromName.value,
+            useSsl: smtpSsl.checked
+        }
     };
     return settings;
 }
@@ -1602,5 +1621,69 @@ const saveBtn = document.querySelector('.settings-save');
 if (saveBtn) {
     saveBtn.addEventListener('click', saveAllSettingsToBackend);
 }
+
+// Function to initialize settings sections
+function initializeSettingsSections() {
+    // Hide all sections except the active one
+    document.querySelectorAll('.settings-section').forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    // Show the active section
+    const activeItem = document.querySelector('.settings-item.active');
+    if (activeItem) {
+        const targetSection = document.getElementById(activeItem.dataset.target);
+        if (targetSection) {
+            targetSection.style.display = 'flex';
+        }
+    }
+}
+
+// Add click handlers for settings items
+document.querySelectorAll('.settings-item').forEach(item => {
+    item.addEventListener('click', () => {
+        // Remove active class from all items
+        document.querySelectorAll('.settings-item').forEach(i => i.classList.remove('active'));
+        // Add active class to clicked item
+        item.classList.add('active');
+        // Initialize sections
+        initializeSettingsSections();
+    });
+});
+
+// Add event listener for test email configuration
+testEmailConfig.addEventListener('click', async () => {
+    try {
+        const emailConfig = gatherAllSettings().emailConfig;
+        
+        const response = await fetch('/api/settings/test-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(emailConfig)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to test email configuration');
+        }
+
+        // Show success message
+        const successMessage = document.createElement('div');
+        successMessage.className = 'success-message';
+        successMessage.textContent = 'Test email sent successfully';
+        document.querySelector('.settings-save-container').appendChild(successMessage);
+        setTimeout(() => successMessage.remove(), 3000);
+
+    } catch (error) {
+        console.error('Error testing email configuration:', error);
+        // Show error message
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'error-message';
+        errorMessage.textContent = 'Failed to test email configuration';
+        document.querySelector('.settings-save-container').appendChild(errorMessage);
+        setTimeout(() => errorMessage.remove(), 3000);
+    }
+});
 
 
