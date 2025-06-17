@@ -1772,15 +1772,19 @@
         /* New styles for the context menu */
         .context-menu {
             position: absolute;
-            background-color: var(--bg-secondary); /* Match sidebar background */
+            background-color: #ffffff; /* Match filter dropdown */
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            box-shadow: var(--shadow-sm); /* Use a similar shadow to modals */
+            box-shadow: var(--shadow-md); /* Use same shadow as filter menu */
             list-style: none;
-            padding: 5px 0;
+            padding: 4px 0;
             margin: 0;
             z-index: 2000; /* Ensure it's above other elements */
             min-width: 140px; /* Give it a minimum width */
+        }
+
+        [data-theme="dark"] .context-menu {
+            background-color: #1a1a1a;
         }
 
         .context-menu li {
