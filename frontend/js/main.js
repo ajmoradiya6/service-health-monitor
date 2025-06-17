@@ -75,7 +75,34 @@
   }
 }
 
-window.onload = loadServices;
+async function initializeApp() {
+    console.log('Initializing application...'); // Debug log
+    try {
+        // Initialize theme first
+        initializeTheme();
+        
+        // Initialize notification settings
+        await initializeNotificationSettings();
+        
+        // Load services
+        await loadServices();
+        
+        // Initialize settings sections
+        initializeSettingsSections();
+        
+        console.log('Application initialization complete'); // Debug log
+    } catch (error) {
+        console.error('Error initializing application:', error);
+        showNotification('Failed to initialize application', 'error');
+    }
+}
+
+// Set up the window.onload handler
+window.onload = initializeApp;
+
+// Remove any existing event listeners to prevent duplicate initialization
+window.removeEventListener('load', initializeApp);
+document.removeEventListener('DOMContentLoaded', initializeApp);
 
 // ===== GLOBAL VARIABLES =====
 let chartData = [];
@@ -139,7 +166,6 @@ const emailSubsection = document.getElementById('email-settings-subsection');
 const emailInput = document.getElementById('email-input');
 const addEmailBtn = document.getElementById('add-email-btn');
 const emailListContainer = document.getElementById('email-list');
-
 const notifSmsToggle = document.getElementById('notif-sms');
 const smsSubsection = document.getElementById('sms-settings-subsection');
 const phoneInput = document.getElementById('phone-input');
@@ -298,8 +324,6 @@ function closeSettingsModal() {
     if (modal) {
         modal.style.display = 'none';
     }
-    // Save notification settings when modal is closed
-    saveNotificationSettings();
 }
 
 // ===== SIDEBAR FUNCTIONS =====
@@ -1343,8 +1367,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Initialize settings when the page loads
+    // initializeNotificationSettings();
+
     // Initial load of services
-    loadServices();
+    // loadServices();
 });
 
 // Function to open the Confirmation modal
@@ -1373,46 +1400,45 @@ function closeConfirmationModal() {
 // ===== NEW NOTIFICATION SETTINGS FUNCTIONS =====
 // Helper to load settings from backend or localStorage
 async function loadSettingsFromBackendOrCache() {
+    console.log('Loading settings...'); // Debug log
     try {
         const response = await fetch('/api/user-settings');
         if (!response.ok) throw new Error('Backend fetch failed');
         const data = await response.json();
         // Update localStorage cache for faster reloads
-        localStorage.setItem('notificationSettings', JSON.stringify(data));
-        if (Array.isArray(data.emails)) localStorage.setItem('notificationEmails', JSON.stringify(data.emails));
-        if (Array.isArray(data.phones)) localStorage.setItem('notificationPhones', JSON.stringify(data.phones));
+        localStorage.setItem('userSettings', JSON.stringify(data));
         return data;
     } catch (err) {
         // Fallback to localStorage
-        const settings = JSON.parse(localStorage.getItem('notificationSettings')) || {};
-        settings.emails = JSON.parse(localStorage.getItem('notificationEmails')) || [];
-        settings.phones = JSON.parse(localStorage.getItem('notificationPhones')) || [];
-        return settings;
+        return JSON.parse(localStorage.getItem('userSettings')) || {};
     }
 }
 
 // Update initializeNotificationSettings to use backend or cache
 async function initializeNotificationSettings() {
+    console.log('Initializing notification settings...'); // Debug log
     const savedSettings = await loadSettingsFromBackendOrCache();
+    const notificationSettings = savedSettings.notificationSettings || {};
+    const emailConfig = savedSettings.emailConfig || {};
 
     // Apply toggle states
-    notifEmailToggle.checked = savedSettings.emailEnabled || false;
-    notifSmsToggle.checked = savedSettings.smsEnabled || false;
-    document.getElementById('notif-inapp').checked = savedSettings.inAppEnabled || false;
-    document.getElementById('notif-down').checked = savedSettings.serviceDownEnabled || false;
-    document.getElementById('notif-error').checked = savedSettings.serviceErrorEnabled || false;
-    document.getElementById('notif-restart').checked = savedSettings.serviceRestartEnabled || false;
-    document.getElementById('notif-start').checked = savedSettings.serviceStartEnabled || false;
-    document.getElementById('notif-high-cpu').checked = savedSettings.highCpuEnabled || false;
-    document.getElementById('notif-high-memory').checked = savedSettings.highMemoryEnabled || false;
+    notifEmailToggle.checked = notificationSettings.emailEnabled || false;
+    notifSmsToggle.checked = notificationSettings.smsEnabled || false;
+    document.getElementById('notif-inapp').checked = notificationSettings.inAppEnabled || false;
+    document.getElementById('notif-down').checked = notificationSettings.serviceDownEnabled || false;
+    document.getElementById('notif-error').checked = notificationSettings.serviceErrorEnabled || false;
+    document.getElementById('notif-restart').checked = notificationSettings.serviceRestartEnabled || false;
+    document.getElementById('notif-start').checked = notificationSettings.serviceStartEnabled || false;
+    document.getElementById('notif-high-cpu').checked = notificationSettings.highCpuEnabled || false;
+    document.getElementById('notif-high-memory').checked = notificationSettings.highMemoryEnabled || false;
 
     // Load and render emails
-    const savedEmails = savedSettings.emails || [];
+    const savedEmails = notificationSettings.emails || [];
     emailListContainer.innerHTML = '';
     savedEmails.forEach(email => addEmailToList(email, false));
 
     // Load and render phone numbers
-    const savedPhones = savedSettings.phones || [];
+    const savedPhones = notificationSettings.phones || [];
     phoneListContainer.innerHTML = '';
     savedPhones.forEach(phone => addPhoneToList(phone, false));
 
@@ -1420,8 +1446,19 @@ async function initializeNotificationSettings() {
     toggleSubsection(emailSubsection, notifEmailToggle.checked);
     toggleSubsection(smsSubsection, notifSmsToggle.checked);
 
+    // Initialize email configuration fields
+    smtpHost.value = emailConfig.host || '';
+    smtpPort.value = emailConfig.port || '';
+    smtpUsername.value = emailConfig.username || '';
+    smtpPassword.value = emailConfig.password || '';
+    smtpFromEmail.value = emailConfig.fromEmail || '';
+    smtpFromName.value = emailConfig.fromName || '';
+    smtpSsl.checked = emailConfig.useSsl || false;
+
     // Ensure all lucide icons in the settings modal are created
-    lucide.createIcons({ parentElement: settingsModal });
+    if (window.lucide) {
+        lucide.createIcons({ parentElement: settingsModal });
+    }
 
     // Add event listeners for toggles
     notifEmailToggle.addEventListener('change', () => toggleSubsection(emailSubsection, notifEmailToggle.checked));
@@ -1430,11 +1467,6 @@ async function initializeNotificationSettings() {
     // Add event listeners for add buttons
     addEmailBtn.addEventListener('click', handleAddEmail);
     addPhoneBtn.addEventListener('click', handleAddPhone);
-
-    // Add event listener for general settings changes to save them
-    settingsModal.querySelectorAll('.toggle-switch input').forEach(toggle => {
-        toggle.addEventListener('change', saveNotificationSettings);
-    });
 }
 
 function toggleSubsection(subsection, isChecked) {
@@ -1571,38 +1603,22 @@ function removePhoneFromStorage(phone) {
     localStorage.setItem('notificationPhones', JSON.stringify(phones));
 }
 
-function saveNotificationSettings() {
+// Save settings to backend and update localStorage
+async function saveAllSettingsToBackend() {
     const settings = {
-        inAppEnabled: document.getElementById('notif-inapp').checked,
-        emailEnabled: notifEmailToggle.checked,
-        smsEnabled: notifSmsToggle.checked,
-        serviceDownEnabled: document.getElementById('notif-down').checked,
-        serviceErrorEnabled: document.getElementById('notif-error').checked,
-        serviceRestartEnabled: document.getElementById('notif-restart').checked,
-        serviceStartEnabled: document.getElementById('notif-start').checked,
-        highCpuEnabled: document.getElementById('notif-high-cpu').checked,
-        highMemoryEnabled: document.getElementById('notif-high-memory').checked,
-    };
-    localStorage.setItem('notificationSettings', JSON.stringify(settings));
-}
-
-// Call initializeNotificationSettings when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initializeNotificationSettings);
-
-// Helper to gather all settings
-function gatherAllSettings() {
-    const settings = {
-        inAppEnabled: document.getElementById('notif-inapp').checked,
-        emailEnabled: notifEmailToggle.checked,
-        smsEnabled: notifSmsToggle.checked,
-        serviceDownEnabled: document.getElementById('notif-down').checked,
-        serviceErrorEnabled: document.getElementById('notif-error').checked,
-        serviceRestartEnabled: document.getElementById('notif-restart').checked,
-        serviceStartEnabled: document.getElementById('notif-start').checked,
-        highCpuEnabled: document.getElementById('notif-high-cpu').checked,
-        highMemoryEnabled: document.getElementById('notif-high-memory').checked,
-        emails: Array.from(emailListContainer.querySelectorAll('.list-item span')).map(e => e.textContent),
-        phones: Array.from(phoneListContainer.querySelectorAll('.list-item span')).map(e => e.textContent),
+        notificationSettings: {
+            inAppEnabled: document.getElementById('notif-inapp').checked,
+            emailEnabled: notifEmailToggle.checked,
+            smsEnabled: notifSmsToggle.checked,
+            serviceDownEnabled: document.getElementById('notif-down').checked,
+            serviceErrorEnabled: document.getElementById('notif-error').checked,
+            serviceRestartEnabled: document.getElementById('notif-restart').checked,
+            serviceStartEnabled: document.getElementById('notif-start').checked,
+            highCpuEnabled: document.getElementById('notif-high-cpu').checked,
+            highMemoryEnabled: document.getElementById('notif-high-memory').checked,
+            emails: Array.from(emailListContainer.querySelectorAll('.list-item span')).map(e => e.textContent),
+            phones: Array.from(phoneListContainer.querySelectorAll('.list-item span')).map(e => e.textContent)
+        },
         emailConfig: {
             host: smtpHost.value,
             port: smtpPort.value,
@@ -1613,12 +1629,7 @@ function gatherAllSettings() {
             useSsl: smtpSsl.checked
         }
     };
-    return settings;
-}
 
-// Save settings to backend and update localStorage
-async function saveAllSettingsToBackend() {
-    const settings = gatherAllSettings();
     try {
         const response = await fetch('/api/user-settings', {
             method: 'POST',
@@ -1629,9 +1640,7 @@ async function saveAllSettingsToBackend() {
             throw new Error('Failed to save settings');
         }
         // Update localStorage cache after successful save
-        localStorage.setItem('notificationSettings', JSON.stringify(settings));
-        localStorage.setItem('notificationEmails', JSON.stringify(settings.emails));
-        localStorage.setItem('notificationPhones', JSON.stringify(settings.phones));
+        localStorage.setItem('userSettings', JSON.stringify(settings));
         // Close the modal after successful save
         closeSettingsModal();
         // Show success message
@@ -1673,7 +1682,8 @@ document.querySelectorAll('.settings-item').forEach(item => {
 // Add event listener for test email configuration
 document.getElementById('test-email-config').addEventListener('click', async () => {
     try {
-        const emailConfig = gatherAllSettings().emailConfig;
+        const settings = await loadSettingsFromBackendOrCache();
+        const emailConfig = settings.emailConfig || {};
         
         const response = await fetch('/api/settings/test-email', {
             method: 'POST',

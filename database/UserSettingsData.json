@@ -1,22 +1,22 @@
 {
   "notificationSettings": {
-    "inAppEnabled": true,
-    "emailEnabled": true,
-    "smsEnabled": true,
-    "serviceDownEnabled": true,
-    "serviceErrorEnabled": true,
-    "serviceRestartEnabled": true,
-    "serviceStartEnabled": true,
-    "highCpuEnabled": false,
-    "highMemoryEnabled": false,
-    "emails": [
-      "asasasa@gmail.com"
-    ],
-    "phones": [
-      "1234567891"
-    ],
+    "notificationSettings": {
+      "inAppEnabled": false,
+      "emailEnabled": true,
+      "smsEnabled": false,
+      "serviceDownEnabled": false,
+      "serviceErrorEnabled": false,
+      "serviceRestartEnabled": false,
+      "serviceStartEnabled": false,
+      "highCpuEnabled": false,
+      "highMemoryEnabled": false,
+      "emails": [
+        "sdsdsds@gmail.com"
+      ],
+      "phones": []
+    },
     "emailConfig": {
-      "host": "111111111",
+      "host": "",
       "port": "",
       "username": "",
       "password": "",

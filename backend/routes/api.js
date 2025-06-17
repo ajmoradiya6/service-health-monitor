@@ -103,8 +103,8 @@ router.get('/user-settings', async (req, res) => {
             if (err.code !== 'ENOENT') throw err;
             // If file does not exist, return empty object
         }
-        // Return only notificationSettings for now (for backward compatibility)
-        res.status(200).json(data.notificationSettings || {});
+        // Return the complete settings object
+        res.status(200).json(data);
     } catch (error) {
         console.error('Error reading user settings:', error);
         res.status(500).json({ message: 'Failed to read user settings', error: error.message });
