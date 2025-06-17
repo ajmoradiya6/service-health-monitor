@@ -2249,3 +2249,133 @@
             height: 18px;
         }
 
+        /* Notification Subsections (Email/SMS) */
+        .notification-subsection {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out, border-color 0.3s ease-out, border-width 0.3s ease-out;
+            padding: 0 10px;
+            box-sizing: border-box;
+            border: 1px solid transparent; /* Start with transparent border */
+            border-radius: var(--card-radius);
+        }
+
+        .notification-subsection.expanded {
+            max-height: 200px; /* Adjust based on content height */
+            padding: 10px 10px; /* Reduced padding for compactness */
+            border-color: var(--border-color); /* Visible border when expanded */
+        }
+
+        [data-theme="light"] .notification-subsection.expanded {
+            border-color: var(--border-color-light);
+        }
+
+        .notification-subsection .input-group {
+            display: flex;
+            gap: 8px; /* Slightly reduced gap */
+            margin-bottom: 8px; /* Slightly reduced margin */
+        }
+
+        .notification-subsection .input-group input {
+            flex-grow: 1;
+            padding: 8px 10px; /* Reduced padding */
+            border: 1px solid var(--border-color);
+            border-radius: 8px; /* Slightly smaller border-radius for inputs */
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 13px; /* Slightly reduced font size */
+            transition: var(--transition-normal);
+        }
+
+        .notification-subsection .input-group input:focus {
+            border-color: var(--blue-primary);
+            outline: none;
+            box-shadow: 0 0 0 3px var(--blue-glow);
+        }
+
+        [data-theme="light"] .notification-subsection .input-group input {
+            background-color: var(--bg-card);
+            border-color: var(--border-color-light);
+            color: var(--text-primary);
+        }
+
+        .notification-subsection .add-btn {
+            background-color: var(--blue-primary);
+            color: white;
+            border: none;
+            border-radius: 8px; /* Slightly smaller border-radius for buttons */
+            padding: 8px 12px; /* Reduced padding */
+            cursor: pointer;
+            font-size: 13px; /* Slightly reduced font size */
+            font-weight: 600;
+            transition: var(--transition-normal);
+            white-space: nowrap;
+        }
+
+        .notification-subsection .add-btn:hover {
+            background-color: var(--blue-accent);
+            box-shadow: 0 4px 8px var(--blue-glow); /* Adjusted shadow */
+        }
+
+        .notification-subsection .add-btn:active {
+            transform: translateY(1px);
+        }
+
+        [data-theme="light"] .notification-subsection .add-btn {
+            background-color: var(--blue-primary);
+            color: white;
+        }
+
+        [data-theme="light"] .notification-subsection .add-btn:hover {
+            background-color: var(--blue-accent);
+        }
+
+        .notification-subsection .list-container {
+            border: 1px solid var(--border-color);
+            border-radius: 8px; /* Slightly smaller border-radius */
+            padding: 8px; /* Reduced padding */
+            max-height: 100px; /* Adjusted max-height */
+            overflow-y: auto;
+            background-color: var(--bg-secondary);
+        }
+
+        [data-theme="light"] .notification-subsection .list-container {
+            background-color: var(--bg-card);
+            border-color: var(--border-color-light);
+        }
+
+        .notification-subsection .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px; /* Reduced padding */
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 13px; /* Slightly reduced font size */
+        }
+
+        .notification-subsection .list-item:last-child {
+            border-bottom: none;
+        }
+
+        [data-theme="light"] .notification-subsection .list-item {
+            border-bottom-color: var(--border-color-light);
+        }
+
+        .notification-subsection .delete-icon {
+            cursor: pointer;
+            color: var(--red-primary);
+            transition: var(--transition-normal);
+        }
+
+        .notification-subsection .delete-icon:hover {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
+
+        .notification-subsection .delete-icon svg {
+            width: 16px; /* Reduced icon size */
+            height: 16px; /* Reduced icon size */
+            stroke-width: 2.5px;
+        }
+

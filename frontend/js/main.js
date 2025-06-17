@@ -123,6 +123,19 @@ let activeContextMenu = null;
 // Global variable to store current log filter
 let currentLogFilter = 'all';
 
+// Email and SMS settings elements
+const notifEmailToggle = document.getElementById('notif-email');
+const emailSubsection = document.getElementById('email-settings-subsection');
+const emailInput = document.getElementById('email-input');
+const addEmailBtn = document.getElementById('add-email-btn');
+const emailListContainer = document.getElementById('email-list');
+
+const notifSmsToggle = document.getElementById('notif-sms');
+const smsSubsection = document.getElementById('sms-settings-subsection');
+const phoneInput = document.getElementById('phone-input');
+const addPhoneBtn = document.getElementById('add-phone-btn');
+const phoneListContainer = document.getElementById('phone-list');
+
 // ===== ANIMATION FUNCTIONS =====
 function addIconAnimation(element, animationClass) {
     if (element) {
@@ -270,9 +283,12 @@ function openSettingsModal() {
 
 // Function to close the Settings modal
 function closeSettingsModal() {
-    if (settingsModal) {
-        settingsModal.style.display = 'none';
+    const modal = document.getElementById('settings-modal');
+    if (modal) {
+        modal.style.display = 'none';
     }
+    // Save notification settings when modal is closed
+    saveNotificationSettings();
 }
 
 // ===== SIDEBAR FUNCTIONS =====
@@ -1342,5 +1358,176 @@ function closeConfirmationModal() {
         modal.style.display = 'none';
     }
 }
+
+// ===== NEW NOTIFICATION SETTINGS FUNCTIONS =====
+function initializeNotificationSettings() {
+    // Load saved settings from local storage
+    const savedSettings = JSON.parse(localStorage.getItem('notificationSettings')) || {};
+
+    // Apply toggle states
+    notifEmailToggle.checked = savedSettings.emailEnabled || false;
+    notifSmsToggle.checked = savedSettings.smsEnabled || false;
+    document.getElementById('notif-inapp').checked = savedSettings.inAppEnabled || false;
+    document.getElementById('notif-down').checked = savedSettings.serviceDownEnabled || false;
+    document.getElementById('notif-error').checked = savedSettings.serviceErrorEnabled || false;
+    document.getElementById('notif-restart').checked = savedSettings.serviceRestartEnabled || false;
+    document.getElementById('notif-start').checked = savedSettings.serviceStartEnabled || false;
+    document.getElementById('notif-high-cpu').checked = savedSettings.highCpuEnabled || false;
+    document.getElementById('notif-high-memory').checked = savedSettings.highMemoryEnabled || false;
+
+    // Load and render emails
+    const savedEmails = JSON.parse(localStorage.getItem('notificationEmails')) || [];
+    savedEmails.forEach(email => addEmailToList(email, false));
+
+    // Load and render phone numbers
+    const savedPhones = JSON.parse(localStorage.getItem('notificationPhones')) || [];
+    savedPhones.forEach(phone => addPhoneToList(phone, false));
+
+    // Set initial visibility of subsections
+    toggleSubsection(emailSubsection, notifEmailToggle.checked);
+    toggleSubsection(smsSubsection, notifSmsToggle.checked);
+
+    // Add event listeners for toggles
+    notifEmailToggle.addEventListener('change', () => toggleSubsection(emailSubsection, notifEmailToggle.checked));
+    notifSmsToggle.addEventListener('change', () => toggleSubsection(smsSubsection, notifSmsToggle.checked));
+
+    // Add event listeners for add buttons
+    addEmailBtn.addEventListener('click', handleAddEmail);
+    addPhoneBtn.addEventListener('click', handleAddPhone);
+
+    // Add event listener for general settings changes to save them
+    settingsModal.querySelectorAll('.toggle-switch input').forEach(toggle => {
+        toggle.addEventListener('change', saveNotificationSettings);
+    });
+}
+
+function toggleSubsection(subsection, isChecked) {
+    if (isChecked) {
+        subsection.classList.add('expanded');
+    } else {
+        subsection.classList.remove('expanded');
+    }
+}
+
+function addEmailToList(email, save = true) {
+    if (!email || !isValidEmail(email)) {
+        alert('Please enter a valid email address.');
+        return;
+    }
+
+    const listItem = document.createElement('div');
+    listItem.className = 'list-item';
+    listItem.innerHTML = `
+        <span>${email}</span>
+        <i data-lucide="trash-2" class="delete-icon"></i>
+    `;
+    emailListContainer.appendChild(listItem);
+
+    // Create Lucide icon
+    lucide.createIcons({ parentElement: listItem });
+
+    // Add delete functionality
+    listItem.querySelector('.delete-icon').addEventListener('click', () => {
+        listItem.remove();
+        removeEmailFromStorage(email);
+    });
+
+    if (save) {
+        saveEmailToStorage(email);
+    }
+    emailInput.value = ''; // Clear input
+}
+
+function addPhoneToList(phone, save = true) {
+    if (!phone || !isValidPhoneNumber(phone)) {
+        alert('Please enter a valid phone number (e.g., +1234567890 or 123-456-7890).');
+        return;
+    }
+
+    const listItem = document.createElement('div');
+    listItem.className = 'list-item';
+    listItem.innerHTML = `
+        <span>${phone}</span>
+        <i data-lucide="trash-2" class="delete-icon"></i>
+    `;
+    phoneListContainer.appendChild(listItem);
+
+    // Create Lucide icon
+    lucide.createIcons({ parentElement: listItem });
+
+    // Add delete functionality
+    listItem.querySelector('.delete-icon').addEventListener('click', () => {
+        listItem.remove();
+        removePhoneFromStorage(phone);
+    });
+
+    if (save) {
+        savePhoneToStorage(phone);
+    }
+    phoneInput.value = ''; // Clear input
+}
+
+function handleAddEmail() {
+    addEmailToList(emailInput.value.trim());
+}
+
+function handleAddPhone() {
+    addPhoneToList(phoneInput.value.trim());
+}
+
+function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isValidPhoneNumber(phone) {
+    // Basic validation for phone numbers, can be enhanced
+    return /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(phone);
+}
+
+function saveEmailToStorage(email) {
+    const emails = JSON.parse(localStorage.getItem('notificationEmails')) || [];
+    if (!emails.includes(email)) {
+        emails.push(email);
+        localStorage.setItem('notificationEmails', JSON.stringify(emails));
+    }
+}
+
+function removeEmailFromStorage(email) {
+    let emails = JSON.parse(localStorage.getItem('notificationEmails')) || [];
+    emails = emails.filter(e => e !== email);
+    localStorage.setItem('notificationEmails', JSON.stringify(emails));
+}
+
+function savePhoneToStorage(phone) {
+    const phones = JSON.parse(localStorage.getItem('notificationPhones')) || [];
+    if (!phones.includes(phone)) {
+        phones.push(phone);
+        localStorage.setItem('notificationPhones', JSON.stringify(phones));
+    }
+}
+
+function removePhoneFromStorage(phone) {
+    let phones = JSON.parse(localStorage.getItem('notificationPhones')) || [];
+    phones = phones.filter(p => p !== phone);
+    localStorage.setItem('notificationPhones', JSON.stringify(phones));
+}
+
+function saveNotificationSettings() {
+    const settings = {
+        inAppEnabled: document.getElementById('notif-inapp').checked,
+        emailEnabled: notifEmailToggle.checked,
+        smsEnabled: notifSmsToggle.checked,
+        serviceDownEnabled: document.getElementById('notif-down').checked,
+        serviceErrorEnabled: document.getElementById('notif-error').checked,
+        serviceRestartEnabled: document.getElementById('notif-restart').checked,
+        serviceStartEnabled: document.getElementById('notif-start').checked,
+        highCpuEnabled: document.getElementById('notif-high-cpu').checked,
+        highMemoryEnabled: document.getElementById('notif-high-memory').checked,
+    };
+    localStorage.setItem('notificationSettings', JSON.stringify(settings));
+}
+
+// Call initializeNotificationSettings when the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', initializeNotificationSettings);
 
 
