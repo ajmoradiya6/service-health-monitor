@@ -2784,29 +2784,68 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: rgba(255, 193, 7, 0.1) !important; /* Subtle yellow background */
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
 
         .action-button.notification-action:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 193, 7, 0.15) !important;
         }
 
         .action-button.notification-action:active {
-            background-color: rgba(255, 255, 255, 0.15);
+            background-color: rgba(255, 193, 7, 0.2) !important;
         }
 
-        [data-theme="light"] .action-button.notification-action {
-            background-color: rgba(0, 0, 0, 0.05);
+        .action-button.notification-action .theme-icon {
+            color: var(--yellow-primary);
         }
 
-        [data-theme="light"] .action-button.notification-action:hover {
-            background-color: rgba(0, 0, 0, 0.1);
+        /* Dark mode icon styles */
+        .action-button.theme-button {
+            background-color: rgba(139, 92, 246, 0.1) !important; /* Purple background */
         }
 
-        [data-theme="light"] .action-button.notification-action:active {
-            background-color: rgba(0, 0, 0, 0.15);
+        .action-button.theme-button:hover {
+            background-color: rgba(139, 92, 246, 0.15) !important;
+        }
+
+        .action-button.theme-button:active {
+            background-color: rgba(139, 92, 246, 0.2) !important;
+        }
+
+        .action-button.theme-button .theme-icon {
+            color: var(--purple-primary);
+        }
+
+        /* Settings icon styles */
+        .action-button:last-child {
+            background-color: rgba(0, 0, 0, 0.1) !important; /* Black background */
+        }
+
+        .action-button:last-child:hover {
+            background-color: rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .action-button:last-child:active {
+            background-color: rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .action-button:last-child .icon-button {
+            color: var(--text-primary);
+        }
+
+        /* Light mode styles for settings */
+        [data-theme="light"] .action-button:last-child {
+            background-color: rgba(0, 0, 0, 0.1) !important;
+        }
+
+        [data-theme="light"] .action-button:last-child:hover {
+            background-color: rgba(0, 0, 0, 0.15) !important;
+        }
+
+        [data-theme="light"] .action-button:last-child:active {
+            background-color: rgba(0, 0, 0, 0.2) !important;
         }
 
         .notification-badge {
@@ -2943,5 +2982,69 @@
 
         [data-theme="light"] .notification-actions .icon-button:last-child:active {
             background-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* Notification icon styles */
+        .header-actions .action-button.notification-action {
+            position: relative;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 193, 7, 0.1) !important; /* Subtle yellow background */
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .header-actions .action-button.notification-action:hover {
+            background-color: rgba(255, 193, 7, 0.15) !important;
+        }
+
+        .header-actions .action-button.notification-action:active {
+            background-color: rgba(255, 193, 7, 0.2) !important;
+        }
+
+        .header-actions .action-button.notification-action .theme-icon {
+            color: var(--yellow-primary);
+        }
+
+        /* Light mode styles for notification */
+        [data-theme="light"] .header-actions .action-button.notification-action {
+            background-color: rgba(255, 193, 7, 0.1) !important;
+        }
+
+        [data-theme="light"] .header-actions .action-button.notification-action:hover {
+            background-color: rgba(255, 193, 7, 0.15) !important;
+        }
+
+        [data-theme="light"] .header-actions .action-button.notification-action:active {
+            background-color: rgba(255, 193, 7, 0.2) !important;
+        }
+
+        /* Override base action button styles for notification */
+        .action-button.notification-action {
+            background-color: rgba(255, 193, 7, 0.1) !important;
+        }
+
+        .action-button.notification-action:hover {
+            background-color: rgba(255, 193, 7, 0.15) !important;
+        }
+
+        .action-button.notification-action:active {
+            background-color: rgba(255, 193, 7, 0.2) !important;
+        }
+
+        [data-theme="light"] .action-button.notification-action {
+            background-color: rgba(255, 193, 7, 0.1) !important;
+        }
+
+        [data-theme="light"] .action-button.notification-action:hover {
+            background-color: rgba(255, 193, 7, 0.15) !important;
+        }
+
+        [data-theme="light"] .action-button.notification-action:active {
+            background-color: rgba(255, 193, 7, 0.2) !important;
         }
 
