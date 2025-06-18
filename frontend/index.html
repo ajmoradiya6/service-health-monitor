@@ -74,10 +74,10 @@
                         <span>Live</span>
                     </div>
                     <div class="notification-icon-wrapper">
-                        <button class="icon-button" onclick="toggleNotificationPanel()">
-                            <i data-lucide="bell"></i>
+                        <div class="action-button notification-action" onclick="toggleNotificationPanel()">
+                            <i data-lucide="bell" class="theme-icon"></i>
                             <span class="notification-badge"></span>
-                        </button>
+                        </div>
                     </div>
                     <div class="action-button theme-button" onclick="toggleTheme()">
                         <div class="theme-icon-container">
@@ -416,5 +416,25 @@
             </div>
             <button type="submit">Register</button>
         </form>
+    </div>
+</div>
+
+<!-- Notification panel -->
+<div id="notification-panel" class="modal">
+    <div class="modal-content">
+        <div class="notification-header">
+            <h3>Notifications</h3>
+            <div class="notification-actions">
+                <button class="icon-button" title="Mark all as read" onclick="markAllNotificationsAsRead()">
+                    <i data-lucide="check-double"></i>
+                </button>
+                <button class="icon-button" title="Clear all" onclick="clearAllNotifications()">
+                    <i data-lucide="trash-2"></i>
+                </button>
+            </div>
+        </div>
+        <div class="notification-content">
+            <!-- Notification content will be populated by JavaScript -->
+        </div>
     </div>
 </div>

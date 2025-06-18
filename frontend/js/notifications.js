@@ -127,13 +127,11 @@ function createNotificationPanel() {
         <div class="notification-header">
             <h3>Notifications</h3>
             <div class="notification-actions">
-                <button onclick="markAllNotificationsAsRead()" class="mark-read-btn">
-                    <i data-lucide="check-double"></i>
-                    Mark all as read
+                <button class="icon-button" title="Mark all as read" onclick="markAllNotificationsAsRead()">
+                    <i data-lucide="square-check-big" class="theme-icon"></i>
                 </button>
-                <button onclick="clearAllNotifications()" class="clear-all-btn">
-                    <i data-lucide="trash-2"></i>
-                    Clear all
+                <button class="icon-button" title="Clear all" onclick="clearAllNotifications()">
+                    <i data-lucide="trash-2" class="theme-icon"></i>
                 </button>
             </div>
         </div>
