@@ -172,6 +172,9 @@ const phoneInput = document.getElementById('phone-input');
 const addPhoneBtn = document.getElementById('add-phone-btn');
 const phoneListContainer = document.getElementById('phone-list');
 
+// Add this after the global variables section
+const serviceNames = {}; // Store service names for notifications
+
 // ===== ANIMATION FUNCTIONS =====
 function addIconAnimation(element, animationClass) {
     if (element) {
@@ -389,15 +392,21 @@ function parseMetricValue(value, isPercentage = false) {
 }
 
 function parseLogEntry(log) {
+    console.log('Parsing log entry:', log);
+    
     if (typeof log === 'object' && log !== null) {
-        return {
+        const entry = {
             level: (log.level || 'info').toLowerCase(),
             timestamp: log.timestamp || new Date().toLocaleTimeString(),
             message: log.message || ''
         };
+        console.log('Parsed object log entry:', entry);
+        return entry;
     }
 
     const logStr = String(log);
+    console.log('Parsing string log:', logStr);
+    
     const match = logStr.match(/^(.*?)\s*\[(\w+)\]\s*(.*)$/);
     if (match) {
         const [, time, code, msg] = match;
@@ -406,14 +415,19 @@ function parseLogEntry(log) {
         if (upper.startsWith('WRN')) level = 'warning';
         else if (upper.startsWith('ERR')) level = 'error';
         else if (upper.startsWith('INF')) level = 'info';
-        return { level, timestamp: time.trim(), message: msg };
+        
+        const entry = { level, timestamp: time.trim(), message: msg };
+        console.log('Parsed string log entry:', entry);
+        return entry;
     }
 
-    return {
+    const defaultEntry = {
         level: 'info',
         timestamp: new Date().toLocaleTimeString(),
         message: logStr
     };
+    console.log('Parsed default log entry:', defaultEntry);
+    return defaultEntry;
 }
 
 function connectToSignalR(serviceData) {
@@ -503,13 +517,25 @@ function connectToSignalR(serviceData) {
                 timestamp: data.timestamp
             };
 
+            // Store service name for notifications
+            serviceNames[serviceData.id] = serviceData.name;
+
             if (!serviceLogs[serviceData.id]) serviceLogs[serviceData.id] = [];
             if (Array.isArray(data.applicationLogs)) {
+                console.log('Processing application logs:', data.applicationLogs);
                 data.applicationLogs.forEach((log) => {
                     const entry = parseLogEntry(log);
+                    console.log('Processed log entry:', entry);
+                    
                     serviceLogs[serviceData.id].push(entry);
                     if (serviceLogs[serviceData.id].length > MAX_LOGS) {
                         serviceLogs[serviceData.id].shift();
+                    }
+                    
+                    // Add notification for warning and error logs
+                    if (entry.level === 'warning' || entry.level === 'error') {
+                        console.log('Found warning/error log, creating notification:', entry);
+                        addNotification(entry, serviceData.id, serviceData.name);
                     }
                 });
             }

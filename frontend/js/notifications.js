@@ -1,0 +1,193 @@
+// Notification Management System
+
+// Global variables
+const notifications = {
+    items: [],
+    maxNotifications: 50,
+    unreadCount: 0
+};
+
+// Initialize notifications from localStorage
+function initializeNotifications() {
+    const savedNotifications = localStorage.getItem('notifications');
+    if (savedNotifications) {
+        const parsed = JSON.parse(savedNotifications);
+        notifications.items = parsed.items || [];
+        notifications.unreadCount = parsed.unreadCount || 0;
+    }
+    updateNotificationBadge();
+}
+
+// Save notifications to localStorage
+function saveNotifications() {
+    localStorage.setItem('notifications', JSON.stringify({
+        items: notifications.items,
+        unreadCount: notifications.unreadCount
+    }));
+}
+
+// Add a new notification
+function addNotification(logEntry, serviceId, serviceName) {
+    console.log('Attempting to add notification:', { logEntry, serviceId, serviceName });
+    
+    // Corrected: Get userSettings > user-settings > notificationSettings
+    const settings = JSON.parse(localStorage.getItem('userSettings') || '{}');
+    const notificationSettings = settings['user-settings']?.notificationSettings || {};
+    
+    console.log('Notification settings:', notificationSettings);
+    
+    if (!notificationSettings.inAppEnabled) {
+        console.log('In-app notifications are disabled');
+        return;
+    }
+
+    // Only create notifications for warning and error logs
+    if (logEntry.level !== 'warning' && logEntry.level !== 'error') {
+        console.log('Log level is not warning or error:', logEntry.level);
+        return;
+    }
+
+    const notification = {
+        id: Date.now(),
+        type: logEntry.level,
+        message: logEntry.message,
+        timestamp: logEntry.timestamp,
+        serviceId: serviceId,
+        serviceName: serviceName,
+        read: false,
+        logDetails: logEntry
+    };
+
+    console.log('Creating new notification:', notification);
+
+    notifications.items.unshift(notification);
+    notifications.unreadCount++;
+
+    // Limit total notifications
+    if (notifications.items.length > notifications.maxNotifications) {
+        notifications.items.pop();
+    }
+
+    saveNotifications();
+    updateNotificationBadge();
+    updateNotificationPanel();
+    
+    console.log('Current notifications state:', {
+        totalNotifications: notifications.items.length,
+        unreadCount: notifications.unreadCount
+    });
+}
+
+// Mark notification as read
+function markNotificationAsRead(notificationId) {
+    const notification = notifications.items.find(n => n.id === notificationId);
+    if (notification && !notification.read) {
+        notification.read = true;
+        notifications.unreadCount--;
+        saveNotifications();
+        updateNotificationBadge();
+        updateNotificationPanel();
+    }
+}
+
+// Mark all notifications as read
+function markAllNotificationsAsRead() {
+    notifications.items.forEach(notification => {
+        notification.read = true;
+    });
+    notifications.unreadCount = 0;
+    saveNotifications();
+    updateNotificationBadge();
+    updateNotificationPanel();
+}
+
+// Clear all notifications
+function clearAllNotifications() {
+    notifications.items = [];
+    notifications.unreadCount = 0;
+    saveNotifications();
+    updateNotificationBadge();
+    updateNotificationPanel();
+}
+
+// Update notification badge count
+function updateNotificationBadge() {
+    const badge = document.querySelector('.notification-badge');
+    if (badge) {
+        badge.textContent = notifications.unreadCount > 0 ? notifications.unreadCount : '';
+        badge.style.display = notifications.unreadCount > 0 ? 'flex' : 'none';
+    }
+}
+
+// Create notification panel HTML
+function createNotificationPanel() {
+    const panel = document.createElement('div');
+    panel.className = 'notification-panel';
+    panel.innerHTML = `
+        <div class="notification-header">
+            <h3>Notifications</h3>
+            <div class="notification-actions">
+                <button onclick="markAllNotificationsAsRead()" class="mark-read-btn">
+                    <i data-lucide="check-double"></i>
+                    Mark all as read
+                </button>
+                <button onclick="clearAllNotifications()" class="clear-all-btn">
+                    <i data-lucide="trash-2"></i>
+                    Clear all
+                </button>
+            </div>
+        </div>
+        <div class="notification-list"></div>
+    `;
+    return panel;
+}
+
+// Update notification panel content
+function updateNotificationPanel() {
+    const notificationList = document.querySelector('.notification-list');
+    if (!notificationList) return;
+
+    notificationList.innerHTML = notifications.items.length === 0 
+        ? '<div class="no-notifications">No notifications</div>'
+        : notifications.items.map(notification => `
+            <div class="notification-item ${notification.read ? 'read' : 'unread'}" 
+                 onclick="markNotificationAsRead(${notification.id})">
+                <div class="notification-icon ${notification.type}">
+                    <i data-lucide="${notification.type === 'error' ? 'alert-circle' : 'alert-triangle'}"></i>
+                </div>
+                <div class="notification-content">
+                    <div class="notification-header">
+                        <span class="service-name">${notification.serviceName}</span>
+                        <span class="notification-time">${notification.timestamp}</span>
+                    </div>
+                    <div class="notification-message">${notification.message}</div>
+                </div>
+            </div>
+        `).join('');
+
+    // Initialize Lucide icons
+    lucide.createIcons();
+}
+
+// Toggle notification panel
+function toggleNotificationPanel() {
+    const panel = document.querySelector('.notification-panel');
+    if (!panel) {
+        const newPanel = createNotificationPanel();
+        document.body.appendChild(newPanel);
+        updateNotificationPanel();
+    } else {
+        panel.remove();
+    }
+}
+
+// Initialize notification system
+document.addEventListener('DOMContentLoaded', () => {
+    initializeNotifications();
+    
+    // Add notification icon click handler
+    const notificationIcon = document.querySelector('.notification-icon');
+    if (notificationIcon) {
+        notificationIcon.addEventListener('click', toggleNotificationPanel);
+    }
+}); 

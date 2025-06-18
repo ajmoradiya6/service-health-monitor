@@ -11,21 +11,19 @@
       "highCpuEnabled": false,
       "highMemoryEnabled": false,
       "emails": [
-        "asasasa@gmail.com",
-        "asasasa@gmail.com"
+        "akshay@computhink.com"
       ],
       "phones": [
-        "1234567891",
-        "1234567891"
+        "5623916700"
       ]
     },
     "emailConfig": {
-      "host": "asasasasas",
-      "port": "",
-      "username": "sdsdssdsd",
-      "password": "aasasaasasasasas",
-      "fromEmail": "",
-      "fromName": "",
+      "host": "smtp.office365.com",
+      "port": "587",
+      "username": "serviceaccount@computhink.com",
+      "password": "-!SyntaxSoft24-!",
+      "fromEmail": "serviceaccount@computhink.com",
+      "fromName": "Service Health Monitor",
       "useSsl": false
     }
   }

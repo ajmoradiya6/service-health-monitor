@@ -14,6 +14,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css" />
 
+    <!-- Add this before the closing </head> tag -->
+    <script src="js/notifications.js"></script>
 
 </head>
 <body data-theme="dark">
@@ -71,176 +73,178 @@
                         <div class="live-dot"></div>
                         <span>Live</span>
                     </div>
-                    <div class="action-button notification-badge" onclick="addIconAnimation(this.querySelector('.notification-icon'), 'bell-ring')">
-                        <i data-lucide="bell" class="notification-icon"></i>
-                        <div class="badge">3</div>
+                    <div class="notification-icon-wrapper">
+                        <button class="icon-button" onclick="toggleNotificationPanel()">
+                            <i data-lucide="bell"></i>
+                            <span class="notification-badge"></span>
+                        </button>
                     </div>
                     <div class="action-button theme-button" onclick="toggleTheme()">
                         <div class="theme-icon-container">
                             <i data-lucide="sun" class="theme-icon" id="theme-icon"></i>
-</div>
-</div>
-
-<!-- Settings Modal -->
-<div id="settings-modal" class="modal">
-    <div class="modal-content settings-modal-content">
-        <i data-lucide="x" class="close-button"></i>
-        <h2>Settings</h2>
-        <div class="settings-container">
-            <div class="settings-list">
-                <ul>
-                    <li class="settings-item active" data-target="notification-settings"><i data-lucide="bell" class="settings-icon"></i><span>Notification</span></li>
-                    <li class="settings-item" data-target="email-config-settings"><i data-lucide="mail" class="settings-icon"></i><span>Email Configuration</span></li>
-                </ul>
-            </div>
-            <div class="settings-details">
-                <div class="settings-scroll">
-                    <div id="notification-settings" class="settings-section">
-                        <div class="form-group">
-                            <label>Notification Methods</label>
-                            <div class="checkbox-group">
-                                <label>
-                                    <span>In-app</span>
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" id="notif-inapp">
-                                        <span class="slider round"></span>
-                                    </div>
-                                </label>
-                                <label>
-                                    <span>Email</span>
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" id="notif-email">
-                                        <span class="slider round"></span>
-                                    </div>
-                                </label>
-                                <div id="email-settings-subsection" class="notification-subsection">
-                                    <div id="email-list" class="list-container"></div>
-                                    <div class="input-with-button">
-                                        <input type="email" id="email-input" placeholder="Add email address">
-                                        <button id="add-email-btn" class="add-btn-inline"><i data-lucide="plus"></i></button>
-                                    </div>
-                                </div>
-                                <label>
-                                    <span>SMS</span>
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" id="notif-sms">
-                                        <span class="slider round"></span>
-                                    </div>
-                                </label>
-                                <div id="sms-settings-subsection" class="notification-subsection">
-                                    <div id="phone-list" class="list-container"></div>
-                                    <div class="input-with-button">
-                                        <input type="text" id="phone-input" placeholder="Add phone number">
-                                        <button id="add-phone-btn" class="add-btn-inline"><i data-lucide="plus"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Service Status Notifications</label>
-                            <div class="checkbox-group">
-                                <label>
-                                    <span>Service Down</span>
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" id="notif-down">
-                                        <span class="slider round"></span>
-                                    </div>
-                                </label>
-                                <label>
-                                    <span>Service Error</span>
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" id="notif-error">
-                                        <span class="slider round"></span>
-                                    </div>
-                                </label>
-                                <label>
-                                    <span>Service Restart</span>
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" id="notif-restart">
-                                        <span class="slider round"></span>
-                                    </div>
-                                </label>
-                                <label>
-                                    <span>Service Start</span>
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" id="notif-start">
-                                        <span class="slider round"></span>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Resource Usage Notifications</label>
-                            <div class="checkbox-group">
-                                <label>
-                                    <span>High CPU Usage</span>
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" id="notif-high-cpu">
-                                        <span class="slider round"></span>
-                                    </div>
-                                </label>
-                                <label>
-                                    <span>High Memory Usage</span>
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" id="notif-high-memory">
-                                        <span class="slider round"></span>
-                                    </div>
-                                </label>
-                            </div>
                         </div>
                     </div>
-                    <div id="email-config-settings" class="settings-section" style="display: none;">
-                        <div class="form-group">
-                            <label>SMTP Server Configuration</label>
-                            <div class="smtp-settings">
-                                <div class="form-group">
-                                    <label for="smtp-host">SMTP Host</label>
-                                    <input type="text" id="smtp-host" placeholder="smtp.example.com">
-                                </div>
-                                <div class="form-group">
-                                    <label for="smtp-port">SMTP Port</label>
-                                    <input type="number" id="smtp-port" placeholder="587">
-                                </div>
-                                <div class="form-group">
-                                    <label for="smtp-username">Username</label>
-                                    <input type="text" id="smtp-username" placeholder="your-username">
-                                </div>
-                                <div class="form-group">
-                                    <label for="smtp-password">Password</label>
-                                    <input type="password" id="smtp-password" placeholder="your-password">
-                                </div>
-                                <div class="form-group">
-                                    <label for="smtp-from-email">From Email</label>
-                                    <input type="email" id="smtp-from-email" placeholder="notifications@example.com">
-                                </div>
-                                <div class="form-group">
-                                    <label for="smtp-from-name">From Name</label>
-                                    <input type="text" id="smtp-from-name" placeholder="Service Health Monitor">
-                                </div>
-                                <div class="form-group">
-                                    <label>
-                                        <span>Use SSL</span>
-                                        <div class="toggle-switch">
-                                            <input type="checkbox" id="smtp-ssl">
-                                            <span class="slider round"></span>
-                                        </div>
-                                    </label>
-                                </div>
-                                <button id="test-email-config" class="test-config-button" style="margin-top: 16px;">Test Configuration</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="settings-save-container">
-                    <button class="settings-save" type="button" onclick="saveAllSettingsToBackend()">Save</button>
-                </div>
-                
-            </div>
-        </div>
-    </div>
-</div>
                     <div class="action-button" onclick="openSettingsModal()">
                         <i data-lucide="settings" class="icon-button"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Modal -->
+            <div id="settings-modal" class="modal">
+                <div class="modal-content settings-modal-content">
+                    <i data-lucide="x" class="close-button"></i>
+                    <h2>Settings</h2>
+                    <div class="settings-container">
+                        <div class="settings-list">
+                            <ul>
+                                <li class="settings-item active" data-target="notification-settings"><i data-lucide="bell" class="settings-icon"></i><span>Notification</span></li>
+                                <li class="settings-item" data-target="email-config-settings"><i data-lucide="mail" class="settings-icon"></i><span>SMTP Configuration</span></li>
+                            </ul>
+                        </div>
+                        <div class="settings-details">
+                            <div class="settings-scroll">
+                                <div id="notification-settings" class="settings-section">
+                                    <div class="form-group">
+                                        <label>Notification Methods</label>
+                                        <div class="checkbox-group">
+                                            <label>
+                                                <span>In-app</span>
+                                                <div class="toggle-switch">
+                                                    <input type="checkbox" id="notif-inapp">
+                                                    <span class="slider round"></span>
+                                                </div>
+                                            </label>
+                                            <label>
+                                                <span>Email</span>
+                                                <div class="toggle-switch">
+                                                    <input type="checkbox" id="notif-email">
+                                                    <span class="slider round"></span>
+                                                </div>
+                                            </label>
+                                            <div id="email-settings-subsection" class="notification-subsection">
+                                                <div id="email-list" class="list-container"></div>
+                                                <div class="input-with-button">
+                                                    <input type="email" id="email-input" placeholder="Add email address">
+                                                    <button id="add-email-btn" class="add-btn-inline"><i data-lucide="plus"></i></button>
+                                                </div>
+                                            </div>
+                                            <label>
+                                                <span>SMS</span>
+                                                <div class="toggle-switch">
+                                                    <input type="checkbox" id="notif-sms">
+                                                    <span class="slider round"></span>
+                                                </div>
+                                            </label>
+                                            <div id="sms-settings-subsection" class="notification-subsection">
+                                                <div id="phone-list" class="list-container"></div>
+                                                <div class="input-with-button">
+                                                    <input type="text" id="phone-input" placeholder="Add phone number">
+                                                    <button id="add-phone-btn" class="add-btn-inline"><i data-lucide="plus"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Service Status Notifications</label>
+                                        <div class="checkbox-group">
+                                            <label>
+                                                <span>Service Down</span>
+                                                <div class="toggle-switch">
+                                                    <input type="checkbox" id="notif-down">
+                                                    <span class="slider round"></span>
+                                                </div>
+                                            </label>
+                                            <label>
+                                                <span>Service Error</span>
+                                                <div class="toggle-switch">
+                                                    <input type="checkbox" id="notif-error">
+                                                    <span class="slider round"></span>
+                                                </div>
+                                            </label>
+                                            <label>
+                                                <span>Service Restart</span>
+                                                <div class="toggle-switch">
+                                                    <input type="checkbox" id="notif-restart">
+                                                    <span class="slider round"></span>
+                                                </div>
+                                            </label>
+                                            <label>
+                                                <span>Service Start</span>
+                                                <div class="toggle-switch">
+                                                    <input type="checkbox" id="notif-start">
+                                                    <span class="slider round"></span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Resource Usage Notifications</label>
+                                        <div class="checkbox-group">
+                                            <label>
+                                                <span>High CPU Usage</span>
+                                                <div class="toggle-switch">
+                                                    <input type="checkbox" id="notif-high-cpu">
+                                                    <span class="slider round"></span>
+                                                </div>
+                                            </label>
+                                            <label>
+                                                <span>High Memory Usage</span>
+                                                <div class="toggle-switch">
+                                                    <input type="checkbox" id="notif-high-memory">
+                                                    <span class="slider round"></span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="email-config-settings" class="settings-section" style="display: none;">
+                                    <div class="form-group">
+                                        <label>SMTP Server Configuration</label>
+                                        <div class="smtp-settings">
+                                            <div class="form-group">
+                                                <label for="smtp-host">SMTP Host</label>
+                                                <input type="text" id="smtp-host" placeholder="smtp.example.com">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="smtp-port">SMTP Port</label>
+                                                <input type="number" id="smtp-port" placeholder="587">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="smtp-username">Username</label>
+                                                <input type="text" id="smtp-username" placeholder="your-username">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="smtp-password">Password</label>
+                                                <input type="password" id="smtp-password" placeholder="your-password">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="smtp-from-email">From Email</label>
+                                                <input type="email" id="smtp-from-email" placeholder="notifications@example.com">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="smtp-from-name">From Name</label>
+                                                <input type="text" id="smtp-from-name" placeholder="Service Health Monitor">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>
+                                                    <span>Use SSL</span>
+                                                    <div class="toggle-switch">
+                                                        <input type="checkbox" id="smtp-ssl">
+                                                        <span class="slider round"></span>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                            <button id="test-email-config" class="test-config-button" style="margin-top: 16px;">Test Configuration</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="settings-save-container">
+                                <button class="settings-save" type="button" onclick="saveAllSettingsToBackend()">Save</button>
+                            </div>
+                            
+                        </div>
                     </div>
                 </div>
             </div>
