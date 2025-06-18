@@ -2811,21 +2811,21 @@
 
         .notification-badge {
             position: absolute;
-            top: 7px;
-            right: 7px;
-            min-width: 18px;
-            height: 18px;
+            top: -8px;
+            right: -9px;
+            min-width: 21px;
+            height: 22px;
             background: var(--red-primary);
             color: #fff;
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 400;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0 5px;
+            padding: 0px 8px;
             z-index: 2;
-            box-shadow: 0 1px 4px rgba(239,68,68,0.15);
+            box-shadow: 0 1px 4px rgba(239, 68, 68, 0.15);
             pointer-events: none;
         }
 
@@ -2871,5 +2871,77 @@
         .notification-actions .theme-icon {
             width: 14px;
             height: 14px;
+        }
+
+        /* Mark all read button styles */
+        .notification-actions .icon-button:first-child {
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+
+        .notification-actions .icon-button:first-child:hover {
+            background-color: rgba(16, 185, 129, 0.15);
+        }
+
+        .notification-actions .icon-button:first-child:active {
+            background-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .notification-actions .icon-button:first-child .theme-icon {
+            color: var(--green-primary);
+        }
+
+        /* Delete button styles */
+        .notification-actions .icon-button:last-child {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        .notification-actions .icon-button:last-child:hover {
+            background-color: rgba(239, 68, 68, 0.15);
+        }
+
+        .notification-actions .icon-button:last-child:active {
+            background-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .notification-actions .icon-button:last-child .theme-icon {
+            color: var(--red-primary);
+        }
+
+        [data-theme="light"] .notification-actions .icon-button {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="light"] .notification-actions .icon-button:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="light"] .notification-actions .icon-button:active {
+            background-color: rgba(0, 0, 0, 0.15);
+        }
+
+        /* Light mode mark all read button styles */
+        [data-theme="light"] .notification-actions .icon-button:first-child {
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+
+        [data-theme="light"] .notification-actions .icon-button:first-child:hover {
+            background-color: rgba(16, 185, 129, 0.15);
+        }
+
+        [data-theme="light"] .notification-actions .icon-button:first-child:active {
+            background-color: rgba(16, 185, 129, 0.2);
+        }
+
+        /* Light mode delete button styles */
+        [data-theme="light"] .notification-actions .icon-button:last-child {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        [data-theme="light"] .notification-actions .icon-button:last-child:hover {
+            background-color: rgba(239, 68, 68, 0.15);
+        }
+
+        [data-theme="light"] .notification-actions .icon-button:last-child:active {
+            background-color: rgba(239, 68, 68, 0.2);
         }
 
