@@ -2820,15 +2820,15 @@
 
         /* Settings icon styles */
         .action-button:last-child {
-            background-color: rgba(0, 0, 0, 0.1) !important; /* Black background */
+            background-color: rgba(255, 255, 255, 0.1) !important; /* Gray background for dark mode */
         }
 
         .action-button:last-child:hover {
-            background-color: rgba(0, 0, 0, 0.15) !important;
+            background-color: rgba(255, 255, 255, 0.15) !important;
         }
 
         .action-button:last-child:active {
-            background-color: rgba(0, 0, 0, 0.2) !important;
+            background-color: rgba(255, 255, 255, 0.2) !important;
         }
 
         .action-button:last-child .icon-button {
