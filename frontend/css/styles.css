@@ -2640,7 +2640,6 @@
         }
 
         .notification-actions button {
-            padding: 6px 12px;
             border: none;
             border-radius: 4px;
             background-color: var(--bg-hover);
@@ -2835,22 +2834,42 @@
             display: flex;
             gap: 8px;
         }
+
         .notification-actions .icon-button {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: none;
-            border: none;
+            position: relative;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
+            background-color: rgba(255, 255, 255, 0.05);
             cursor: pointer;
-            transition: background 0.2s;
-            color: var(--text-secondary);
-            padding: 0;
+            transition: background-color 0.3s ease;
         }
+
         .notification-actions .icon-button:hover {
-            background: var(--bg-hover);
-            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .notification-actions .icon-button:active {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        [data-theme="light"] .notification-actions .icon-button {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="light"] .notification-actions .icon-button:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="light"] .notification-actions .icon-button:active {
+            background-color: rgba(0, 0, 0, 0.15);
+        }
+
+        .notification-actions .theme-icon {
+            width: 14px;
+            height: 14px;
         }
 
