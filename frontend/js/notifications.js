@@ -174,8 +174,25 @@ function toggleNotificationPanel() {
         const newPanel = createNotificationPanel();
         document.body.appendChild(newPanel);
         updateNotificationPanel();
+        
+        // Add click event listener to close panel when clicking outside
+        setTimeout(() => {
+            document.addEventListener('click', handleOutsideClick);
+        }, 0);
     } else {
         panel.remove();
+        document.removeEventListener('click', handleOutsideClick);
+    }
+}
+
+// Handle clicks outside the notification panel
+function handleOutsideClick(event) {
+    const panel = document.querySelector('.notification-panel');
+    const notificationIcon = document.querySelector('.notification-action');
+    
+    if (panel && !panel.contains(event.target) && !notificationIcon.contains(event.target)) {
+        panel.remove();
+        document.removeEventListener('click', handleOutsideClick);
     }
 }
 
@@ -183,9 +200,12 @@ function toggleNotificationPanel() {
 document.addEventListener('DOMContentLoaded', () => {
     initializeNotifications();
     
-    // Add notification icon click handler
-    const notificationIcon = document.querySelector('.notification-icon');
+    // Add click event listener to notification icon
+    const notificationIcon = document.querySelector('.notification-action');
     if (notificationIcon) {
-        notificationIcon.addEventListener('click', toggleNotificationPanel);
+        notificationIcon.addEventListener('click', (event) => {
+            event.stopPropagation();
+            toggleNotificationPanel();
+        });
     }
 }); 
