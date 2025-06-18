@@ -101,13 +101,28 @@ function markAllNotificationsAsRead() {
     updateNotificationPanel();
 }
 
-// Clear all notifications
+// Clear all notifications with animation
 function clearAllNotifications() {
-    notifications.items = [];
-    notifications.unreadCount = 0;
-    saveNotifications();
-    updateNotificationBadge();
-    updateNotificationPanel();
+    const notificationItems = document.querySelectorAll('.notification-item');
+    const delay = 50; // 50ms delay between each notification
+
+    // Add slide-out animation to each notification
+    notificationItems.forEach((item, index) => {
+        setTimeout(() => {
+            item.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+            item.style.transform = 'translateX(100%)';
+            item.style.opacity = '0';
+        }, index * delay);
+    });
+
+    // Clear notifications after animation completes
+    setTimeout(() => {
+        notifications.items = [];
+        notifications.unreadCount = 0;
+        saveNotifications();
+        updateNotificationBadge();
+        updateNotificationPanel();
+    }, notificationItems.length * delay + 300); // Wait for all animations + 300ms extra
 }
 
 // Update notification badge count
@@ -127,16 +142,22 @@ function createNotificationPanel() {
         <div class="notification-header">
             <h3>Notifications</h3>
             <div class="notification-actions">
-                <button class="icon-button" title="Mark all as read" onclick="markAllNotificationsAsRead()">
+                <button class="icon-button" title="Mark all as read" onclick="event.stopPropagation(); markAllNotificationsAsRead()">
                     <i data-lucide="square-check-big" class="theme-icon"></i>
                 </button>
-                <button class="icon-button" title="Clear all" onclick="clearAllNotifications()">
+                <button class="icon-button" title="Clear all" onclick="event.stopPropagation(); clearAllNotifications()">
                     <i data-lucide="trash-2" class="theme-icon"></i>
                 </button>
             </div>
         </div>
         <div class="notification-list"></div>
     `;
+    
+    // Initialize Lucide icons for the panel
+    setTimeout(() => {
+        lucide.createIcons();
+    }, 0);
+    
     return panel;
 }
 
@@ -149,7 +170,7 @@ function updateNotificationPanel() {
         ? '<div class="no-notifications">No notifications</div>'
         : notifications.items.map(notification => `
             <div class="notification-item ${notification.read ? 'read' : 'unread'}" 
-                 onclick="markNotificationAsRead(${notification.id})">
+                 onclick="event.stopPropagation(); markNotificationAsRead(${notification.id})">
                 <div class="notification-icon ${notification.type}">
                     <i data-lucide="${notification.type === 'error' ? 'alert-circle' : 'alert-triangle'}"></i>
                 </div>
