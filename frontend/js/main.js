@@ -400,7 +400,7 @@ function parseLogEntry(log) {
     if (typeof log === 'object' && log !== null) {
         const entry = {
             level: (log.level || 'info').toLowerCase(),
-            timestamp: log.timestamp || new Date().toLocaleTimeString(),
+            timestamp: formatTimestamp(log.timestamp || new Date()),
             message: log.message || ''
         };
         console.log('Parsed object log entry:', entry);
@@ -419,14 +419,14 @@ function parseLogEntry(log) {
         else if (upper.startsWith('ERR')) level = 'error';
         else if (upper.startsWith('INF')) level = 'info';
         
-        const entry = { level, timestamp: time.trim(), message: msg };
+        const entry = { level, timestamp: formatTimestamp(time.trim()), message: msg };
         console.log('Parsed string log entry:', entry);
         return entry;
     }
 
     const defaultEntry = {
         level: 'info',
-        timestamp: new Date().toLocaleTimeString(),
+        timestamp: formatTimestamp(new Date()),
         message: logStr
     };
     console.log('Parsed default log entry:', defaultEntry);
@@ -552,7 +552,6 @@ function connectToSignalR(serviceData) {
                     // Add notification for warning and error logs with user-friendly summary
                     if (entry.level === 'warning' || entry.level === 'error') {
                         console.log('Found warning/error log, creating notification:', entry);
-                        const userFriendlyMessage = await getNotificationSummary(entry.message);
                         await processLogForNotification(entry, serviceData.id, serviceData.name);
                     }
                 });
@@ -601,6 +600,8 @@ function connectToSignalR(serviceData) {
                 // Update sidebar dot only
                 updateServiceStatus(true);
             }
+
+            console.log('applicationLogs:', data.applicationLogs);
         });
 
         connection
@@ -1782,8 +1783,34 @@ async function processLogForNotification(entry, serviceId, serviceName) {
   let message = entry.message;
   if (notificationSettings.aiAssistEnabled && (entry.level === 'warning' || entry.level === 'error')) {
     message = await getNotificationSummary(entry.message);
+    console.log('Deduplication key:', logKey, 'Entry:', logEntry);
+    addNotification({ ...entry, message }, serviceId, serviceName);
+  } else {
+    addNotification(entry, serviceId, serviceName);
   }
-  addNotification({ ...entry, message }, serviceId, serviceName);
+}
+
+// ===== UTILITY FUNCTIONS =====
+function formatTimestamp(ts) {
+    if (!ts) return '';
+    let dateObj;
+    if (typeof ts === 'string' && ts.match(/^\d{4}-\d{2}-\d{2}T/)) {
+        dateObj = new Date(ts);
+    } else if (typeof ts === 'number') {
+        dateObj = new Date(ts);
+    } else {
+        dateObj = new Date(ts);
+        if (isNaN(dateObj)) return ts;
+    }
+    return dateObj.toLocaleString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+    });
 }
 
 

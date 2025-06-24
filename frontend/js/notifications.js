@@ -7,6 +7,15 @@ const notifications = {
     unreadCount: 0
 };
 
+// Track unique log notifications to prevent duplicates
+const notificationLogKeys = new Set();
+
+function getNotificationLogKey(logEntry, serviceId) {
+    // Use the raw timestamp (not formatted) for deduplication
+    const rawTimestamp = logEntry.rawTimestamp || logEntry.timestamp;
+    return `${serviceId}|${rawTimestamp}|${logEntry.level}|${logEntry.message}`;
+}
+
 // Initialize notifications from localStorage
 function initializeNotifications() {
     const savedNotifications = localStorage.getItem('notifications');
@@ -14,6 +23,12 @@ function initializeNotifications() {
         const parsed = JSON.parse(savedNotifications);
         notifications.items = parsed.items || [];
         notifications.unreadCount = parsed.unreadCount || 0;
+        // Rebuild deduplication set from loaded notifications
+        notificationLogKeys.clear();
+        notifications.items.forEach(n => {
+            const logKey = getNotificationLogKey(n, n.serviceId);
+            notificationLogKeys.add(logKey);
+        });
     }
     updateNotificationBadge();
 }
@@ -28,6 +43,15 @@ function saveNotifications() {
 
 // Add a new notification
 function addNotification(logEntry, serviceId, serviceName) {
+    const rawTimestamp = logEntry.rawTimestamp || logEntry.timestamp;
+    const logKey = getNotificationLogKey({ ...logEntry, rawTimestamp }, serviceId);
+    console.log('Deduplication key:', logKey, 'Entry:', logEntry); // DEBUG
+    if (notificationLogKeys.has(logKey)) {
+        console.log('Duplicate notification skipped:', logKey);
+        return;
+    }
+    notificationLogKeys.add(logKey);
+    
     console.log('Attempting to add notification:', { logEntry, serviceId, serviceName });
     
     // Corrected: Get userSettings > user-settings > notificationSettings
@@ -51,7 +75,7 @@ function addNotification(logEntry, serviceId, serviceName) {
         id: Date.now(),
         type: logEntry.level,
         message: logEntry.message,
-        timestamp: logEntry.timestamp,
+        timestamp: rawTimestamp, // store raw timestamp
         serviceId: serviceId,
         serviceName: serviceName,
         read: false,
@@ -177,7 +201,7 @@ function updateNotificationPanel() {
                 <div class="notification-content">
                     <div class="notification-header">
                         <span class="service-name">${notification.serviceName}</span>
-                        <span class="notification-time">${notification.timestamp}</span>
+                        <span class="notification-time">${formatTimestamp(notification.timestamp)}</span>
                     </div>
                     <div class="notification-message">${notification.message}</div>
                 </div>
@@ -229,4 +253,26 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleNotificationPanel();
         });
     }
-}); 
+});
+
+function formatTimestamp(ts) {
+    if (!ts) return '';
+    let dateObj;
+    if (typeof ts === 'string' && ts.match(/^\d{4}-\d{2}-\d{2}T/)) {
+        dateObj = new Date(ts);
+    } else if (typeof ts === 'number') {
+        dateObj = new Date(ts);
+    } else {
+        dateObj = new Date(ts);
+        if (isNaN(dateObj)) return ts;
+    }
+    return dateObj.toLocaleString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+    });
+} 
