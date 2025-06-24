@@ -25,7 +25,7 @@
       "password": "-!SyntaxSoft24-!",
       "fromEmail": "serviceaccount@computhink.com",
       "fromName": "Service Health Monitor",
-      "useSsl": false
+      "useSsl": true
     }
   }
 }

@@ -3,18 +3,27 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "node backend/server.js",
-    "debug": "node --inspect backend/server.js"
+    "start": "concurrently \"node backend/server.js\" \"node textbelt/server/app.js\"",
+    "debug": "node --inspect backend/server.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix ."
   },
   "dependencies": {
     "axios": "^1.10.0",
     "dotenv": "^16.5.0",
     "express": "^4.21.2",
+    "nodemailer": "^5.1.1",
     "properties-reader": "^2.3.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "concurrently": "^9.2.0",
     "connect-livereload": "^0.6.1",
+    "eslint": "^5.9.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-jsx-a11y": "^6.1.2",
+    "eslint-plugin-react": "^7.11.1",
     "livereload": "^0.9.3"
   }
 }
