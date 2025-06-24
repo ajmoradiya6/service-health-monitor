@@ -618,10 +618,13 @@
         }
 
         .notification-icon {
-            width: 18px;
-            height: 18px;
-            color: var(--text-secondary);
-            transition: color 0.3s ease;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px; /* subtle rounding for square */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
 
         .action-button:hover .notification-icon {
@@ -2724,7 +2727,7 @@
         .notification-icon {
             width: 32px;
             height: 32px;
-            border-radius: 50%;
+            border-radius: 6px; /* subtle rounding for square */
             display: flex;
             align-items: center;
             justify-content: center;
