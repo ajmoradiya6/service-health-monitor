@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "node backend/server.js"
+    "start": "node backend/server.js",
+    "debug": "node --inspect backend/server.js"
   },
   "dependencies": {
+    "axios": "^1.10.0",
+    "dotenv": "^16.5.0",
     "express": "^4.21.2",
     "properties-reader": "^2.3.0",
     "uuid": "^11.1.0"

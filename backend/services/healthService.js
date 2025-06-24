@@ -1,5 +1,6 @@
 ﻿const path = require('path');
 const fs = require('fs').promises;
+const { summarizeLogForUser } = require('../utils/openRouterLLM');
 
 const servicesFilePath = path.join(__dirname, '..', '..' ,'database', 'RegisteredServices.json');
 
@@ -63,4 +64,18 @@ async function deleteService(serviceId) {
     }
 }
 
-module.exports = { getAllServices, updateService, deleteService };
+/**
+ * Example function to process a log and generate a user-friendly notification.
+ * Call this function when you want to create a notification from a log entry.
+ * @param {string} logMessage - The technical log message.
+ * @returns {Promise<string>} - The user-friendly notification message.
+ */
+async function createUserNotificationFromLog(logMessage) {
+  // Only process error or warning logs for notifications
+  // You can add your own logic to filter log types here
+  const userFriendlyMessage = await summarizeLogForUser(logMessage);
+  // Here, you would save/display the userFriendlyMessage in your notification system
+  return userFriendlyMessage;
+}
+
+module.exports = { getAllServices, updateService, deleteService, createUserNotificationFromLog };

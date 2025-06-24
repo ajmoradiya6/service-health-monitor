@@ -1,6 +1,6 @@
 ﻿const express = require('express');
 const router = express.Router();
-const { getAllServices, updateService, deleteService } = require('../services/healthService');
+const { getAllServices, updateService, deleteService, createUserNotificationFromLog } = require('../services/healthService');
 const registerServiceRouter = require('./registerService');
 const path = require('path');
 const fs = require('fs').promises;
@@ -111,6 +111,21 @@ router.get('/user-settings', async (req, res) => {
     } catch (error) {
         console.error('Error reading user settings:', error);
         res.status(500).json({ message: 'Failed to read user settings', error: error.message });
+    }
+});
+
+// POST endpoint to generate a user-friendly notification summary from a log message
+router.post('/notification-summary', async (req, res) => {
+    const { logMessage } = req.body;
+    if (!logMessage) {
+        return res.status(400).json({ error: 'logMessage is required' });
+    }
+    try {
+        const summary = await createUserNotificationFromLog(logMessage);
+        res.status(200).json({ summary });
+    } catch (error) {
+        console.error('Error generating notification summary:', error);
+        res.status(500).json({ error: 'Failed to generate notification summary' });
     }
 });
 

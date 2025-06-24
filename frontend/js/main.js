@@ -430,6 +430,22 @@ function parseLogEntry(log) {
     return defaultEntry;
 }
 
+// Helper to get user-friendly summary from backend
+async function getNotificationSummary(logMessage) {
+  try {
+    const response = await fetch('/api/notification-summary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ logMessage })
+    });
+    const data = await response.json();
+    return data.summary || logMessage; // fallback to original if LLM fails
+  } catch (err) {
+    console.error('Failed to get user-friendly summary:', err);
+    return logMessage; // fallback
+  }
+}
+
 function connectToSignalR(serviceData) {
     if (serviceConnections[serviceData.id]) {
         return serviceConnections[serviceData.id];
@@ -523,19 +539,18 @@ function connectToSignalR(serviceData) {
             if (!serviceLogs[serviceData.id]) serviceLogs[serviceData.id] = [];
             if (Array.isArray(data.applicationLogs)) {
                 console.log('Processing application logs:', data.applicationLogs);
-                data.applicationLogs.forEach((log) => {
+                data.applicationLogs.forEach(async (log) => {
                     const entry = parseLogEntry(log);
                     console.log('Processed log entry:', entry);
-                    
                     serviceLogs[serviceData.id].push(entry);
                     if (serviceLogs[serviceData.id].length > MAX_LOGS) {
                         serviceLogs[serviceData.id].shift();
                     }
-                    
-                    // Add notification for warning and error logs
+                    // Add notification for warning and error logs with user-friendly summary
                     if (entry.level === 'warning' || entry.level === 'error') {
                         console.log('Found warning/error log, creating notification:', entry);
-                        addNotification(entry, serviceData.id, serviceData.name);
+                        const userFriendlyMessage = await getNotificationSummary(entry.message);
+                        addNotification({ ...entry, message: userFriendlyMessage }, serviceData.id, serviceData.name);
                     }
                 });
             }
