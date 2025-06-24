@@ -3140,3 +3140,16 @@
             background: #ffd6d6 !important;
         }
 
+        [data-theme="dark"] .notification-actions .icon-button {
+            background: #223a5f !important;
+        }
+        [data-theme="dark"] .notification-actions .icon-button:hover {
+            background: #335c97 !important;
+        }
+        [data-theme="dark"] .notification-actions .icon-button.trash-red {
+            background: #4b2323 !important;
+        }
+        [data-theme="dark"] .notification-actions .icon-button.trash-red:hover {
+            background: #7a2e2e !important;
+        }
+
