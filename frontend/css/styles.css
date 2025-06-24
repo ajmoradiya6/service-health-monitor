@@ -3090,3 +3090,15 @@
             background-color: rgba(255, 193, 7, 0.2) !important;
         }
 
+        /* AI Assist Toggle Label - Gemini Style */
+        .ai-assist-label span {
+          background: linear-gradient(90deg, #4285F4 0%, #8B5CF6 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          text-fill-color: transparent;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          filter: drop-shadow(0 1px 4px rgba(66,133,244,0.15));
+        }
+

@@ -175,6 +175,9 @@ const phoneListContainer = document.getElementById('phone-list');
 // Add this after the global variables section
 const serviceNames = {}; // Store service names for notifications
 
+// 1. Add a reference to the AI Assist toggle
+const notifAIAssistToggle = document.getElementById('notif-ai-assist');
+
 // ===== ANIMATION FUNCTIONS =====
 function addIconAnimation(element, animationClass) {
     if (element) {
@@ -550,7 +553,7 @@ function connectToSignalR(serviceData) {
                     if (entry.level === 'warning' || entry.level === 'error') {
                         console.log('Found warning/error log, creating notification:', entry);
                         const userFriendlyMessage = await getNotificationSummary(entry.message);
-                        addNotification({ ...entry, message: userFriendlyMessage }, serviceData.id, serviceData.name);
+                        await processLogForNotification(entry, serviceData.id, serviceData.name);
                     }
                 });
             }
@@ -1486,6 +1489,7 @@ async function initializeNotificationSettings() {
     document.getElementById('notif-start').checked = notificationSettings.serviceStartEnabled || false;
     document.getElementById('notif-high-cpu').checked = notificationSettings.highCpuEnabled || false;
     document.getElementById('notif-high-memory').checked = notificationSettings.highMemoryEnabled || false;
+    notifAIAssistToggle.checked = notificationSettings.aiAssistEnabled || false;
 
     // Load and render emails
     console.log('Loading emails...'); // Debug log
@@ -1678,6 +1682,7 @@ async function saveAllSettingsToBackend() {
                 serviceStartEnabled: document.getElementById('notif-start').checked,
                 highCpuEnabled: document.getElementById('notif-high-cpu').checked,
                 highMemoryEnabled: document.getElementById('notif-high-memory').checked,
+                aiAssistEnabled: notifAIAssistToggle.checked,
                 emails: Array.from(emailListContainer.querySelectorAll('.list-item span')).map(e => e.textContent),
                 phones: Array.from(phoneListContainer.querySelectorAll('.list-item span')).map(e => e.textContent)
             },
@@ -1769,5 +1774,16 @@ document.getElementById('test-email-config').addEventListener('click', async () 
         showNotification('Failed to test email configuration', 'error');
     }
 });
+
+// 5. Update notification creation logic to use AI Assist toggle
+async function processLogForNotification(entry, serviceId, serviceName) {
+  const settings = JSON.parse(localStorage.getItem('userSettings') || '{}');
+  const notificationSettings = settings['user-settings']?.notificationSettings || {};
+  let message = entry.message;
+  if (notificationSettings.aiAssistEnabled && (entry.level === 'warning' || entry.level === 'error')) {
+    message = await getNotificationSummary(entry.message);
+  }
+  addNotification({ ...entry, message }, serviceId, serviceName);
+}
 
 
