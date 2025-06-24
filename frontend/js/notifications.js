@@ -196,13 +196,11 @@ function updateNotificationPanel() {
             <div class="notification-item ${notification.read ? 'read' : 'unread'}" 
                  onclick="event.stopPropagation(); markNotificationAsRead(${notification.id})">
                 <div class="notification-icon ${notification.type}">
-                    <i data-lucide="${notification.type === 'error' ? 'alert-circle' : 'alert-triangle'}"></i>
+                    <i data-lucide="${notification.type === 'error' ? 'alert-circle' : notification.type === 'warning' ? 'alert-triangle' : 'thumbs-up'}"></i>
                 </div>
                 <div class="notification-content">
-                    <div class="notification-header">
-                        <span class="service-name">${notification.serviceName}</span>
-                        <span class="notification-time">${formatTimestamp(notification.timestamp)}</span>
-                    </div>
+                    <div class="notification-title">${notification.serviceName || 'Service'}</div>
+                    <div class="notification-time">${formatTimestamp(notification.timestamp)}</div>
                     <div class="notification-message">${notification.message}</div>
                 </div>
             </div>
