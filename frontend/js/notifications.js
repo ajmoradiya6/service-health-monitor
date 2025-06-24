@@ -199,8 +199,10 @@ function updateNotificationPanel() {
                     <i data-lucide="${notification.type === 'error' ? 'alert-circle' : notification.type === 'warning' ? 'alert-triangle' : 'thumbs-up'}"></i>
                 </div>
                 <div class="notification-content">
-                    <div class="notification-title">${notification.serviceName || 'Service'}</div>
-                    <div class="notification-time">${formatTimestamp(notification.timestamp)}</div>
+                    <div class="notification-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="service-name">${notification.serviceName || 'Service'}</span>
+                        <span class="notification-time">${formatTimestamp(notification.timestamp)}</span>
+                    </div>
                     <div class="notification-message">${notification.message}</div>
                 </div>
             </div>
