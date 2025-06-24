@@ -2703,7 +2703,7 @@
 
         .notification-item {
             display: flex;
-            align-items: flex-start;
+            align-items: center; /* changed from flex-start to center */
             padding: 12px;
             border-bottom: 1px solid var(--border-color);
             cursor: pointer;
@@ -2727,11 +2727,13 @@
         .notification-icon {
             width: 32px;
             height: 32px;
-            border-radius: 6px; /* subtle rounding for square */
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            margin-right: 14px; /* add more space to the right */
+            margin-left: 4px;  /* add space to the left */
         }
 
         .notification-icon.warning {
