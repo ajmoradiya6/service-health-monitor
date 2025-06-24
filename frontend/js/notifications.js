@@ -169,7 +169,7 @@ function createNotificationPanel() {
                 <button class="icon-button" title="Mark all as read" onclick="event.stopPropagation(); markAllNotificationsAsRead()">
                     <i data-lucide="square-check-big" class="theme-icon"></i>
                 </button>
-                <button class="icon-button" title="Clear all" onclick="event.stopPropagation(); clearAllNotifications()">
+                <button class="icon-button trash-red" title="Clear all" onclick="event.stopPropagation(); clearAllNotifications()">
                     <i data-lucide="trash-2" class="theme-icon"></i>
                 </button>
             </div>

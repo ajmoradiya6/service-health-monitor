@@ -3109,3 +3109,34 @@
             color: #22c55e;
         }
 
+        .notification-actions .icon-button i[data-lucide="square-check-big"] {
+            color: #2563eb !important;
+        }
+
+        .notification-actions .icon-button svg[data-lucide="square-check-big"],
+        .notification-actions .icon-button .lucide-square-check-big {
+            color: #2563eb !important;
+            stroke: #2563eb !important;
+        }
+
+        .notification-actions .icon-button {
+            background: #e0edff !important;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .notification-actions .icon-button:hover {
+            background: #c7ddfa !important;
+        }
+
+        .notification-actions .icon-button svg[data-lucide="trash-2"],
+        .notification-actions .icon-button .lucide-trash-2 {
+            color: #ef4444 !important;
+            stroke: #ef4444 !important;
+        }
+        .notification-actions .icon-button.trash-red {
+            background: #ffeaea !important;
+        }
+        .notification-actions .icon-button.trash-red:hover {
+            background: #ffd6d6 !important;
+        }
+
