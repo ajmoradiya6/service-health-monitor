@@ -178,6 +178,9 @@ const serviceNames = {}; // Store service names for notifications
 // 1. Add a reference to the AI Assist toggle
 const notifAIAssistToggle = document.getElementById('notif-ai-assist');
 
+// Track previous running status for each service
+const servicePrevStatus = {};
+
 // ===== ANIMATION FUNCTIONS =====
 function addIconAnimation(element, animationClass) {
     if (element) {
@@ -466,6 +469,9 @@ function connectToSignalR(serviceData) {
     let hasShownInitialStatus = false;
     let isServiceRunning = false;
 
+    // Always set service name for notifications
+    serviceNames[serviceData.id] = serviceData.name;
+
     // Reset status display when connecting if this service is active
     const statusElement = document.querySelector('.status-running');
     if (activeServiceId === serviceData.id && statusElement) {
@@ -505,6 +511,43 @@ function connectToSignalR(serviceData) {
             }
             serviceItem.classList.add('connected');
         }
+
+        // Notification logic
+        const serviceId = serviceData.id;
+        const serviceName = serviceNames[serviceId] || 'Service';
+        if (typeof servicePrevStatus[serviceId] !== 'undefined') {
+            if (!servicePrevStatus[serviceId] && isRunning) {
+                // Service was down, now up
+                addNotification({
+                    level: 'info',
+                    message: `${serviceName} is UP`,
+                    timestamp: new Date().toISOString()
+                }, serviceId, serviceName, true);
+            } else if (servicePrevStatus[serviceId] && !isRunning) {
+                // Service was up, now down
+                addNotification({
+                    level: 'error',
+                    message: `${serviceName} is DOWN`,
+                    timestamp: new Date().toISOString()
+                }, serviceId, serviceName);
+            }
+        } else {
+            // First status update after connection
+            if (isRunning) {
+                addNotification({
+                    level: 'info',
+                    message: `${serviceName} is UP`,
+                    timestamp: new Date().toISOString()
+                }, serviceId, serviceName, true);
+            } else {
+                addNotification({
+                    level: 'error',
+                    message: `${serviceName} is DOWN`,
+                    timestamp: new Date().toISOString()
+                }, serviceId, serviceName);
+            }
+        }
+        servicePrevStatus[serviceId] = isRunning;
     }
 
     function startConnection() {
@@ -520,9 +563,11 @@ function connectToSignalR(serviceData) {
         connection.on("ReceiveHealthUpdate", (data) => {
             clearTimeout(dataTimeout);
 
+            // Determine running status from backend data
+            const isRunning = typeof data.serviceRunning === 'boolean' ? data.serviceRunning : true;
+            updateServiceStatus(isRunning);
             if (isFirstData) {
                 hasShownInitialStatus = true;
-                updateServiceStatus(true);
                 isFirstData = false;
             }
 
@@ -531,7 +576,7 @@ function connectToSignalR(serviceData) {
                 cpuUsage: data.cpuUsage,
                 memoryUsage: data.memoryUsage,
                 activeConnections: data.activeConnections,
-                serviceRunning: true,
+                serviceRunning: isRunning,
                 serviceUptime: data.serviceUptime,
                 timestamp: data.timestamp
             };
@@ -598,7 +643,7 @@ function connectToSignalR(serviceData) {
                 updateLogStats();
             } else {
                 // Update sidebar dot only
-                updateServiceStatus(true);
+                updateServiceStatus(isRunning);
             }
 
             console.log('applicationLogs:', data.applicationLogs);

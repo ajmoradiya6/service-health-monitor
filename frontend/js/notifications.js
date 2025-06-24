@@ -42,7 +42,7 @@ function saveNotifications() {
 }
 
 // Add a new notification
-function addNotification(logEntry, serviceId, serviceName) {
+function addNotification(logEntry, serviceId, serviceName, allowInfo = false) {
     const rawTimestamp = logEntry.rawTimestamp || logEntry.timestamp;
     const logKey = getNotificationLogKey({ ...logEntry, rawTimestamp }, serviceId);
     console.log('Deduplication key:', logKey, 'Entry:', logEntry); // DEBUG
@@ -65,8 +65,8 @@ function addNotification(logEntry, serviceId, serviceName) {
         return;
     }
 
-    // Only create notifications for warning and error logs
-    if (logEntry.level !== 'warning' && logEntry.level !== 'error') {
+    // Only create notifications for warning and error logs, unless allowInfo is true
+    if (!allowInfo && logEntry.level !== 'warning' && logEntry.level !== 'error') {
         console.log('Log level is not warning or error:', logEntry.level);
         return;
     }
