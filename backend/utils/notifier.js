@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const nodemailer = require('nodemailer');
 const axios = require('axios');
+const dayjs = require('dayjs');
 
 // Helper to read user settings
 function getUserSettings() {
@@ -81,8 +82,16 @@ async function sendNotification({ serviceName, timestamp, type, message }) {
   const emails = notificationSettings.emails || [];
   const phones = notificationSettings.phones || [];
 
-  // Compose notification text
-  const notifText = `Service: ${serviceName}\nTime: ${timestamp}\nType: ${type}\nMessage: ${message}`;
+  // Format the timestamp
+  let formattedTime = timestamp;
+  try {
+    formattedTime = dayjs(timestamp).format('YYYY/MM/DD, hh:mm A');
+  } catch (e) {
+    // fallback to original if formatting fails
+  }
+
+  // Compose notification text in the new format
+  const notifText = `${message}\nTime: ${formattedTime}\nService: ${serviceName}`;
   const subject = `[${type.toUpperCase()}] ${serviceName} - Service Health Monitor`;
 
   // Email
