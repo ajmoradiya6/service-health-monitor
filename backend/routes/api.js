@@ -129,4 +129,16 @@ router.post('/notification-summary', async (req, res) => {
     }
 });
 
+// POST endpoint to receive notification from frontend and trigger backend notification logic
+router.post('/notify', async (req, res) => {
+    const notification = req.body;
+    try {
+        await createUserNotificationFromLog(notification);
+        res.status(200).json({ message: 'Notification processed.' });
+    } catch (err) {
+        console.error('Error processing notification:', err);
+        res.status(500).json({ error: 'Failed to process notification.' });
+    }
+});
+
 module.exports = router;

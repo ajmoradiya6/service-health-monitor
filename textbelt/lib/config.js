@@ -37,5 +37,5 @@ module.exports = {
   mailOptions: {
     from: `"${emailConfig.fromName || 'Service Health Monitor'}" <${emailConfig.fromEmail || ''}>`,
   },
-  debugEnabled: false,
+  debugEnabled: true,
 };

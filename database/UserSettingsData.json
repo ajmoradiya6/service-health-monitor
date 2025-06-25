@@ -2,7 +2,7 @@
   "user-settings": {
     "notificationSettings": {
       "inAppEnabled": true,
-      "emailEnabled": true,
+      "emailEnabled": false,
       "smsEnabled": true,
       "serviceDownEnabled": true,
       "serviceErrorEnabled": true,
@@ -25,7 +25,7 @@
       "password": "-!SyntaxSoft24-!",
       "fromEmail": "serviceaccount@computhink.com",
       "fromName": "Service Health Monitor",
-      "useSsl": true
+      "useSsl": false
     }
   }
 }

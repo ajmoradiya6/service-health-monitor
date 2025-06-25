@@ -523,6 +523,16 @@ function connectToSignalR(serviceData) {
                     message: `${serviceName} is UP`,
                     timestamp: new Date().toISOString()
                 }, serviceId, serviceName, true);
+                fetch('/api/notify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        serviceName: serviceName,
+                        timestamp: new Date().toISOString(),
+                        type: 'up',
+                        message: `${serviceName} is UP`
+                    })
+                });
             } else if (servicePrevStatus[serviceId] && !isRunning) {
                 // Service was up, now down
                 addNotification({
@@ -530,6 +540,16 @@ function connectToSignalR(serviceData) {
                     message: `${serviceName} is DOWN`,
                     timestamp: new Date().toISOString()
                 }, serviceId, serviceName);
+                fetch('/api/notify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        serviceName: serviceName,
+                        timestamp: new Date().toISOString(),
+                        type: 'down',
+                        message: `${serviceName} is DOWN`
+                    })
+                });
             }
         } else {
             // First status update after connection
@@ -539,12 +559,32 @@ function connectToSignalR(serviceData) {
                     message: `${serviceName} is UP`,
                     timestamp: new Date().toISOString()
                 }, serviceId, serviceName, true);
+                fetch('/api/notify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        serviceName: serviceName,
+                        timestamp: new Date().toISOString(),
+                        type: 'up',
+                        message: `${serviceName} is UP`
+                    })
+                });
             } else {
                 addNotification({
                     level: 'error',
                     message: `${serviceName} is DOWN`,
                     timestamp: new Date().toISOString()
                 }, serviceId, serviceName);
+                fetch('/api/notify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        serviceName: serviceName,
+                        timestamp: new Date().toISOString(),
+                        type: 'down',
+                        message: `${serviceName} is DOWN`
+                    })
+                });
             }
         }
         servicePrevStatus[serviceId] = isRunning;
@@ -1833,6 +1873,18 @@ async function processLogForNotification(entry, serviceId, serviceName) {
   } else {
     addNotification(entry, serviceId, serviceName);
   }
+
+  // Send to backend for email/SMS
+  fetch('/api/notify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      serviceName: serviceName,
+      timestamp: entry.timestamp,
+      type: entry.level,
+      message: message
+    })
+  });
 }
 
 // ===== UTILITY FUNCTIONS =====

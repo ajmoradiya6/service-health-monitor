@@ -1,12 +1,14 @@
 ﻿const path = require('path');
-const fs = require('fs').promises;
+const fs = require('fs');
+const fsp = require('fs').promises;
 const { summarizeLogForUser } = require('../utils/openRouterLLM');
+const { sendNotification } = require('../utils/notifier');
 
 const servicesFilePath = path.join(__dirname, '..', '..' ,'database', 'RegisteredServices.json');
 
 async function getAllServices() {
     try {
-        const fileContent = await fs.readFile(servicesFilePath, 'utf8');
+        const fileContent = await fsp.readFile(servicesFilePath, 'utf8');
         const services = fileContent ? JSON.parse(fileContent) : [];
         return services;
 
@@ -34,7 +36,7 @@ async function updateService(serviceId, updatedService) {
         services[index] = { ...services[index], ...updatedService };
 
         // Write the updated array back to the file
-        await fs.writeFile(servicesFilePath, JSON.stringify(services, null, 2), 'utf8');
+        await fsp.writeFile(servicesFilePath, JSON.stringify(services, null, 2), 'utf8');
         console.log(`Service with ID ${serviceId} updated successfully.`);
 
     } catch (error) {
@@ -55,7 +57,7 @@ async function deleteService(serviceId) {
         }
 
         // Write the updated array back to the file
-        await fs.writeFile(servicesFilePath, JSON.stringify(updatedServices, null, 2), 'utf8');
+        await fsp.writeFile(servicesFilePath, JSON.stringify(updatedServices, null, 2), 'utf8');
         console.log(`Service with ID ${serviceId} deleted successfully.`);
 
     } catch (error) {
@@ -67,13 +69,35 @@ async function deleteService(serviceId) {
 /**
  * Example function to process a log and generate a user-friendly notification.
  * Call this function when you want to create a notification from a log entry.
- * @param {string} logMessage - The technical log message.
+ * @param {object} logMessage - The log message object. Should include serviceName, timestamp, type, and message.
  * @returns {Promise<string>} - The user-friendly notification message.
  */
 async function createUserNotificationFromLog(logMessage) {
-  // Only process error or warning logs for notifications
-  // You can add your own logic to filter log types here
-  const userFriendlyMessage = await summarizeLogForUser(logMessage);
+  // Read AI Assist toggle from UserSettingsData.json
+  let aiAssistEnabled = false;
+  try {
+    const settingsPath = require('path').resolve(__dirname, '../../database/UserSettingsData.json');
+    const raw = fs.readFileSync(settingsPath, 'utf-8');
+    const json = JSON.parse(raw);
+    aiAssistEnabled = json['user-settings']?.notificationSettings?.aiAssistEnabled || false;
+  } catch (err) {
+    console.error('Failed to read AI Assist toggle:', err);
+  }
+
+  let userFriendlyMessage = logMessage.message || logMessage;
+  if (aiAssistEnabled) {
+    userFriendlyMessage = await summarizeLogForUser(logMessage.message || logMessage);
+  }
+
+  // Send notification via email/SMS if toggles are on
+  if (typeof logMessage === 'object' && logMessage.serviceName && logMessage.timestamp && logMessage.type) {
+    await sendNotification({
+      serviceName: logMessage.serviceName,
+      timestamp: logMessage.timestamp,
+      type: logMessage.type,
+      message: userFriendlyMessage,
+    });
+  }
   // Here, you would save/display the userFriendlyMessage in your notification system
   return userFriendlyMessage;
 }
