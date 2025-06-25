@@ -25,7 +25,7 @@ router.post('/', async (req, res) => {
             services = fileContent ? JSON.parse(fileContent) : [];
         } catch (error) {
             if (error.code === 'ENOENT') {
-                console.log(`Services file not found at ${servicesFilePath}, starting with an empty array.`);
+                // console.log(`Services file not found at ${servicesFilePath}, starting with an empty array.`);
                 services = []; // File doesn't exist, start with empty array
             } else {
                 console.error('Error reading services file:', error);
@@ -50,7 +50,7 @@ router.post('/', async (req, res) => {
         // Write the updated array back to the JSON file
         await fs.writeFile(servicesFilePath, JSON.stringify(services, null, 2), 'utf8');
 
-        console.log(`Service '${name}' registered and saved to ${servicesFilePath}`);
+        // console.log(`Service '${name}' registered and saved to ${servicesFilePath}`);
         res.status(201).json({ message: 'Service registered successfully', service: newService });
 
     } catch (error) {

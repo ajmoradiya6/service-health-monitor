@@ -1,7 +1,7 @@
 const { createUserNotificationFromLog } = require('../services/healthService');
 require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
 
-console.log('Running testNotifier.js...');
+// console.log('Running testNotifier.js...');
 
 async function runTests() {
   // Test notification (existing)
@@ -28,7 +28,7 @@ async function runTests() {
     message: 'Disk space is running low.'
   });
 
-  console.log('All test notifications sent.');
+  // console.log('All test notifications sent.');
 }
 
 runTests().catch(err => {

@@ -46,7 +46,6 @@ Log: ${logMessage}`;
         }
       }
     );
-    console.log('OpenRouter API response:', JSON.stringify(response.data, null, 2));
     if (
       response.data &&
       response.data.choices &&

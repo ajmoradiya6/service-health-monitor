@@ -84,9 +84,7 @@ async function createUserNotificationFromLog(logMessage) {
     console.warn('Notification skipped: missing required fields (serviceName, timestamp, type, message). Received:', logMessage);
     return;
   }
-  // Debug: Log the incoming logMessage
-  console.log('createUserNotificationFromLog called with:', logMessage);
-  // Read AI Assist toggle from UserSettingsData.json
+
   let aiAssistEnabled = false;
   try {
     const settingsPath = require('path').resolve(__dirname, '../../database/UserSettingsData.json');
@@ -100,9 +98,6 @@ async function createUserNotificationFromLog(logMessage) {
   let userFriendlyMessage = logMessage.message || logMessage;
   if (aiAssistEnabled) {
     const aiSummary = await summarizeLogForUser(logMessage.message || logMessage);
-    // Debug: Log the AI summary
-    console.log('AI Assist summary:', aiSummary);
-    // If AI summary is empty or fallback, use the original message
     if (!aiSummary || aiSummary.trim() === '' || aiSummary.trim() === 'An error occurred, but we are unable to provide more details at this time.') {
       userFriendlyMessage = logMessage.message || logMessage;
     } else {
@@ -110,9 +105,7 @@ async function createUserNotificationFromLog(logMessage) {
     }
   }
 
-  // Debug: Log the type and message to be sent
-  console.log('Notification type:', logMessage.type, 'userFriendlyMessage:', userFriendlyMessage);
-
+  // Only log actual errors or skipped notifications
   // Send notification via email/SMS if toggles are on
   if (typeof logMessage === 'object' && logMessage.serviceName && logMessage.timestamp && logMessage.type) {
     await sendNotification({
@@ -122,7 +115,6 @@ async function createUserNotificationFromLog(logMessage) {
       message: userFriendlyMessage,
     });
   }
-  // Here, you would save/display the userFriendlyMessage in your notification system
   return userFriendlyMessage;
 }
 
