@@ -523,15 +523,11 @@ function connectToSignalR(serviceData) {
                     message: `${serviceName} is UP`,
                     timestamp: new Date().toISOString()
                 }, serviceId, serviceName, true);
-                fetch('/api/notify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        serviceName: serviceName,
-                        timestamp: new Date().toISOString(),
-                        type: 'up',
-                        message: `${serviceName} is UP`
-                    })
+                sendNotificationToBackend({
+                    serviceName: serviceName,
+                    timestamp: new Date().toISOString(),
+                    type: 'up',
+                    message: `${serviceName} is UP`
                 });
             } else if (servicePrevStatus[serviceId] && !isRunning) {
                 // Service was up, now down
@@ -540,15 +536,11 @@ function connectToSignalR(serviceData) {
                     message: `${serviceName} is DOWN`,
                     timestamp: new Date().toISOString()
                 }, serviceId, serviceName);
-                fetch('/api/notify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        serviceName: serviceName,
-                        timestamp: new Date().toISOString(),
-                        type: 'down',
-                        message: `${serviceName} is DOWN`
-                    })
+                sendNotificationToBackend({
+                    serviceName: serviceName,
+                    timestamp: new Date().toISOString(),
+                    type: 'down',
+                    message: `${serviceName} is DOWN`
                 });
             }
         } else {
@@ -559,15 +551,11 @@ function connectToSignalR(serviceData) {
                     message: `${serviceName} is UP`,
                     timestamp: new Date().toISOString()
                 }, serviceId, serviceName, true);
-                fetch('/api/notify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        serviceName: serviceName,
-                        timestamp: new Date().toISOString(),
-                        type: 'up',
-                        message: `${serviceName} is UP`
-                    })
+                sendNotificationToBackend({
+                    serviceName: serviceName,
+                    timestamp: new Date().toISOString(),
+                    type: 'up',
+                    message: `${serviceName} is UP`
                 });
             } else {
                 addNotification({
@@ -575,15 +563,11 @@ function connectToSignalR(serviceData) {
                     message: `${serviceName} is DOWN`,
                     timestamp: new Date().toISOString()
                 }, serviceId, serviceName);
-                fetch('/api/notify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        serviceName: serviceName,
-                        timestamp: new Date().toISOString(),
-                        type: 'down',
-                        message: `${serviceName} is DOWN`
-                    })
+                sendNotificationToBackend({
+                    serviceName: serviceName,
+                    timestamp: new Date().toISOString(),
+                    type: 'down',
+                    message: `${serviceName} is DOWN`
                 });
             }
         }
@@ -1867,23 +1851,24 @@ async function processLogForNotification(entry, serviceId, serviceName) {
   const notificationSettings = settings['user-settings']?.notificationSettings || {};
   let message = entry.message;
   if (notificationSettings.aiAssistEnabled && (entry.level === 'warning' || entry.level === 'error')) {
-    message = await getNotificationSummary(entry.message);
-    console.log('Deduplication key:', logKey, 'Entry:', logEntry);
+    let aiSummary = await getNotificationSummary(entry.message);
+    // If AI summary is empty or fallback, use the original message
+    if (!aiSummary || aiSummary.trim() === '' || aiSummary.trim() === 'An error occurred, but we are unable to provide more details at this time.') {
+      message = entry.message;
+    } else {
+      message = aiSummary;
+    }
     addNotification({ ...entry, message }, serviceId, serviceName);
   } else {
     addNotification(entry, serviceId, serviceName);
   }
 
   // Send to backend for email/SMS
-  fetch('/api/notify', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      serviceName: serviceName,
-      timestamp: entry.timestamp,
-      type: entry.level,
-      message: message
-    })
+  sendNotificationToBackend({
+    serviceName: serviceName,
+    timestamp: entry.timestamp,
+    type: entry.level,
+    message: message
   });
 }
 
@@ -1908,6 +1893,19 @@ function formatTimestamp(ts) {
         second: '2-digit',
         hour12: true
     });
+}
+
+// Helper to send notification to backend with correct structure
+function sendNotificationToBackend({ serviceName, timestamp, type, message }) {
+  if (!serviceName || !timestamp || !type || !message) {
+    console.warn('Notification not sent: missing required fields', { serviceName, timestamp, type, message });
+    return;
+  }
+  fetch('/api/notify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ serviceName, timestamp, type, message })
+  });
 }
 
 

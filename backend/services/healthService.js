@@ -73,6 +73,19 @@ async function deleteService(serviceId) {
  * @returns {Promise<string>} - The user-friendly notification message.
  */
 async function createUserNotificationFromLog(logMessage) {
+  // Defensive check for required fields
+  if (
+    typeof logMessage !== 'object' ||
+    !logMessage.serviceName ||
+    !logMessage.timestamp ||
+    !logMessage.type ||
+    !logMessage.message
+  ) {
+    console.warn('Notification skipped: missing required fields (serviceName, timestamp, type, message). Received:', logMessage);
+    return;
+  }
+  // Debug: Log the incoming logMessage
+  console.log('createUserNotificationFromLog called with:', logMessage);
   // Read AI Assist toggle from UserSettingsData.json
   let aiAssistEnabled = false;
   try {
@@ -86,8 +99,19 @@ async function createUserNotificationFromLog(logMessage) {
 
   let userFriendlyMessage = logMessage.message || logMessage;
   if (aiAssistEnabled) {
-    userFriendlyMessage = await summarizeLogForUser(logMessage.message || logMessage);
+    const aiSummary = await summarizeLogForUser(logMessage.message || logMessage);
+    // Debug: Log the AI summary
+    console.log('AI Assist summary:', aiSummary);
+    // If AI summary is empty or fallback, use the original message
+    if (!aiSummary || aiSummary.trim() === '' || aiSummary.trim() === 'An error occurred, but we are unable to provide more details at this time.') {
+      userFriendlyMessage = logMessage.message || logMessage;
+    } else {
+      userFriendlyMessage = aiSummary;
+    }
   }
+
+  // Debug: Log the type and message to be sent
+  console.log('Notification type:', logMessage.type, 'userFriendlyMessage:', userFriendlyMessage);
 
   // Send notification via email/SMS if toggles are on
   if (typeof logMessage === 'object' && logMessage.serviceName && logMessage.timestamp && logMessage.type) {

@@ -72,6 +72,8 @@ async function sendSms(message, numbers) {
     } catch (err) {
       console.error('Error sending SMS:', err.message);
     }
+    // Add a 3-second delay between each SMS
+    await new Promise(resolve => setTimeout(resolve, 3000));
   }
 }
 
