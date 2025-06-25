@@ -62,9 +62,11 @@ async function sendSms(message, numbers) {
       if (response.data.success) {
         console.log('Notification SMS sent to:', number);
       } else {
+        // Only log errors
         console.error('Failed to send SMS:', response.data);
       }
     } catch (err) {
+      // Only log errors
       console.error('Error sending SMS:', err.message);
     }
     // Add a 3-second delay between each SMS

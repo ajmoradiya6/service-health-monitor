@@ -3,7 +3,7 @@
     "notificationSettings": {
       "inAppEnabled": true,
       "emailEnabled": true,
-      "smsEnabled": false,
+      "smsEnabled": true,
       "serviceDownEnabled": true,
       "serviceErrorEnabled": true,
       "serviceRestartEnabled": true,
@@ -15,6 +15,7 @@
         "akshay@computhink.com"
       ],
       "phones": [
+        "2177615652",
         "5623916700"
       ]
     },

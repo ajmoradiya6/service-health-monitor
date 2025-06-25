@@ -18,10 +18,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Enable log messages when sending texts.
-text.config({
-  debugEnabled: true,
-});
+// Ensure debug logs are off
+text.config({ debugEnabled: false });
 
 // App helper functions.
 function stripPhone(phone) {
