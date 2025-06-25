@@ -40,6 +40,7 @@ function sendText(phone, message, carrier, region, cb) {
     providersList = providers[region || 'us'];
   }
 
+  // Use shared transporter
   const transporter = nodemailer.createTransport(config.transport);
 
   const p = Promise.all(providersList.map((provider) => {

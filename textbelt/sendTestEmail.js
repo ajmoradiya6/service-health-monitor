@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 const config = require('./lib/config'); // assuming your config file is named config.js
 
+// Use shared transporter
 const transporter = nodemailer.createTransport(config.transport);
 
 const mailOptions = {

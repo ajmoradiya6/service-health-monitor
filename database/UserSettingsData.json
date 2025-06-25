@@ -3,16 +3,17 @@
     "notificationSettings": {
       "inAppEnabled": true,
       "emailEnabled": true,
-      "smsEnabled": true,
+      "smsEnabled": false,
       "serviceDownEnabled": true,
       "serviceErrorEnabled": true,
       "serviceRestartEnabled": true,
       "serviceStartEnabled": false,
       "highCpuEnabled": false,
       "highMemoryEnabled": false,
-      "aiAssistEnabled": false,
+      "aiAssistEnabled": true,
       "emails": [
-        "akshay@computhink.com"
+        "akshay@computhink.com",
+        "rkkakadiya6@gmail.com"
       ],
       "phones": [
         "5623916700"

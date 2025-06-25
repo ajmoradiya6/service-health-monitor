@@ -3,6 +3,7 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 const axios = require('axios');
 const dayjs = require('dayjs');
+const textbeltConfig = require('../../textbelt/lib/config');
 
 // Helper to read user settings
 function getUserSettings() {
@@ -23,23 +24,13 @@ function getEmailConfig() {
   return settings.emailConfig || {};
 }
 
+// Shared transporter using centralized config
+const transporter = nodemailer.createTransport(textbeltConfig.transport);
+
 // Send email using nodemailer
 async function sendEmail(subject, text, recipients) {
-  const emailConfig = getEmailConfig();
-  if (!emailConfig.host || !emailConfig.username || !emailConfig.password) {
-    console.error('Email config is incomplete.');
-    return;
-  }
-  const transporter = nodemailer.createTransport({
-    host: emailConfig.host,
-    port: parseInt(emailConfig.port, 10) || 587,
-    secure: !!emailConfig.useSsl || false,
-    auth: {
-      user: emailConfig.username,
-      pass: emailConfig.password,
-    },
-  });
-  const from = `${emailConfig.fromName || 'Service Health Monitor'} <${emailConfig.fromEmail || emailConfig.username}>`;
+  if (!recipients || recipients.length === 0) return;
+  const from = textbeltConfig.mailOptions.from || 'Service Health Monitor <no-reply@example.com>';
   const mailOptions = {
     from,
     to: recipients.join(','),
@@ -63,7 +54,6 @@ async function sendSms(message, numbers) {
         message,
         key: 'textbelt',
       });
-      console.log('Textbelt SMS response:', response.data);
       if (response.data.success) {
         console.log('Notification SMS sent to:', number);
       } else {
