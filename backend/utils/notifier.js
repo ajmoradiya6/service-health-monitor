@@ -46,10 +46,15 @@ async function sendEmail(subject, text, recipients) {
 }
 
 // Send SMS using local textbelt server
+const textbeltHost = process.env.TEXTBELT_HOST || 'http://localhost';
+const textbeltPort = process.env.TEXTBELT_PORT || '9090';
+console.log('Textbelt config:', textbeltHost, textbeltPort);
+const textbeltUrl = `${textbeltHost}:${textbeltPort}/text`;
+
 async function sendSms(message, numbers) {
   for (const number of numbers) {
     try {
-      const response = await axios.post('http://localhost:9090/text', {
+      const response = await axios.post(textbeltUrl, {
         number,
         message,
         key: 'textbelt',

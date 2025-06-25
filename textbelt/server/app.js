@@ -1,3 +1,5 @@
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../backend/.env') });
+
 const express = require('express');
 
 const carriers = require('../lib/carriers.js');
@@ -99,7 +101,7 @@ app.post('/intl', (req, res) => {
 });
 
 // Start server
-const port = process.env.PORT || 9090;
+const port = process.env.TEXTBELT_PORT || 9090;
 app.listen(port, () => {
   // eslint-disable-next-line no-console
   console.log('Listening on', port);

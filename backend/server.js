@@ -2,11 +2,9 @@
 
 const app = require('./app');
 const livereload = require('livereload');
-const PORT = 3003;
-
-//console.log('Current directory:', __dirname);
-//console.log('OpenRouter API Key:', process.env.OPENROUTER_API_KEY);
-//console.log('Test Var:', process.env.TEST_VAR);
+const BACKEND_HOST = process.env.BACKEND_HOST || 'http://localhost';
+const PORT = process.env.BACKEND_PORT || 3003;
+console.log('Backend server will run on:', `${BACKEND_HOST}:${PORT}`);
 
 // ✅ Watch frontend folder for changes
 const liveReloadServer = livereload.createServer();

@@ -10,10 +10,9 @@
       "serviceStartEnabled": false,
       "highCpuEnabled": false,
       "highMemoryEnabled": false,
-      "aiAssistEnabled": true,
+      "aiAssistEnabled": false,
       "emails": [
-        "akshay@computhink.com",
-        "rkkakadiya6@gmail.com"
+        "akshay@computhink.com"
       ],
       "phones": [
         "5623916700"
