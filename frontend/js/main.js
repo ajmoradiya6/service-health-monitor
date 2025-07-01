@@ -841,12 +841,13 @@ function populateLogs(serviceId) {
     logsList.innerHTML = '';
     const logs = serviceLogs[serviceId] || [];
 
-    logs.forEach((log) => {
+    logs.forEach((log, i) => {
         if (currentLogFilter !== 'all' && log.level !== currentLogFilter) {
             return;
         }
         const logEntry = document.createElement('div');
         logEntry.className = `log-entry ${log.level}`;
+        logEntry.style.animationDelay = `${0.05 + i * 0.01}s`;
         logEntry.innerHTML = `
             <div class="log-level ${log.level}">${log.level}</div>
             <div class="log-timestamp">${log.timestamp}</div>
