@@ -7,8 +7,14 @@
   },
   {
     "id": "a20fa5e1-c904-4e60-8384-b1187a50f458",
-    "name": "PDF Serive",
+    "name": "Not Running",
     "url": "http://localhost",
     "port": "8006"
+  },
+  {
+    "id": "e4f1ce14-25e9-470d-9369-8d2fbd5eee0d",
+    "name": "My Running service",
+    "url": "https://localhost",
+    "port": "8005"
   }
 ]
