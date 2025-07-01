@@ -2,7 +2,7 @@
   {
     "id": "39a0a40e-80bb-4689-889b-0cfba765229f",
     "name": "PDF Service",
-    "url": "https://localhost",
+    "url": "http://localhost",
     "port": "8005"
   },
   {
@@ -14,7 +14,7 @@
   {
     "id": "e4f1ce14-25e9-470d-9369-8d2fbd5eee0d",
     "name": "My Running service",
-    "url": "https://localhost",
+    "url": "http://localhost",
     "port": "8005"
   }
 ]

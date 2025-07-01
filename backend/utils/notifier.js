@@ -48,7 +48,7 @@ async function sendEmail(subject, text, recipients) {
 // Send SMS using local textbelt server
 const textbeltHost = process.env.TEXTBELT_HOST || 'http://localhost';
 const textbeltPort = process.env.TEXTBELT_PORT || '9090';
-console.log('Textbelt config:', textbeltHost, textbeltPort);
+console.log('Textbelt config:', `${textbeltHost}:${textbeltPort}`);
 const textbeltUrl = `${textbeltHost}:${textbeltPort}/text`;
 
 async function sendSms(message, numbers) {

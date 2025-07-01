@@ -462,7 +462,8 @@ function connectToSignalR(serviceData) {
         return serviceConnections[serviceData.id];
     }
     // Build the SignalR URL from service data
-    const baseUrl = serviceData.url.replace('https://', 'http://'); // Convert https to http for local development
+    //const baseUrl = serviceData.url.replace('https://', 'http://'); // Convert https to http for local development
+    const baseUrl = serviceData.url; // Convert https to http for local development
     const port = serviceData.port;
     const signalRUrl = `${baseUrl}:${port}/healthhub`;
 
