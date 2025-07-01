@@ -46,6 +46,11 @@
       div.dataset.service = JSON.stringify(service);
 
       container.appendChild(div);
+
+      // === Ensure a connection is created and stored for every service ===
+      if (!serviceConnections[service.id]) {
+        serviceConnections[service.id] = connectToSignalR(service);
+      }
     });
 
     // After adding all service items, create Lucide icons within the container
@@ -725,6 +730,49 @@ function selectService(element, index, service) {
     activeServiceId = serviceData.id;
     console.log('Selected service data:', serviceData);
 
+    // === INSTANT STATUS UPDATE BASED ON DOT COLOR ===
+    const statusElement = document.querySelector('.status-running');
+    let statusIsStopped = false;
+    if (statusElement) {
+        // Find the sidebar dot for this service
+        const serviceDot = element.querySelector('.status-dot');
+        if (serviceDot) {
+            // Get the computed --dot-color value
+            const dotColor = getComputedStyle(serviceDot).getPropertyValue('--dot-color').trim();
+            // Get the CSS variable values for comparison
+            const rootStyles = getComputedStyle(document.documentElement);
+            const red = rootStyles.getPropertyValue('--red-primary').trim();
+            const green = rootStyles.getPropertyValue('--green-primary').trim();
+            const yellow = rootStyles.getPropertyValue('--yellow-primary').trim();
+
+            let statusText = 'Connecting...';
+            let mainDotColor = yellow;
+            if (dotColor === red) {
+                statusText = 'Stopped';
+                mainDotColor = red;
+                statusIsStopped = true;
+            } else if (dotColor === green) {
+                statusText = 'Running';
+                mainDotColor = green;
+            }
+            statusElement.style.setProperty('--dot-color', mainDotColor);
+            const statusTextElem = statusElement.querySelector('span');
+            if (statusTextElem) statusTextElem.textContent = statusText;
+        }
+    }
+    // If stopped, set metrics to '--' and skip rendering metrics
+    if (statusIsStopped) {
+        const cpuElement = document.getElementById('cpu-value');
+        const memoryElement = document.getElementById('memory-value');
+        const connectionsElement = document.getElementById('connections-value');
+        if (cpuElement) cpuElement.textContent = '--';
+        if (memoryElement) memoryElement.textContent = '--';
+        if (connectionsElement) connectionsElement.textContent = '--';
+    } else {
+        // Only render metrics if not stopped
+        renderServiceMetrics(serviceData.id);
+    }
+
     // If this service has never been connected, show "Connecting..." feedback
     if (!serviceConnections[serviceData.id]) {
         const statusElement = document.querySelector('.status-running');
@@ -740,8 +788,7 @@ function selectService(element, index, service) {
         serviceConnections[serviceData.id] = connectToSignalR(serviceData);
     }
 
-    // Render cached metrics and logs
-    renderServiceMetrics(serviceData.id);
+    // Render cached logs
     populateLogs(serviceData.id);
 
     // Close sidebar on mobile after selection

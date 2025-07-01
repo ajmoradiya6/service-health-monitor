@@ -2,8 +2,8 @@
   "user-settings": {
     "notificationSettings": {
       "inAppEnabled": true,
-      "emailEnabled": true,
-      "smsEnabled": true,
+      "emailEnabled": false,
+      "smsEnabled": false,
       "serviceDownEnabled": true,
       "serviceErrorEnabled": true,
       "serviceRestartEnabled": true,
