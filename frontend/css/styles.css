@@ -1263,6 +1263,7 @@
         }
 
         .logs-list {
+            overflow-x: hidden;
             flex: 1;
             overflow-y: auto;
             display: flex;
