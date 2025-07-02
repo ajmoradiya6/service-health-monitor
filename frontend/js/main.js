@@ -363,14 +363,37 @@ function setupServicePowerButton() {
                 showNotification('Failed to stop service: ' + (err.error || resp.statusText), 'error');
             }
         } else {
-            // Start the service
+            window._serviceSpinnerShouldHideOnRunning = true;
+            showServiceSpinner('Starting service...');
+            powerBtn.title = 'Starting...';
             const resp = await fetch(`/api/service-control/${activeServiceId}/start`, { method: 'POST' });
             if (resp.ok) {
-                showNotification('Service started', 'success');
-                updatePowerButton('Running');
+                // Wait for service to actually be running (poll status)
+                let tries = 0, running = false;
+                while (tries < 10) {
+                    await new Promise(r => setTimeout(r, 700));
+                    const newStatus = await fetchServiceStatus(activeServiceId);
+                    if (newStatus === 'Running') {
+                        running = true;
+                        break;
+                    }
+                    tries++;
+                }
+                if (running) {
+                    showNotification('Service started', 'success');
+                    updatePowerButton('Running');
+                } else {
+                    hideServiceSpinner();
+                    window._serviceSpinnerShouldHideOnRunning = false;
+                    showNotification('Service start timed out', 'error');
+                    updatePowerButton('Stopped');
+                }
             } else {
+                hideServiceSpinner();
+                window._serviceSpinnerShouldHideOnRunning = false;
                 const err = await resp.json();
                 showNotification('Failed to start service: ' + (err.error || resp.statusText), 'error');
+                updatePowerButton('Stopped');
             }
         }
     });
@@ -773,6 +796,10 @@ function connectToSignalR(serviceData) {
             statusElement.style.setProperty('--dot-color', isRunning ? 'var(--green-primary)' : 'var(--red-primary)');
             const statusText = statusElement.querySelector('span');
             statusText.textContent = isRunning ? 'Running' : 'Stopped';
+            if (isRunning && window._serviceSpinnerShouldHideOnRunning) {
+                hideServiceSpinner();
+                window._serviceSpinnerShouldHideOnRunning = false;
+            }
         }
 
         // Update the service dot in the sidebar
@@ -2302,6 +2329,18 @@ function sendNotificationToBackend({ serviceName, timestamp, type, message }) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ serviceName, timestamp, type, message })
   });
+}
+
+function showServiceSpinner(message = 'Starting service...') {
+    const overlay = document.getElementById('service-spinner-overlay');
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    overlay.querySelector('.spinner-message').textContent = message;
+}
+function hideServiceSpinner() {
+    const overlay = document.getElementById('service-spinner-overlay');
+    if (!overlay) return;
+    overlay.style.display = 'none';
 }
 
 
