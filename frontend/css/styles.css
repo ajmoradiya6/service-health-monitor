@@ -552,7 +552,7 @@
             font-weight: 500;
             padding: 6px 10px;
             background-color: rgba(16, 185, 129, 0.1);
-            border-radius: 20px;
+            border-radius: 8px;
             transition: var(--transition-normal);
         }
 

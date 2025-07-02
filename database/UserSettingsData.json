@@ -8,15 +8,15 @@
       "serviceErrorEnabled": true,
       "serviceRestartEnabled": true,
       "serviceStartEnabled": false,
-      "highCpuEnabled": false,
-      "highMemoryEnabled": false,
+      "highCpuEnabled": true,
+      "highMemoryEnabled": true,
       "aiAssistEnabled": false,
       "emails": [
         "akshay@computhink.com"
       ],
       "phones": [
         "2177615652",
-        "5623916700"  
+        "5623916700"
       ]
     },
     "emailConfig": {
