@@ -408,7 +408,7 @@ function updatePowerButton(status) {
         powerBtn.classList.add('service-power-running');
     } else {
         powerBtn.title = 'Start Service';
-        if (icon) icon.setAttribute('data-lucide', 'power');
+        if (icon) icon.setAttribute('data-lucide', 'play');
         powerBtn.classList.add('service-power-stopped');
     }
     if (icon) icon.style.color = '';
