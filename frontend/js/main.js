@@ -229,8 +229,8 @@ function initializeResourceChart(serviceId) {
                     backgroundColor: 'rgba(59, 130, 246, 0.08)',
                     tension: 0.4,
                     fill: true,
-                    pointRadius: 2,
-                    pointHoverRadius: 4,
+                    pointRadius: 0, // Hide dots by default
+                    pointHoverRadius: 4, // Show dots on hover
                     pointBackgroundColor: 'rgba(59, 130, 246, 0.7)',
                     pointBorderColor: 'rgba(59, 130, 246, 0.7)',
                 },
@@ -241,8 +241,8 @@ function initializeResourceChart(serviceId) {
                     backgroundColor: 'rgba(139, 92, 246, 0.08)',
                     tension: 0.4,
                     fill: true,
-                    pointRadius: 2,
-                    pointHoverRadius: 4,
+                    pointRadius: 0, // Hide dots by default
+                    pointHoverRadius: 4, // Show dots on hover
                     pointBackgroundColor: 'rgba(139, 92, 246, 0.7)',
                     pointBorderColor: 'rgba(139, 92, 246, 0.7)',
                 }
@@ -311,6 +311,8 @@ function initializeResourceChart(serviceId) {
                 },
                 tooltip: {
                     enabled: true,
+                    mode: 'index', // Show all datasets at the hovered X value
+                    intersect: false, // Show tooltip even if not directly over a point
                     backgroundColor: 'rgba(30,41,59,0.97)',
                     titleColor: '#fff',
                     bodyColor: '#fff',
