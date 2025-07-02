@@ -332,7 +332,86 @@ function initializeResourceChart(serviceId) {
 // Ensure chart is initialized after DOM is ready
 window.addEventListener('DOMContentLoaded', () => {
     initializeResourceChart();
+    setupServicePowerButton();
 });
+
+// Setup the service power button to control only the active service
+function setupServicePowerButton() {
+    const powerBtn = document.getElementById('service-power-btn');
+    if (!powerBtn) return;
+
+    // Click handler: toggles the active service
+    powerBtn.addEventListener('click', async () => {
+        if (!activeServiceId) {
+            showNotification('No service selected', 'error');
+            return;
+        }
+        // Get current status
+        const status = await fetchServiceStatus(activeServiceId);
+        if (!status) {
+            showNotification('Could not determine service status', 'error');
+            return;
+        }
+        if (status === 'Running') {
+            // Stop the service
+            const resp = await fetch(`/api/service-control/${activeServiceId}/stop`, { method: 'POST' });
+            if (resp.ok) {
+                showNotification('Service stopped', 'success');
+                updatePowerButton('Stopped');
+            } else {
+                const err = await resp.json();
+                showNotification('Failed to stop service: ' + (err.error || resp.statusText), 'error');
+            }
+        } else {
+            // Start the service
+            const resp = await fetch(`/api/service-control/${activeServiceId}/start`, { method: 'POST' });
+            if (resp.ok) {
+                showNotification('Service started', 'success');
+                updatePowerButton('Running');
+            } else {
+                const err = await resp.json();
+                showNotification('Failed to start service: ' + (err.error || resp.statusText), 'error');
+            }
+        }
+    });
+
+    // Update button on service selection
+    document.addEventListener('serviceSelected', async (e) => {
+        const id = e.detail && e.detail.serviceId;
+        if (!id) return;
+        const status = await fetchServiceStatus(id);
+        updatePowerButton(status);
+    });
+}
+
+// Helper to fetch service status
+async function fetchServiceStatus(serviceId) {
+    try {
+        const resp = await fetch(`/api/service-control/${serviceId}/status`);
+        if (!resp.ok) return null;
+        const data = await resp.json();
+        return data.status;
+    } catch {
+        return null;
+    }
+}
+
+// Helper to update the power button icon and tooltip
+function updatePowerButton(status) {
+    const powerBtn = document.getElementById('service-power-btn');
+    if (!powerBtn) return;
+    const icon = powerBtn.querySelector('i');
+    if (status === 'Running') {
+        powerBtn.title = 'Shutdown Service';
+        icon.setAttribute('data-lucide', 'power');
+        icon.style.color = 'var(--green-primary)';
+    } else {
+        powerBtn.title = 'Start Service';
+        icon.setAttribute('data-lucide', 'power');
+        icon.style.color = 'var(--red-primary)';
+    }
+    if (window.lucide) window.lucide.createIcons({ parentElement: powerBtn });
+}
 
 function updateResourceChart(cpu, memory, timestamp) {
     console.log('updateResourceChart called:', { cpu, memory, timestamp });
@@ -1059,6 +1138,9 @@ function selectService(element, index, service) {
 
     // Immediately update chart with past data for the selected service
     initializeResourceChart(activeServiceId);
+
+    // Dispatch event for power button update
+    document.dispatchEvent(new CustomEvent('serviceSelected', { detail: { serviceId: activeServiceId } }));
 }
 
 function switchTab(element, tabName, index) {
