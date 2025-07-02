@@ -3198,43 +3198,49 @@
 
         .spinner-overlay {
           position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          background: rgba(10, 14, 26, 0.85);
           z-index: 9999;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background: rgba(30, 41, 59, 0.65);
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: opacity 0.2s;
+          transition: opacity 0.3s;
         }
         .spinner-content {
           display: flex;
           flex-direction: column;
           align-items: center;
+          justify-content: center;
+          gap: 24px;
         }
-        .service-fullscreen-spinner {
-          animation: spin 1s linear infinite;
-          width: 60px;
-          height: 60px;
-          stroke: #10b981;
-        }
-        .service-fullscreen-spinner .path {
-          stroke: #10b981;
-          stroke-linecap: round;
-          animation: dash 1.5s ease-in-out infinite;
-        }
-        @keyframes spin {
-          100% { transform: rotate(360deg); }
-        }
-        @keyframes dash {
-          0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
-          50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
-          100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+        #lottie-service-spinner {
+          width: 120px;
+          height: 120px;
         }
         .spinner-message {
-          margin-top: 18px;
-          color: #fff;
-          font-size: 1.2em;
-          font-weight: 500;
-          letter-spacing: 0.02em;
+          color: #fff !important;
+          font-size: 1.2rem;
+          margin-top: 12px;
+          text-align: center;
+        }
+
+        [data-theme="dark"] .service-power-running {
+          background: #3a1a1a !important; /* Deeper red for dark mode */
+          color: #ff6b6b !important; /* Lighter red text */
+        }
+        [data-theme="dark"] .service-power-running i,
+        [data-theme="dark"] .service-power-running svg {
+          color: #ff6b6b !important;
+        }
+        [data-theme="dark"] .service-power-stopped {
+          background: #163524 !important; /* Deeper green for dark mode */
+          color: #34d399 !important; /* Lighter green text */
+        }
+        [data-theme="dark"] .service-power-stopped i,
+        [data-theme="dark"] .service-power-stopped svg {
+          color: #34d399 !important;
         }
 

@@ -2333,14 +2333,20 @@ function sendNotificationToBackend({ serviceName, timestamp, type, message }) {
 
 function showServiceSpinner(message = 'Starting service...') {
     const overlay = document.getElementById('service-spinner-overlay');
-    if (!overlay) return;
-    overlay.style.display = 'flex';
-    overlay.querySelector('.spinner-message').textContent = message;
+    const msg = document.getElementById('service-spinner-message');
+    if (overlay) overlay.style.display = 'flex';
+    if (msg) msg.textContent = message;
+    // Optionally restart Lottie animation if needed
+    const lottie = document.getElementById('lottie-service-spinner');
+    if (lottie) lottie.play();
 }
+
 function hideServiceSpinner() {
     const overlay = document.getElementById('service-spinner-overlay');
-    if (!overlay) return;
-    overlay.style.display = 'none';
+    if (overlay) overlay.style.display = 'none';
+    // Optionally stop Lottie animation if needed
+    const lottie = document.getElementById('lottie-service-spinner');
+    if (lottie) lottie.stop();
 }
 
 
