@@ -195,41 +195,56 @@ let chartDataBuffer = [];
 // Global chart data storage for all services
 window.serviceChartData = {};
 
-// Remove any import Chart from 'chart.js/auto';
 // Add debug log and check for canvas existence in initializeResourceChart
-function initializeResourceChart() {
+function initializeResourceChart(serviceId) {
+    const data = window.serviceChartData[serviceId] || [];
     const canvas = document.getElementById('chartCanvas');
-    if (!canvas) {
-        console.error('Chart canvas not found!');
-        return;
-    }
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (window.resourceChart) {
         window.resourceChart.destroy();
     }
-    console.log('Initializing Chart.js chart on #chartCanvas');
+    // Calculate dynamic Y-axis max
+    const allValues = [
+        ...data.map(d => d.cpu),
+        ...data.map(d => d.memory)
+    ];
+    const maxVal = Math.max(...allValues, 0);
+    let yMax = 10;
+    if (maxVal > 10) {
+        yMax = Math.ceil(maxVal / 5) * 5 + 5;
+    }
     window.resourceChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: [],
+            labels: data.map(d => {
+                const date = new Date(d.timestamp);
+                return date.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }),
             datasets: [
                 {
                     label: 'CPU',
-                    data: [],
+                    data: data.map(d => d.cpu),
                     borderColor: 'rgba(59, 130, 246, 1)',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    tension: 0.3,
+                    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                    tension: 0.4,
                     fill: true,
-                    pointRadius: 0,
+                    pointRadius: 2,
+                    pointHoverRadius: 4,
+                    pointBackgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    pointBorderColor: 'rgba(59, 130, 246, 0.7)',
                 },
                 {
                     label: 'Memory',
-                    data: [],
+                    data: data.map(d => d.memory),
                     borderColor: 'rgba(139, 92, 246, 1)',
-                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                    tension: 0.3,
+                    backgroundColor: 'rgba(139, 92, 246, 0.08)',
+                    tension: 0.4,
                     fill: true,
-                    pointRadius: 0,
+                    pointRadius: 2,
+                    pointHoverRadius: 4,
+                    pointBackgroundColor: 'rgba(139, 92, 246, 0.7)',
+                    pointBorderColor: 'rgba(139, 92, 246, 0.7)',
                 }
             ]
         },
@@ -237,30 +252,77 @@ function initializeResourceChart() {
             responsive: true,
             maintainAspectRatio: false,
             animation: {
-                duration: 500,
-                easing: 'easeOutQuart'
+                duration: 800,
+                easing: 'easeInOutCubic'
+            },
+            elements: {
+                line: {
+                    borderWidth: 1,
+                    borderCapStyle: 'round',
+                    borderJoinStyle: 'round',
+                }
             },
             scales: {
                 y: {
                     min: 0,
-                    max: 100,
-                    title: { display: true, text: 'Usage (%)' },
-                    ticks: { callback: value => value + '%' }
+                    max: yMax,
+                    title: { display: true, text: 'Usage (%)', color: '#64748b', font: { weight: 'bold', size: 13 } },
+                    ticks: { stepSize: 5, color: '#64748b', callback: value => value + '%', font: { size: 12 } },
+                    grid: {
+                        color: 'rgba(100,116,139,0.13)',
+                        lineWidth: 1.1,
+                        drawBorder: false,
+                        borderDash: [2, 2],
+                    }
                 },
                 x: {
-                    title: { display: true, text: 'Time' },
+                    title: { display: false },
                     ticks: {
+                        color: '#64748b',
                         autoSkip: true,
                         maxTicksLimit: 8,
+                        font: { size: 12 },
                         callback: function(value, index, ticks) {
                             return this.getLabelForValue(value);
                         }
+                    },
+                    grid: {
+                        color: 'rgba(100,116,139,0.2)', // Same visibility as y
+                        lineWidth: 1,
+                        drawBorder: false,
+                        drawTicks: false,
+                        drawOnChartArea: true,
+                        borderDash: [2, 2],
+                        borderDashOffset: 0
                     }
                 }
             },
             plugins: {
-                legend: { display: true },
-                tooltip: { enabled: true }
+                legend: {
+                    display: false,
+                    labels: {
+                        color: '#64748b',
+                        font: { size: 13, weight: 'bold' },
+                        boxWidth: 18,
+                        boxHeight: 2,
+                        usePointStyle: true,
+                        padding: 18
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(30,41,59,0.97)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#64748b',
+                    borderWidth: 1,
+                    padding: 10,
+                    caretSize: 6,
+                    cornerRadius: 6,
+                    displayColors: false,
+                    titleFont: { weight: 'bold', size: 13 },
+                    bodyFont: { size: 13 }
+                }
             }
         }
     });
@@ -293,8 +355,20 @@ function updateResourceChartForService(serviceId) {
     });
     window.resourceChart.data.datasets[0].data = data.map(d => d.cpu);
     window.resourceChart.data.datasets[1].data = data.map(d => d.memory);
-    window.resourceChart.reset(); // Force reset
-    window.resourceChart.update('active'); // Force update with animation
+
+    // Dynamic Y-axis scaling
+    const allValues = [
+        ...data.map(d => d.cpu),
+        ...data.map(d => d.memory)
+    ];
+    const maxVal = Math.max(...allValues, 0);
+    let yMax = 10;
+    if (maxVal > 10) {
+        yMax = Math.ceil(maxVal / 5) * 5 + 5;
+    }
+    window.resourceChart.options.scales.y.max = yMax;
+
+    window.resourceChart.update();
 }
 
 // ===== ANIMATION FUNCTIONS =====
@@ -982,7 +1056,7 @@ function selectService(element, index, service) {
     }
 
     // Immediately update chart with past data for the selected service
-    updateResourceChartForService(activeServiceId);
+    initializeResourceChart(activeServiceId);
 }
 
 function switchTab(element, tabName, index) {
