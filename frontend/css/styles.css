@@ -3155,3 +3155,44 @@
             background: #7a2e2e !important;
         }
 
+        .service-power-running {
+          background: #ffd6d6 !important; /* Light red */
+          color: #f44336 !important; /* Red */
+        }
+        .service-power-running i {
+          color: #f44336 !important;
+        }
+        .service-power-stopped {
+          background: #d4f5dd !important; /* Light green */
+          color: #10b981 !important; /* Green */
+        }
+        .service-power-stopped i {
+          color: #10b981 !important;
+        }
+        [data-theme="light"] .service-power-running {
+          background: #ffeaea !important;
+          color: #d32f2f !important;
+        }
+        [data-theme="light"] .service-power-running i {
+          color: #d32f2f !important;
+        }
+        [data-theme="light"] .service-power-stopped {
+          background: #e6fff2 !important;
+          color: #059669 !important;
+        }
+        [data-theme="light"] .service-power-stopped i {
+          color: #059669 !important;
+        }
+        .service-power-running svg {
+          color: #f44336 !important;
+        }
+        .service-power-stopped svg {
+          color: #10b981 !important;
+        }
+        [data-theme="light"] .service-power-running svg {
+          color: #d32f2f !important;
+        }
+        [data-theme="light"] .service-power-stopped svg {
+          color: #059669 !important;
+        }
+

@@ -400,16 +400,18 @@ async function fetchServiceStatus(serviceId) {
 function updatePowerButton(status) {
     const powerBtn = document.getElementById('service-power-btn');
     if (!powerBtn) return;
-    const icon = powerBtn.querySelector('i');
+    const icon = powerBtn.querySelector('svg');
+    powerBtn.classList.remove('service-power-running', 'service-power-stopped');
     if (status === 'Running') {
         powerBtn.title = 'Shutdown Service';
-        icon.setAttribute('data-lucide', 'power');
-        icon.style.color = 'var(--green-primary)';
+        if (icon) icon.setAttribute('data-lucide', 'power');
+        powerBtn.classList.add('service-power-running');
     } else {
         powerBtn.title = 'Start Service';
-        icon.setAttribute('data-lucide', 'power');
-        icon.style.color = 'var(--red-primary)';
+        if (icon) icon.setAttribute('data-lucide', 'power');
+        powerBtn.classList.add('service-power-stopped');
     }
+    if (icon) icon.style.color = '';
     if (window.lucide) window.lucide.createIcons({ parentElement: powerBtn });
 }
 
