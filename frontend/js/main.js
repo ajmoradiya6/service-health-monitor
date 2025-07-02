@@ -186,6 +186,117 @@ const notifAIAssistToggle = document.getElementById('notif-ai-assist');
 // Track previous running status for each service
 const servicePrevStatus = {};
 
+// Add Chart.js integration for resource usage chart
+//import Chart from 'chart.js/auto';
+
+let resourceChart = null;
+let chartDataBuffer = [];
+
+// Global chart data storage for all services
+window.serviceChartData = {};
+
+// Remove any import Chart from 'chart.js/auto';
+// Add debug log and check for canvas existence in initializeResourceChart
+function initializeResourceChart() {
+    const canvas = document.getElementById('chartCanvas');
+    if (!canvas) {
+        console.error('Chart canvas not found!');
+        return;
+    }
+    const ctx = canvas.getContext('2d');
+    if (window.resourceChart) {
+        window.resourceChart.destroy();
+    }
+    console.log('Initializing Chart.js chart on #chartCanvas');
+    window.resourceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: 'CPU',
+                    data: [],
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 0,
+                },
+                {
+                    label: 'Memory',
+                    data: [],
+                    borderColor: 'rgba(139, 92, 246, 1)',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 0,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 500,
+                easing: 'easeOutQuart'
+            },
+            scales: {
+                y: {
+                    min: 0,
+                    max: 100,
+                    title: { display: true, text: 'Usage (%)' },
+                    ticks: { callback: value => value + '%' }
+                },
+                x: {
+                    title: { display: true, text: 'Time' },
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: 8,
+                        callback: function(value, index, ticks) {
+                            return this.getLabelForValue(value);
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: { display: true },
+                tooltip: { enabled: true }
+            }
+        }
+    });
+}
+// Ensure chart is initialized after DOM is ready
+window.addEventListener('DOMContentLoaded', () => {
+    initializeResourceChart();
+});
+
+function updateResourceChart(cpu, memory, timestamp) {
+    console.log('updateResourceChart called:', { cpu, memory, timestamp });
+    chartDataBuffer.push({ cpu, memory, timestamp });
+    if (chartDataBuffer.length > 60) chartDataBuffer.shift();
+    if (!window.resourceChart) return;
+    window.resourceChart.data.labels = chartDataBuffer.map(d => {
+        const date = new Date(d.timestamp);
+        return date.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    });
+    window.resourceChart.data.datasets[0].data = chartDataBuffer.map(d => d.cpu);
+    window.resourceChart.data.datasets[1].data = chartDataBuffer.map(d => d.memory);
+    window.resourceChart.update(); // Enable animation
+}
+
+function updateResourceChartForService(serviceId) {
+    const data = window.serviceChartData[serviceId] || [];
+    if (!window.resourceChart) return;
+    window.resourceChart.data.labels = data.map(d => {
+        const date = new Date(d.timestamp);
+        return date.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    });
+    window.resourceChart.data.datasets[0].data = data.map(d => d.cpu);
+    window.resourceChart.data.datasets[1].data = data.map(d => d.memory);
+    window.resourceChart.reset(); // Force reset
+    window.resourceChart.update('active'); // Force update with animation
+}
+
 // ===== ANIMATION FUNCTIONS =====
 function addIconAnimation(element, animationClass) {
     if (element) {
@@ -671,12 +782,85 @@ function connectToSignalR(serviceData) {
                 }
 
                 updateLogStats();
+
+                // --- Chart.js Resource Usage Chart Update ---
+                const cpu = Math.min(100, Math.max(0, parseFloat(data.cpuUsage)));
+                const memory = Math.min(100, Math.max(0, parseFloat(data.memoryUsage)));
+                console.log('SignalR update for chart:', { cpu, memory, serviceId: serviceData.id, activeServiceId });
+                updateResourceChart(cpu, memory, Date.now());
+                // --- End Chart.js Resource Usage Chart Update ---
             } else {
                 // Update sidebar dot only
                 updateServiceStatus(isRunning);
             }
 
             console.log('applicationLogs:', data.applicationLogs);
+
+            // --- High CPU/Memory Notification Logic ---
+            const cpuThreshold = 80;
+            const memoryThreshold = 80;
+            // Track last notification state per service
+            if (!window.lastResourceNotification) window.lastResourceNotification = {};
+            const lastNotif = window.lastResourceNotification[serviceData.id] || { cpu: false, memory: false };
+            const cpuValue = parseFloat(data.cpuUsage);
+            const memoryValue = parseFloat(data.memoryUsage);
+
+            // Helper to trigger notification
+            function notifyHighResourceUsage(type, value, serviceId, serviceName) {
+                const settings = JSON.parse(localStorage.getItem('userSettings') || '{}');
+                const notificationSettings = settings['user-settings']?.notificationSettings || {};
+                const message = type === 'cpu'
+                    ? `High CPU usage detected: ${value.toFixed(2)}%`
+                    : `High memory usage detected: ${value.toFixed(2)}%`;
+                // In-app notification
+                if (
+                    (type === 'cpu' && notificationSettings.highCpuEnabled && notificationSettings.inAppEnabled) ||
+                    (type === 'memory' && notificationSettings.highMemoryEnabled && notificationSettings.inAppEnabled)
+                ) {
+                    if (typeof addNotification === 'function') {
+                        addNotification({
+                            level: 'warning',
+                            message,
+                            timestamp: Date.now(),
+                            rawTimestamp: Date.now()
+                        }, serviceId, serviceName, true);
+                    }
+                }
+                // Email/SMS notification
+                if (
+                    (type === 'cpu' && notificationSettings.highCpuEnabled && (notificationSettings.emailEnabled || notificationSettings.smsEnabled)) ||
+                    (type === 'memory' && notificationSettings.highMemoryEnabled && (notificationSettings.emailEnabled || notificationSettings.smsEnabled))
+                ) {
+                    if (typeof sendNotificationToBackend === 'function') {
+                        sendNotificationToBackend({
+                            serviceName,
+                            timestamp: Date.now(),
+                            type: 'warning',
+                            message
+                        });
+                    }
+                }
+            }
+            // CPU notification
+            if (cpuValue > cpuThreshold) {
+                if (!lastNotif.cpu) {
+                    notifyHighResourceUsage('cpu', cpuValue, serviceData.id, serviceData.name);
+                    lastNotif.cpu = true;
+                }
+            } else {
+                lastNotif.cpu = false;
+            }
+            // Memory notification
+            if (memoryValue > memoryThreshold) {
+                if (!lastNotif.memory) {
+                    notifyHighResourceUsage('memory', memoryValue, serviceData.id, serviceData.name);
+                    lastNotif.memory = true;
+                }
+            } else {
+                lastNotif.memory = false;
+            }
+            window.lastResourceNotification[serviceData.id] = lastNotif;
+            // --- End High CPU/Memory Notification Logic ---
         });
 
         connection
@@ -796,6 +980,9 @@ function selectService(element, index, service) {
     if (window.innerWidth <= 768) {
         closeSidebar();
     }
+
+    // Immediately update chart with past data for the selected service
+    updateResourceChartForService(activeServiceId);
 }
 
 function switchTab(element, tabName, index) {
