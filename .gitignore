@@ -28,4 +28,4 @@ build/
 # Database files
 database/RegisteredServices.json
 database/UserSettingsData.json
-database/UserSettingsData.json
+
