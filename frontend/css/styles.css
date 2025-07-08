@@ -3244,3 +3244,21 @@
           color: #34d399 !important;
         }
 
+        /* Info icon for form labels */
+        .info-icon {
+          display: inline-flex;
+          align-items: center;
+          cursor: pointer;
+        }
+
+        .info-icon i,
+        .info-icon svg {
+          width: 16px !important;
+          height: 16px !important;
+          color: #64748b !important;
+          display: inline-block;
+          vertical-align: middle;
+          margin: 0;
+          padding: 0;
+        }
+

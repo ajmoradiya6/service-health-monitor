@@ -18,6 +18,17 @@
     <!-- Add this before the closing </head> tag -->
     <script src="js/notifications.js"></script>
 
+    <style>
+  .info-icon i[data-lucide="info"] {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    margin-left: 4px;
+    color: #64748b;
+    cursor: pointer;
+  }
+</style>
+
 </head>
 <body data-theme="dark">
     <div class="bg-gradient"></div>
@@ -379,15 +390,15 @@
             <form id="edit-service-form">
                 <input type="hidden" id="edit-service-id">
                 <div class="form-group">
-                    <label for="edit-service-name">Service Name:</label>
+                    <label for="edit-service-name">Service Name <span class="info-icon" title="Enter the exact service name as shown in the Windows Services properties."><i data-lucide="info"></i></span></label>
                     <input type="text" id="edit-service-name" required>
                 </div>
                 <div class="form-group">
-                    <label for="edit-service-url">Service URL:</label>
+                    <label for="edit-service-url">Service URL <span class="info-icon" title="Specify the host URL where the service is accessible (e.g., http://localhost)."><i data-lucide="info"></i></span></label>
                     <input type="text" id="edit-service-url" required>
                 </div>
                 <div class="form-group">
-                    <label for="edit-service-port">Port Number:</label>
+                    <label for="edit-service-port">Port Number <span class="info-icon" title="Enter the port number on which the service is running."><i data-lucide="info"></i></span></label>
                     <input type="number" id="edit-service-port" required>
                 </div>
                 <button type="submit">Modify</button>
@@ -425,15 +436,15 @@
         <h2>Register Service</h2>
         <form id="register-service-form">
             <div class="form-group">
-                <label for="service-name">Service Name:</label>
+                <label for="service-name">Service Name <span class="info-icon" title="Enter the exact service name as shown in the Windows Services properties."><i data-lucide="info"></i></span></label>
                 <input type="text" id="service-name" required>
             </div>
             <div class="form-group">
-                <label for="service-url">Service URL:</label>
+                <label for="service-url">Service URL <span class="info-icon" title="Specify the host URL where the service is accessible (e.g., http://localhost)."><i data-lucide="info"></i></span></label>
                 <input type="text" id="service-url" required>
             </div>
             <div class="form-group">
-                <label for="service-port">Port Number:</label>
+                <label for="service-port">Port Number <span class="info-icon" title="Enter the port number on which the service is running."><i data-lucide="info"></i></span></label>
                 <input type="number" id="service-port" required>
             </div>
             <button type="submit">Register</button>
