@@ -2,15 +2,15 @@
   "user-settings": {
     "notificationSettings": {
       "inAppEnabled": true,
-      "emailEnabled": true,
-      "smsEnabled": true,
+      "emailEnabled": false,
+      "smsEnabled": false,
       "serviceDownEnabled": true,
       "serviceErrorEnabled": true,
       "serviceRestartEnabled": true,
       "serviceStartEnabled": false,
       "highCpuEnabled": true,
       "highMemoryEnabled": true,
-      "aiAssistEnabled": false,
+      "aiAssistEnabled": true,
       "emails": [
         "akshay@computhink.com"
       ],
