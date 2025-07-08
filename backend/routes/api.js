@@ -117,6 +117,7 @@ router.get('/user-settings', async (req, res) => {
 // POST endpoint to generate a user-friendly notification summary from a log message
 router.post('/notification-summary', async (req, res) => {
     const { logMessage } = req.body;
+    console.log('[DEBUG] /api/notification-summary received:', req.body);
     if (!logMessage) {
         return res.status(400).json({ error: 'logMessage is required' });
     }
@@ -132,6 +133,7 @@ router.post('/notification-summary', async (req, res) => {
 // POST endpoint to receive notification from frontend and trigger backend notification logic
 router.post('/notify', async (req, res) => {
     const notification = req.body;
+    console.log('[DEBUG] /api/notify received:', req.body);
     try {
         await createUserNotificationFromLog(notification);
         res.status(200).json({ message: 'Notification processed.' });

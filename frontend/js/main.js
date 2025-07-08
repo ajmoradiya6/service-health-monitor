@@ -733,18 +733,18 @@ function parseLogEntry(log) {
 }
 
 // Helper to get user-friendly summary from backend
-async function getNotificationSummary(logMessage) {
+async function getNotificationSummary(logEntry) {
   try {
     const response = await fetch('/api/notification-summary', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ logMessage })
+      body: JSON.stringify({ logMessage: logEntry })
     });
     const data = await response.json();
-    return data.summary || logMessage; // fallback to original if LLM fails
+    return data.summary || (typeof logEntry === 'string' ? logEntry : logEntry.message); // fallback to original if LLM fails
   } catch (err) {
     console.error('Failed to get user-friendly summary:', err);
-    return logMessage; // fallback
+    return typeof logEntry === 'string' ? logEntry : logEntry.message; // fallback
   }
 }
 
@@ -2270,11 +2270,18 @@ document.getElementById('test-email-config').addEventListener('click', async () 
 
 // 5. Update notification creation logic to use AI Assist toggle
 async function processLogForNotification(entry, serviceId, serviceName) {
+  // Skip if any required field is missing or empty/whitespace
+  if (!serviceName || !entry.timestamp || !entry.level || !entry.message || String(entry.message).trim() === '') {
+    console.warn('Skipping notification: missing or empty required field', { serviceName, timestamp: entry.timestamp, type: entry.level, message: entry.message });
+    return;
+  }
   const settings = JSON.parse(localStorage.getItem('userSettings') || '{}');
   const notificationSettings = settings['user-settings']?.notificationSettings || {};
   let message = entry.message;
+  // Always include 'type' in the object for AI summary and backend
+  const logForSummary = { ...entry, serviceName, type: entry.level };
   if (notificationSettings.aiAssistEnabled && (entry.level === 'warning' || entry.level === 'error')) {
-    let aiSummary = await getNotificationSummary(entry.message);
+    let aiSummary = await getNotificationSummary(logForSummary);
     // If AI summary is empty or fallback, use the original message
     if (!aiSummary || aiSummary.trim() === '' || aiSummary.trim() === 'An error occurred, but we are unable to provide more details at this time.') {
       message = entry.message;
@@ -2286,7 +2293,7 @@ async function processLogForNotification(entry, serviceId, serviceName) {
     addNotification(entry, serviceId, serviceName);
   }
 
-  // Send to backend for email/SMS
+  // Send to backend for email/SMS, always include 'type'
   sendNotificationToBackend({
     serviceName: serviceName,
     timestamp: entry.timestamp,
