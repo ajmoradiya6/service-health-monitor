@@ -265,7 +265,9 @@ function initializeResourceChart(serviceId) {
             scales: {
                 y: {
                     min: 0,
-                    max: yMax,
+                    // Remove or comment out the hardcoded max: yMax
+                    // max: yMax,
+                    suggestedMax: 10, // Let Chart.js autoscale, but suggest 10 as a starting point
                     title: { display: true, text: 'Usage (%)', color: '#64748b', font: { weight: 'bold', size: 13 } },
                     ticks: { stepSize: 5, color: '#64748b', callback: value => value + '%', font: { size: 12 } },
                     grid: {
