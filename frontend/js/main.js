@@ -195,9 +195,17 @@ let chartDataBuffer = [];
 // Global chart data storage for all services
 window.serviceChartData = {};
 
+// Global per-service chart data buffers
+window.chartDataBuffers = {};
+
 // Add debug log and check for canvas existence in initializeResourceChart
 function initializeResourceChart(serviceId) {
-    const data = window.serviceChartData[serviceId] || [];
+    // Use per-service buffer
+    if (!window.chartDataBuffers[serviceId]) {
+        window.chartDataBuffers[serviceId] = (window.serviceChartData[serviceId] || []).slice();
+    }
+    chartDataBuffer = window.chartDataBuffers[serviceId];
+    const data = chartDataBuffer;
     const canvas = document.getElementById('chartCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -441,7 +449,11 @@ function updatePowerButton(status) {
 }
 
 function updateResourceChart(cpu, memory, timestamp) {
-    console.log('updateResourceChart called:', { cpu, memory, timestamp });
+    // Always update the buffer for the current service
+    if (!window.chartDataBuffers[activeServiceId]) {
+        window.chartDataBuffers[activeServiceId] = [];
+    }
+    chartDataBuffer = window.chartDataBuffers[activeServiceId];
     chartDataBuffer.push({ cpu, memory, timestamp });
     if (chartDataBuffer.length > 60) chartDataBuffer.shift();
     if (!window.resourceChart) return;
@@ -929,6 +941,20 @@ function connectToSignalR(serviceData) {
                 });
             }
 
+            // --- Always update the per-service buffer ---
+            if (!window.chartDataBuffers[serviceData.id]) {
+                window.chartDataBuffers[serviceData.id] = [];
+            }
+            window.chartDataBuffers[serviceData.id].push({
+                cpu: parseFloat(data.cpuUsage),
+                memory: parseFloat(data.memoryUsage),
+                timestamp: data.timestamp || Date.now()
+            });
+            if (window.chartDataBuffers[serviceData.id].length > 60) {
+                window.chartDataBuffers[serviceData.id].shift();
+            }
+
+            // --- Only update the chart UI if this is the active service ---
             if (activeServiceId === serviceData.id) {
                 const cpuElement = document.getElementById("cpu-value");
                 const memoryElement = document.getElementById("memory-value");
@@ -967,86 +993,17 @@ function connectToSignalR(serviceData) {
                     }
                 }
 
-                updateLogStats();
-
-                // --- Chart.js Resource Usage Chart Update ---
-                const cpu = Math.min(100, Math.max(0, parseFloat(data.cpuUsage)));
-                const memory = Math.min(100, Math.max(0, parseFloat(data.memoryUsage)));
-                console.log('SignalR update for chart:', { cpu, memory, serviceId: serviceData.id, activeServiceId });
-                updateResourceChart(cpu, memory, Date.now());
-                // --- End Chart.js Resource Usage Chart Update ---
-            } else {
-                // Update sidebar dot only
-                updateServiceStatus(isRunning);
+                // --- Update the chart for the active service ---
+                chartDataBuffer = window.chartDataBuffers[serviceData.id];
+                if (!window.resourceChart) return;
+                window.resourceChart.data.labels = chartDataBuffer.map(d => {
+                    const date = new Date(d.timestamp);
+                    return date.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                });
+                window.resourceChart.data.datasets[0].data = chartDataBuffer.map(d => d.cpu);
+                window.resourceChart.data.datasets[1].data = chartDataBuffer.map(d => d.memory);
+                window.resourceChart.update();
             }
-
-            console.log('applicationLogs:', data.applicationLogs);
-
-            // --- High CPU/Memory Notification Logic ---
-            const cpuThreshold = 80;
-            const memoryThreshold = 80;
-            // Track last notification state per service
-            if (!window.lastResourceNotification) window.lastResourceNotification = {};
-            const lastNotif = window.lastResourceNotification[serviceData.id] || { cpu: false, memory: false };
-            const cpuValue = parseFloat(data.cpuUsage);
-            const memoryValue = parseFloat(data.memoryUsage);
-
-            // Helper to trigger notification
-            function notifyHighResourceUsage(type, value, serviceId, serviceName) {
-                const settings = JSON.parse(localStorage.getItem('userSettings') || '{}');
-                const notificationSettings = settings['user-settings']?.notificationSettings || {};
-                const message = type === 'cpu'
-                    ? `High CPU usage detected: ${value.toFixed(2)}%`
-                    : `High memory usage detected: ${value.toFixed(2)}%`;
-                // In-app notification
-                if (
-                    (type === 'cpu' && notificationSettings.highCpuEnabled && notificationSettings.inAppEnabled) ||
-                    (type === 'memory' && notificationSettings.highMemoryEnabled && notificationSettings.inAppEnabled)
-                ) {
-                    if (typeof addNotification === 'function') {
-                        addNotification({
-                            level: 'warning',
-                            message,
-                            timestamp: Date.now(),
-                            rawTimestamp: Date.now()
-                        }, serviceId, serviceName, true);
-                    }
-                }
-                // Email/SMS notification
-                if (
-                    (type === 'cpu' && notificationSettings.highCpuEnabled && (notificationSettings.emailEnabled || notificationSettings.smsEnabled)) ||
-                    (type === 'memory' && notificationSettings.highMemoryEnabled && (notificationSettings.emailEnabled || notificationSettings.smsEnabled))
-                ) {
-                    if (typeof sendNotificationToBackend === 'function') {
-                        sendNotificationToBackend({
-                            serviceName,
-                            timestamp: Date.now(),
-                            type: 'warning',
-                            message
-                        });
-                    }
-                }
-            }
-            // CPU notification
-            if (cpuValue > cpuThreshold) {
-                if (!lastNotif.cpu) {
-                    notifyHighResourceUsage('cpu', cpuValue, serviceData.id, serviceData.name);
-                    lastNotif.cpu = true;
-                }
-            } else {
-                lastNotif.cpu = false;
-            }
-            // Memory notification
-            if (memoryValue > memoryThreshold) {
-                if (!lastNotif.memory) {
-                    notifyHighResourceUsage('memory', memoryValue, serviceData.id, serviceData.name);
-                    lastNotif.memory = true;
-                }
-            } else {
-                lastNotif.memory = false;
-            }
-            window.lastResourceNotification[serviceData.id] = lastNotif;
-            // --- End High CPU/Memory Notification Logic ---
         });
 
         connection
