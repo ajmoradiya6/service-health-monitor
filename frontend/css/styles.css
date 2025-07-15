@@ -3027,8 +3027,8 @@
             position: absolute;
             top: -8px;
             right: -9px;
-            min-width: 21px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
             background: var(--red-primary);
             color: #fff;
             font-size: 11px;
