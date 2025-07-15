@@ -1164,7 +1164,7 @@ function switchTab(element, tabName, index) {
     
     // Add animation to tab icon
     const tabIcon = element.querySelector('i');
-    addIconAnimation(tabIcon, 'chart-pulse');
+    (tabIcon, 'chartaddIconAnimation-pulse');
 }
 
 // ===== LOGS FUNCTIONS =====
@@ -1655,15 +1655,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup log search
     setupLogSearch();
 
-    // Event listener for opening the Register Service modal when the plus icon is clicked
-    const sidebarHeader = document.querySelector('.sidebar-header');
-    if (sidebarHeader) {
-        sidebarHeader.addEventListener('click', function(event) {
-            if (event.target.closest('.expand-icon')) {
-                setTimeout(openRegisterServiceModal, 50);
-            }
-        });
-    }
 
     // Event listener for the Register Service form submission
     const registerServiceForm = document.getElementById('register-service-form');
@@ -2313,6 +2304,11 @@ function hideServiceSpinner() {
     // Optionally stop Lottie animation if needed
     const lottie = document.getElementById('lottie-service-spinner');
     if (lottie) lottie.stop();
+}
+
+// Add this global function for inline onclick
+function handleRegisterServiceClick(event) {
+    openRegisterServiceModal();
 }
 
 

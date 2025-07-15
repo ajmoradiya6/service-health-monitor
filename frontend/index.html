@@ -45,11 +45,29 @@
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h2 class="sidebar-title">Services</h2>
-                <i data-lucide="plus" class="expand-icon" onclick="addIconAnimation(this, 'plus-bounce')"></i>
+                
             </div>
-            <ul class="service-list" id="service-list">
-                <!-- Default services removed. Only dynamically loaded services will be rendered here. -->
-            </ul>
+            <div class="sidebar-content">
+                <div class="sidebar-content-top" style="padding-bottom: 10px;">
+                    <h4>Tomcat</h4>
+                    <div class="sidebar-content-top-item">
+                        <div class="status-dot"></div>
+                        <span class="service-name" title="Tomcat Server">Tomcat Server</span>
+                    </div>
+                </div>
+                <div class="sidebar-content-bottom">
+                    <div class="sidebar-content-bottom-heading">
+                        <h4>Windows Services</h4>
+                        <i data-lucide="plus" class="expand-icon" onclick="handleRegisterServiceClick(event)"></i>
+                    </div>
+                    
+                    <ul class="service-list" id="service-list">
+                        <!-- Default services removed. Only dynamically loaded services will be rendered here. -->
+        
+                    </ul>
+                </div>
+            </div>
+           
         </div>
 
         <!-- Sidebar Resizer -->

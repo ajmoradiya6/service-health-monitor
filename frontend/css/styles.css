@@ -366,6 +366,12 @@
             letter-spacing: -0.01em;
         }
 
+        .sidebar-content-bottom-heading{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .expand-icon {
             width: 30px;
             height: 30px;
@@ -391,7 +397,7 @@
             margin-top: 8px;
         }
 
-        .service-item {
+        .service-item, .sidebar-content-top-item {
             display: flex;
             align-items: center;
             padding: 10px 12px;
@@ -405,22 +411,118 @@
             color: var(--text-secondary);
         }
 
-        .service-item.connected {
+        .service-item.connected, .sidebar-content-top-item.connected {
             color: var(--text-primary);
         }
 
-        .service-item.active {
+        .service-item.active, .sidebar-content-top-item.active {
             background-color: var(--blue-accent);
             box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
             color: white;
         }
 
-        .service-item:not(.active):hover {
+        .service-item:not(.active):hover, .sidebar-content-top-item:not(.active):hover {
             background-color: rgba(255, 255, 255, 0.05);
         }
 
-        [data-theme="light"] .service-item:not(.active):hover {
+        [data-theme="light"] .service-item:not(.active):hover, [data-theme="light"] .sidebar-content-top-item:not(.active):hover {
             background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .service-item .service-actions, .sidebar-content-top-item .service-actions {
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--icon-color);
+            flex-shrink: 0;
+            margin-left: auto;
+            opacity: 0;
+            transition: opacity var(--transition-normal);
+            transition-delay: 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .service-item .service-actions i svg, .sidebar-content-top-item .service-actions i svg {
+            width: 12px !important;
+            height: 12px !important;
+        }
+
+        .service-item:hover .service-actions, .service-item.active .service-actions,
+        .sidebar-content-top-item:hover .service-actions, .sidebar-content-top-item.active .service-actions {
+            opacity: 1;
+        }
+
+        .service-item.selected, .sidebar-content-top-item.selected {
+            background-color: var(--blue-primary);
+            color: #ffffff;
+        }
+
+        .service-item.selected .service-name,
+        .service-item.active .service-name,
+        .service-item.selected .service-status,
+        .service-item.active .service-status,
+        .service-item.selected .service-actions,
+        .service-item.active .service-actions,
+        .service-item.selected .service-actions i,
+        .service-item.active .service-actions i,
+        .service-item.selected .service-actions i svg,
+        .service-item.active .service-actions i svg,
+        .service-item.selected .service-actions i svg path,
+        .service-item.active .service-actions i svg path,
+        .sidebar-content-top-item.selected .service-name,
+        .sidebar-content-top-item.active .service-name,
+        .sidebar-content-top-item.selected .service-status,
+        .sidebar-content-top-item.active .service-status,
+        .sidebar-content-top-item.selected .service-actions,
+        .sidebar-content-top-item.active .service-actions,
+        .sidebar-content-top-item.selected .service-actions i,
+        .sidebar-content-top-item.active .service-actions i,
+        .sidebar-content-top-item.selected .service-actions i svg,
+        .sidebar-content-top-item.active .service-actions i svg,
+        .sidebar-content-top-item.selected .service-actions i svg path,
+        .sidebar-content-top-item.active .service-actions i svg path {
+            color: #ffffff !important;
+            fill: #ffffff !important;
+            stroke: #ffffff !important;
+        }
+
+        [data-theme="light"] .service-item.selected .service-name,
+        [data-theme="light"] .service-item.active .service-name,
+        [data-theme="light"] .service-item.selected .service-status,
+        [data-theme="light"] .service-item.active .service-status,
+        [data-theme="light"] .service-item.selected .service-actions,
+        [data-theme="light"] .service-item.active .service-actions,
+        [data-theme="light"] .service-item.selected .service-actions i,
+        [data-theme="light"] .service-item.active .service-actions i,
+        [data-theme="light"] .service-item.selected .service-actions i svg,
+        [data-theme="light"] .service-item.active .service-actions i svg,
+        [data-theme="light"] .service-item.selected .service-actions i svg path,
+        [data-theme="light"] .service-item.active .service-actions i svg path,
+        [data-theme="light"] .sidebar-content-top-item.selected .service-name,
+        [data-theme="light"] .sidebar-content-top-item.active .service-name,
+        [data-theme="light"] .sidebar-content-top-item.selected .service-status,
+        [data-theme="light"] .sidebar-content-top-item.active .service-status,
+        [data-theme="light"] .sidebar-content-top-item.selected .service-actions,
+        [data-theme="light"] .sidebar-content-top-item.active .service-actions,
+        [data-theme="light"] .sidebar-content-top-item.selected .service-actions i,
+        [data-theme="light"] .sidebar-content-top-item.active .service-actions i,
+        [data-theme="light"] .sidebar-content-top-item.selected .service-actions i svg,
+        [data-theme="light"] .sidebar-content-top-item.active .service-actions i svg,
+        [data-theme="light"] .sidebar-content-top-item.selected .service-actions i svg path,
+        [data-theme="light"] .sidebar-content-top-item.active .service-actions i svg path {
+            color: #ffffff !important;
+            fill: #ffffff !important;
+            stroke: #ffffff !important;
+        }
+
+        .service-item.selected .service-actions i svg[style],
+        .service-item.active .service-actions i svg[style],
+        .sidebar-content-top-item.selected .service-actions i svg[style],
+        .sidebar-content-top-item.active .service-actions i svg[style] {
+            color: #ffffff !important;
+            fill: none !important;
+            stroke: #ffffff !important;
         }
 
         /* Remove the decorative bar that showed on hover */
@@ -1394,7 +1496,7 @@
         .metric-card:nth-child(3) { animation-delay: 0.3s; }
         .metric-card:nth-child(4) { animation-delay: 0.4s; }
 
-        .service-item {
+        .service-item, .sidebar-content-top-item  {
             animation: slideIn 0.3s ease forwards;
             opacity: 0;
         }
@@ -1923,7 +2025,19 @@
         .service-item.selected .service-actions i svg,
         .service-item.active .service-actions i svg,
         .service-item.selected .service-actions i svg path,
-        .service-item.active .service-actions i svg path {
+        .service-item.active .service-actions i svg path,
+        .sidebar-content-top-item.selected .service-name,
+        .sidebar-content-top-item.active .service-name,
+        .sidebar-content-top-item.selected .service-status,
+        .sidebar-content-top-item.active .service-status,
+        .sidebar-content-top-item.selected .service-actions,
+        .sidebar-content-top-item.active .service-actions,
+        .sidebar-content-top-item.selected .service-actions i,
+        .sidebar-content-top-item.active .service-actions i,
+        .sidebar-content-top-item.selected .service-actions i svg,
+        .sidebar-content-top-item.active .service-actions i svg,
+        .sidebar-content-top-item.selected .service-actions i svg path,
+        .sidebar-content-top-item.active .service-actions i svg path {
             color: #ffffff !important;
             fill: #ffffff !important;
             stroke: #ffffff !important;
@@ -1940,14 +2054,28 @@
         [data-theme="light"] .service-item.selected .service-actions i svg,
         [data-theme="light"] .service-item.active .service-actions i svg,
         [data-theme="light"] .service-item.selected .service-actions i svg path,
-        [data-theme="light"] .service-item.active .service-actions i svg path {
+        [data-theme="light"] .service-item.active .service-actions i svg path,
+        [data-theme="light"] .sidebar-content-top-item.selected .service-name,
+        [data-theme="light"] .sidebar-content-top-item.active .service-name,
+        [data-theme="light"] .sidebar-content-top-item.selected .service-status,
+        [data-theme="light"] .sidebar-content-top-item.active .service-status,
+        [data-theme="light"] .sidebar-content-top-item.selected .service-actions,
+        [data-theme="light"] .sidebar-content-top-item.active .service-actions,
+        [data-theme="light"] .sidebar-content-top-item.selected .service-actions i,
+        [data-theme="light"] .sidebar-content-top-item.active .service-actions i,
+        [data-theme="light"] .sidebar-content-top-item.selected .service-actions i svg,
+        [data-theme="light"] .sidebar-content-top-item.active .service-actions i svg,
+        [data-theme="light"] .sidebar-content-top-item.selected .service-actions i svg path,
+        [data-theme="light"] .sidebar-content-top-item.active .service-actions i svg path {
             color: #ffffff !important;
             fill: #ffffff !important;
             stroke: #ffffff !important;
         }
 
         .service-item.selected .service-actions i svg[style],
-        .service-item.active .service-actions i svg[style] {
+        .service-item.active .service-actions i svg[style],
+        .sidebar-content-top-item.selected .service-actions i svg[style],
+        .sidebar-content-top-item.active .service-actions i svg[style] {
             color: #ffffff !important;
             fill: none !important;
             stroke: #ffffff !important;
@@ -1957,7 +2085,7 @@
         }
 
         [data-theme="light"] .service-item.selected .service-actions i svg[style],
-       [data-theme="light"] .service-item.active .service-actions i svg[style] {
+        [data-theme="light"] .service-item.active .service-actions i svg[style] {
             color: #ffffff !important;
             fill: none !important;
             stroke: #ffffff !important;
