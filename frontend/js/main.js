@@ -2392,6 +2392,12 @@ window.addEventListener('DOMContentLoaded', function() {
             tomcatSidebarItem.classList.add('active');
             // Show Tomcat panel, hide Windows panel
             showTomcatPanel();
+
+            // Set Tomcat as the active service
+            const tomcatData = JSON.parse(tomcatSidebarItem.dataset.service);
+            activeServiceId = tomcatData.id;
+            // Optionally: activeServiceType = 'tomcat';
+            document.dispatchEvent(new CustomEvent('serviceSelected', { detail: { serviceId: activeServiceId } }));
         });
         const actions = tomcatSidebarItem.querySelector('.service-actions');
         if (actions) {

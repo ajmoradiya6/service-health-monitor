@@ -9,8 +9,17 @@ const servicesFilePath = path.join(__dirname, '..', '..', 'database', 'Registere
 // Helper to get service name by ID
 async function getServiceById(serviceId) {
     const fileContent = await fs.readFile(servicesFilePath, 'utf8');
-    const services = fileContent ? JSON.parse(fileContent) : [];
-    return services.find(s => s.id === serviceId);
+    const data = fileContent ? JSON.parse(fileContent) : {};
+    // Check windowsServices array
+    if (Array.isArray(data.windowsServices)) {
+        const found = data.windowsServices.find(s => s.id === serviceId);
+        if (found) return found;
+    }
+    // Check tomcatService object
+    if (data.tomcatService && data.tomcatService.id === serviceId) {
+        return data.tomcatService;
+    }
+    return null;
 }
 
 // Start service
