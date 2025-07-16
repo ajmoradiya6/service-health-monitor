@@ -20,7 +20,7 @@
         return; // Exit if the container is still not found (should not happen after adding ID)
     }
 
-    container.innerHTML = '';  // Clear any existing content
+    container.innerHTML = '';
 
     // Render windows services
     windowsServices.forEach((service, index) => {
@@ -66,6 +66,21 @@
         actionsEl.dataset.serviceId = '';
       }
       actionsEl.dataset.serviceType = 'tomcat';
+      // --- Fetch Tomcat status and update dot on page load ---
+      if (tomcatService && tomcatService.id) {
+        fetch(`/api/service-control/${tomcatService.id}/status`)
+          .then(resp => resp.ok ? resp.json() : null)
+          .then(data => {
+            if (data && typeof data.status === 'string') {
+              updateTomcatStatusDot(data.status === 'Running');
+            } else {
+              updateTomcatStatusDot(false);
+            }
+          })
+          .catch(() => updateTomcatStatusDot(false));
+      } else {
+        updateTomcatStatusDot(false);
+      }
     }
 
     // After adding all service items, create Lucide icons within the container
@@ -383,6 +398,11 @@ function setupServicePowerButton() {
             if (resp.ok) {
                 showNotification('Service stopped', 'success');
                 updatePowerButton('Stopped');
+                // Update Tomcat status dot if Tomcat is selected
+                const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
+                if (tomcatSidebarItem && activeServiceId === JSON.parse(tomcatSidebarItem.dataset.service).id) {
+                    updateTomcatStatusDot(false);
+                }
             } else {
                 const err = await resp.json();
                 showNotification('Failed to stop service: ' + (err.error || resp.statusText), 'error');
@@ -400,6 +420,13 @@ function setupServicePowerButton() {
                     const newStatus = await fetchServiceStatus(activeServiceId);
                     if (newStatus === 'Running') {
                         running = true;
+                        // Hide spinner immediately for Tomcat only
+                        const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
+                        if (tomcatSidebarItem && activeServiceId === JSON.parse(tomcatSidebarItem.dataset.service).id) {
+                            hideServiceSpinner();
+                            window._serviceSpinnerShouldHideOnRunning = false;
+                            updateTomcatStatusDot(true);
+                        }
                         break;
                     }
                     tries++;
@@ -407,6 +434,12 @@ function setupServicePowerButton() {
                 if (running) {
                     showNotification('Service started', 'success');
                     updatePowerButton('Running');
+                    // For Windows, hide spinner here (after notification)
+                    const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
+                    if (!tomcatSidebarItem || activeServiceId !== JSON.parse(tomcatSidebarItem.dataset.service).id) {
+                        hideServiceSpinner();
+                        window._serviceSpinnerShouldHideOnRunning = false;
+                    }
                 } else {
                     hideServiceSpinner();
                     window._serviceSpinnerShouldHideOnRunning = false;
@@ -429,6 +462,11 @@ function setupServicePowerButton() {
         if (!id) return;
         const status = await fetchServiceStatus(id);
         updatePowerButton(status);
+        // Update Tomcat status dot if Tomcat is selected
+        const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
+        if (tomcatSidebarItem && id === JSON.parse(tomcatSidebarItem.dataset.service).id) {
+            updateTomcatStatusDot(status === 'Running');
+        }
     });
 }
 
@@ -2405,5 +2443,17 @@ window.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+// Helper to update Tomcat status dot in the sidebar
+function updateTomcatStatusDot(isRunning) {
+    const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
+    if (tomcatSidebarItem) {
+        const statusDot = tomcatSidebarItem.querySelector('.status-dot');
+        if (statusDot) {
+            const color = isRunning ? 'var(--green-primary)' : 'var(--red-primary)';
+            statusDot.style.setProperty('--dot-color', color);
+        }
+    }
+}
 
 
