@@ -1118,7 +1118,7 @@
             max-width: 300px;
         }
 
-        #service-list svg{
+        #service-list svg, #tomcat-sidebar-item svg{
             padding: 3px;
         }
 

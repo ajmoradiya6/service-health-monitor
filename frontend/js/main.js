@@ -2456,4 +2456,82 @@ function updateTomcatStatusDot(isRunning) {
     }
 }
 
+// === Tomcat status polling and notification logic ===
+let tomcatPrevStatus = null;
+
+async function pollTomcatStatus() {
+    const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
+    if (!tomcatSidebarItem) return;
+    const tomcatData = JSON.parse(tomcatSidebarItem.dataset.service);
+    if (!tomcatData || !tomcatData.id) return;
+
+    try {
+        const resp = await fetch(`/api/service-control/${tomcatData.id}/status`);
+        if (!resp.ok) throw new Error('Failed to fetch Tomcat status');
+        const data = await resp.json();
+        const isRunning = data.status === 'Running';
+
+        // Update the status dot
+        updateTomcatStatusDot(isRunning);
+
+        // Notification logic: only notify on state change
+        if (tomcatPrevStatus !== null && tomcatPrevStatus !== isRunning) {
+            const now = new Date().toISOString();
+            if (isRunning) {
+                // Tomcat went UP
+                addNotification({
+                    level: 'info',
+                    message: `${tomcatData.name} is UP`,
+                    timestamp: now
+                }, tomcatData.id, tomcatData.name, true);
+                sendNotificationToBackend({
+                    serviceName: tomcatData.name,
+                    timestamp: now,
+                    type: 'up',
+                    message: `${tomcatData.name} is UP`
+                });
+            } else {
+                // Tomcat went DOWN
+                addNotification({
+                    level: 'error',
+                    message: `${tomcatData.name} is DOWN`,
+                    timestamp: now
+                }, tomcatData.id, tomcatData.name, false);
+                sendNotificationToBackend({
+                    serviceName: tomcatData.name,
+                    timestamp: now,
+                    type: 'down',
+                    message: `${tomcatData.name} is DOWN`
+                });
+            }
+        }
+
+        // Update previous status
+        tomcatPrevStatus = isRunning;
+    } catch (err) {
+        // Optionally handle fetch errors (could set status to DOWN if desired)
+        // Uncomment below to treat fetch errors as DOWN:
+        // if (tomcatPrevStatus !== null && tomcatPrevStatus !== false) {
+        //     const now = new Date().toISOString();
+        //     addNotification({
+        //         level: 'error',
+        //         message: `${tomcatData.name} is DOWN`,
+        //         timestamp: now
+        //     }, tomcatData.id, tomcatData.name, false);
+        //     sendNotificationToBackend({
+        //         serviceName: tomcatData.name,
+        //         timestamp: now,
+        //         type: 'down',
+        //         message: `${tomcatData.name} is DOWN`
+        //     });
+        // }
+        // tomcatPrevStatus = false;
+    }
+}
+
+// Start polling Tomcat status every 5 seconds after DOM is ready
+window.addEventListener('DOMContentLoaded', function() {
+    setInterval(pollTomcatStatus, 5000);
+});
+
 
