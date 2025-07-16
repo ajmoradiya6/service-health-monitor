@@ -40,7 +40,7 @@
       div.innerHTML = `
           <div class="status-dot"></div>
           <span class="service-name" title="${service.name}">${service.name}</span>
-          <div class="service-actions" data-service-id="${service.id}"><i data-lucide="more-vertical"></i></div>
+          <div class="service-actions" data-service-type="windows" data-service-id="${service.id}"><i data-lucide="more-vertical"></i></div>
       `;
       
       // Store service data on the element
@@ -54,12 +54,18 @@
       }
     });
 
-    // Render Tomcat (if present)
-    if (tomcatService) {
-      const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
-      if (tomcatSidebarItem) {
+    const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
+    if (tomcatSidebarItem) {
+      const actionsEl = tomcatSidebarItem.querySelector('.service-actions');
+      if (tomcatService) {
         tomcatSidebarItem.dataset.service = JSON.stringify(tomcatService);
+        actionsEl.dataset.serviceId = tomcatService.id;
+      } else {
+        const defaultTomcat = { id: null, name: 'Tomcat Server', url: 'http://localhost', port: '8080' };
+        tomcatSidebarItem.dataset.service = JSON.stringify(defaultTomcat);
+        actionsEl.dataset.serviceId = '';
       }
+      actionsEl.dataset.serviceType = 'tomcat';
     }
 
     // After adding all service items, create Lucide icons within the container
@@ -1540,14 +1546,15 @@ function handleServiceActionsClick(event) {
     if (actionsElement) {
         event.stopPropagation(); // Prevent click from bubbling to parent service-item
         const serviceId = actionsElement.dataset.serviceId;
+        const serviceType = actionsElement.dataset.serviceType || 'windows';
 
         // Use the actionsElement itself as the target for positioning
-        showContextMenu(actionsElement, serviceId);
+        showContextMenu(actionsElement, serviceId, serviceType);
     }
 }
 
 // Placeholder functions for showing/hiding the context menu
-function showContextMenu(targetElement, serviceId) {
+function showContextMenu(targetElement, serviceId, serviceType) {
     // Remove any existing context menu
     hideContextMenu();
 
@@ -1555,10 +1562,16 @@ function showContextMenu(targetElement, serviceId) {
     contextMenu.className = 'context-menu';
     contextMenu.dataset.serviceId = serviceId; // Store service ID on the menu
 
-    contextMenu.innerHTML = `
-        <li onclick="handleEditService('${serviceId}')"><i data-lucide="edit"></i> Edit</li>
-        <li onclick="handleDeleteService('${serviceId}')"><i data-lucide="trash-2"></i> Delete</li>
-    `;
+    if (serviceType === 'tomcat') {
+        contextMenu.innerHTML = `
+            <li onclick="handleEditService('${serviceId}')"><i data-lucide="edit"></i> Edit</li>
+        `;
+    } else {
+        contextMenu.innerHTML = `
+            <li onclick="handleEditService('${serviceId}')"><i data-lucide="edit"></i> Edit</li>
+            <li onclick="handleDeleteService('${serviceId}')"><i data-lucide="trash-2"></i> Delete</li>
+        `;
+    }
 
     // Position the context menu near the target element
     const rect = targetElement.getBoundingClientRect();
@@ -1753,28 +1766,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const serviceUrl = document.getElementById('edit-service-url').value;
             const servicePort = document.getElementById('edit-service-port').value;
 
-            // Create an object with the updated service data
-            const updatedServiceData = {
-                id: serviceId, // Include ID in the data sent for update
+            const serviceData = {
                 name: serviceName,
                 url: serviceUrl,
                 port: servicePort
             };
 
-            console.log('Service data to update:', updatedServiceData);
+            console.log('Service data to save:', serviceData);
 
-            // Send this data to the backend endpoint to update the service
             try {
-                const response = await fetch(`/api/services/${serviceId}`, {
-                    method: 'PUT', // Or 'PATCH' depending on your backend API
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(updatedServiceData)
-                });
+                let response;
+                if (!serviceId || serviceId === 'null') {
+                    // Create new service
+                    response = await fetch('/api/services', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(serviceData)
+                    });
+                } else {
+                    // Update existing
+                    response = await fetch(`/api/services/${serviceId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: serviceId, ...serviceData })
+                    });
+                }
 
                 if (response.ok) {
-                    console.log('Service updated successfully');
+                    console.log('Service saved successfully');
                     closeEditServiceModal();
                     // Refresh the service list in the sidebar
                     loadServices();
@@ -2349,9 +2368,12 @@ window.selectService = function(element, index, service) {
 
 // Add Tomcat sidebar click logic after DOMContentLoaded
 window.addEventListener('DOMContentLoaded', function() {
-    const tomcatSidebarItem = document.querySelector('.sidebar-content-top-item');
+    const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
     if (tomcatSidebarItem) {
-        tomcatSidebarItem.addEventListener('click', function() {
+        tomcatSidebarItem.addEventListener('click', function(event) {
+            if (event.target.closest('.service-actions')) {
+                return;
+            }
             // Set active class
             document.querySelectorAll('.service-item').forEach(item => item.classList.remove('active'));
             document.querySelectorAll('.sidebar-content-top-item').forEach(item => item.classList.remove('active'));
@@ -2359,6 +2381,10 @@ window.addEventListener('DOMContentLoaded', function() {
             // Show Tomcat panel, hide Windows panel
             showTomcatPanel();
         });
+        const actions = tomcatSidebarItem.querySelector('.service-actions');
+        if (actions) {
+            actions.addEventListener('click', handleServiceActionsClick);
+        }
     }
 });
 
