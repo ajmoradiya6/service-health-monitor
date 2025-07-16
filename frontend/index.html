@@ -271,106 +271,134 @@
                 </div>
             </div>
 
-            <!-- Metrics Grid -->
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-header">
-                        <i data-lucide="activity" class="metric-icon"></i>
-                        <div class="metric-label">Status</div>
+            <!-- Tomcat Metrics Panel (hidden by default) -->
+            <div id="tomcat-metrics-panel" style="display:none;">
+                <h2>Tomcat JVM Metrics</h2>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">JVM Max Memory</div>
+                        <div class="metric-value" id="jvm-max-memory">1024 MB</div>
                     </div>
-                    <div class="metric-value status-running">
-                        <div class="status-dot"></div>
-                        <span>--</span>
+                    <div class="metric-card">
+                        <div class="metric-label">JVM Used Memory</div>
+                        <div class="metric-value" id="jvm-used-memory">512 MB</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">JVM Threads</div>
+                        <div class="metric-value" id="jvm-threads">45</div>
                     </div>
                 </div>
-                <div class="metric-card">
-                    <div class="metric-header">
-                        <i data-lucide="database" class="metric-icon"></i>
-                        <div class="metric-label">Memory</div>
-                    </div>
-                    <div class="metric-value" id="memory-value">--</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-header">
-                        <i data-lucide="cpu" class="metric-icon"></i>
-                        <div class="metric-label">CPU</div>
-                    </div>
-                    <div class="metric-value" id="cpu-value">--</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-header">
-                        <i data-lucide="users" class="metric-icon"></i>
-                        <div class="metric-label">Connections</div>
-                    </div>
-                    <div class="metric-value" id="connections-value">--</div>
+                <div class="form-group" style="margin-top: 20px; max-width: 320px;">
+                    <label for="jvm-memory-input">Edit JVM Max Memory (MB):</label>
+                    <input type="number" id="jvm-memory-input" min="128" max="32768" value="1024" style="width: 100px; margin-right: 12px;">
+                    <button id="save-jvm-memory" class="settings-save" type="button">Save</button>
+                    <span id="jvm-memory-status" style="margin-left: 12px; font-size: 13px;"></span>
                 </div>
             </div>
+            <!-- Windows Service Metrics Panel (default, visible) -->
+            <div id="windows-metrics-panel">
+                <!-- Place your existing metrics/logs UI here (move all main content except Tomcat panel into this div) -->
+                <!-- Metrics Grid -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <i data-lucide="activity" class="metric-icon"></i>
+                            <div class="metric-label">Status</div>
+                        </div>
+                        <div class="metric-value status-running">
+                            <div class="status-dot"></div>
+                            <span>--</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <i data-lucide="database" class="metric-icon"></i>
+                            <div class="metric-label">Memory</div>
+                        </div>
+                        <div class="metric-value" id="memory-value">--</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <i data-lucide="cpu" class="metric-icon"></i>
+                            <div class="metric-label">CPU</div>
+                        </div>
+                        <div class="metric-value" id="cpu-value">--</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <i data-lucide="users" class="metric-icon"></i>
+                            <div class="metric-label">Connections</div>
+                        </div>
+                        <div class="metric-value" id="connections-value">--</div>
+                    </div>
+                </div>
 
-            <!-- Tabs -->
-            <div class="tabs">
-                <div class="tab active" onclick="switchTab(this, 'metrics', 0)">
-                    <i data-lucide="bar-chart-2"></i>
-                    <span>Metrics</span>
+                <!-- Tabs -->
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab(this, 'metrics', 0)">
+                        <i data-lucide="bar-chart-2"></i>
+                        <span>Metrics</span>
+                    </div>
+                    <div class="tab" onclick="switchTab(this, 'logs', 1)">
+                        <i data-lucide="file-text"></i>
+                        <span>Logs</span>
+                    </div>
+                    <div class="tab-slider"></div>
                 </div>
-                <div class="tab" onclick="switchTab(this, 'logs', 1)">
-                    <i data-lucide="file-text"></i>
-                    <span>Logs</span>
-                </div>
-                <div class="tab-slider"></div>
-            </div>
 
-            <!-- Chart Container -->
-            <div class="chart-container" id="chart-container">
-                <div class="chart-header">
-                    <h3 class="chart-title">Resource Usage Trend</h3>
-                    <div class="chart-legend">
-                        <div class="legend-item">
-                            <div class="legend-color cpu"></div>
-                            <span>CPU</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color memory"></div>
-                            <span>Memory</span>
+                <!-- Chart Container -->
+                <div class="chart-container" id="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Resource Usage Trend</h3>
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <div class="legend-color cpu"></div>
+                                <span>CPU</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color memory"></div>
+                                <span>Memory</span>
+                            </div>
                         </div>
                     </div>
+                    <div class="chart">
+                        <canvas id="chartCanvas" style="width:100%;height:300px;"></canvas>
+                    </div>
                 </div>
-                <div class="chart">
-                    <canvas id="chartCanvas" style="width:100%;height:300px;"></canvas>
-                </div>
-            </div>
-            
-            <!-- Logs Container -->
-            <div class="logs-container" id="logs-container">
-                <div class="logs-header">
-                    <div class="logs-controls-top">
-                        <div class="search-box">
-                            <i data-lucide="search" class="search-icon"></i>
-                            <input type="text" class="search-input" placeholder="Search logs..." id="log-search">
-                        </div>
-                        <div class="logs-actions-right">
-                        <div class="filter-dropdown">
-                            <button class="filter-button" onclick="toggleFilter()">
-                                <i data-lucide="filter"></i>
-                                <span>All Levels</span>
-                                <i data-lucide="chevron-down"></i>
+                
+                <!-- Logs Container -->
+                <div class="logs-container" id="logs-container">
+                    <div class="logs-header">
+                        <div class="logs-controls-top">
+                            <div class="search-box">
+                                <i data-lucide="search" class="search-icon"></i>
+                                <input type="text" class="search-input" placeholder="Search logs..." id="log-search">
+                            </div>
+                            <div class="logs-actions-right">
+                            <div class="filter-dropdown">
+                                <button class="filter-button" onclick="toggleFilter()">
+                                    <i data-lucide="filter"></i>
+                                    <span>All Levels</span>
+                                    <i data-lucide="chevron-down"></i>
+                                </button>
+                            </div>
+                            <button class="export-button" onclick="exportLogs()">
+                                <i data-lucide="download"></i>
+                                <span>Export CSV</span>
                             </button>
+                            </div>
                         </div>
-                        <button class="export-button" onclick="exportLogs()">
-                            <i data-lucide="download"></i>
-                            <span>Export CSV</span>
-                        </button>
-                        </div>
+
+                    <div class="logs-stats">
+                        <div class="log-stat total">Total: <strong>0</strong></div>
+                        <div class="log-stat info">Info: <strong>0</strong></div>
+                        <div class="log-stat warning">Warnings: <strong>0</strong></div>
+                        <div class="log-stat error">Errors: <strong>0</strong></div>
                     </div>
 
-                <div class="logs-stats">
-                    <div class="log-stat total">Total: <strong>0</strong></div>
-                    <div class="log-stat info">Info: <strong>0</strong></div>
-                    <div class="log-stat warning">Warnings: <strong>0</strong></div>
-                    <div class="log-stat error">Errors: <strong>0</strong></div>
-                </div>
-
-                <div class="logs-list" id="logs-list">
-                    <!-- Log entries will be populated by JavaScript -->
+                    <div class="logs-list" id="logs-list">
+                        <!-- Log entries will be populated by JavaScript -->
+                    </div>
                 </div>
             </div>
         </div>

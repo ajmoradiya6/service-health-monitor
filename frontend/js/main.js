@@ -1048,6 +1048,10 @@ function connectToSignalR(serviceData) {
 
 // Modify the selectService function to establish SignalR connection
 function selectService(element, index, service) {
+    // Remove active from Tomcat
+    document.querySelectorAll('.sidebar-content-top-item').forEach(item => item.classList.remove('active'));
+    // Panel switching logic for Windows
+    showWindowsPanel();
     document.querySelectorAll('.service-item').forEach(item => {
         item.classList.remove('active');
     });
@@ -2310,5 +2314,43 @@ function hideServiceSpinner() {
 function handleRegisterServiceClick(event) {
     openRegisterServiceModal();
 }
+
+function showTomcatPanel() {
+    document.getElementById('tomcat-metrics-panel').style.display = 'block';
+    document.getElementById('windows-metrics-panel').style.display = 'none';
+}
+
+function showWindowsPanel() {
+    document.getElementById('tomcat-metrics-panel').style.display = 'none';
+    document.getElementById('windows-metrics-panel').style.display = 'block';
+}
+
+// Patch selectService to show/hide Tomcat/Windows panels
+const originalSelectService = window.selectService;
+window.selectService = function(element, index, service) {
+    if (service.name && service.name.toLowerCase().includes('tomcat')) {
+        showTomcatPanel();
+    } else {
+        showWindowsPanel();
+    }
+    if (typeof originalSelectService === 'function') {
+        originalSelectService.apply(this, arguments);
+    }
+};
+
+// Add Tomcat sidebar click logic after DOMContentLoaded
+window.addEventListener('DOMContentLoaded', function() {
+    const tomcatSidebarItem = document.querySelector('.sidebar-content-top-item');
+    if (tomcatSidebarItem) {
+        tomcatSidebarItem.addEventListener('click', function() {
+            // Set active class
+            document.querySelectorAll('.service-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.sidebar-content-top-item').forEach(item => item.classList.remove('active'));
+            tomcatSidebarItem.classList.add('active');
+            // Show Tomcat panel, hide Windows panel
+            showTomcatPanel();
+        });
+    }
+});
 
 
