@@ -1118,6 +1118,10 @@
             max-width: 300px;
         }
 
+        #tomcat-sidebar-item{
+            margin-top: 8px;
+        }
+
         #service-list svg, #tomcat-sidebar-item svg{
             padding: 3px;
         }
