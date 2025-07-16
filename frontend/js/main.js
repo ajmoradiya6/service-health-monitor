@@ -1516,15 +1516,27 @@ function setupLogSearch() {
 // Placeholder functions for context menu actions
 function handleEditService(serviceId) {
     console.log('Edit service with ID:', serviceId);
-    // Find the service data for the given ID
+    // Find the service data for the given ID among Windows services
     const serviceItems = document.querySelectorAll('.service-item');
     let serviceToEdit = null;
     serviceItems.forEach(item => {
         const serviceData = JSON.parse(item.dataset.service);
-        if (serviceData.id === serviceId) {
+        if (String(serviceData.id) === String(serviceId)) {
             serviceToEdit = serviceData;
         }
     });
+
+    // If not found, check the Tomcat service entry
+    if (!serviceToEdit) {
+        const tomcatItem = document.getElementById('tomcat-sidebar-item');
+        if (tomcatItem) {
+            const tomcatData = JSON.parse(tomcatItem.dataset.service);
+            const tomcatId = tomcatData.id === null ? '' : String(tomcatData.id);
+            if (serviceId === tomcatId || serviceId === 'null' || serviceId === '') {
+                serviceToEdit = tomcatData;
+            }
+        }
+    }
 
     if (serviceToEdit) {
         openEditServiceModal(serviceToEdit);
