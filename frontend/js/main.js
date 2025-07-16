@@ -2405,6 +2405,7 @@ function handleRegisterServiceClick(event) {
 function showTomcatPanel() {
     document.getElementById('tomcat-metrics-panel').style.display = 'block';
     document.getElementById('windows-metrics-panel').style.display = 'none';
+    loadTomcatMetrics();
 }
 
 function showWindowsPanel() {
@@ -2538,9 +2539,98 @@ async function pollTomcatStatus() {
     }
 }
 
+// === Tomcat metrics and app management ===
+async function loadTomcatMetrics() {
+    try {
+        const resp = await fetch('/api/tomcat/metrics');
+        if (!resp.ok) throw new Error('Failed to fetch metrics');
+        const data = await resp.json();
+        if (data.maxMemoryMb !== undefined) {
+            document.getElementById('jvm-max-memory').textContent = `${data.maxMemoryMb} MB`;
+        }
+        if (data.usedMemoryMb !== undefined) {
+            document.getElementById('jvm-used-memory').textContent = `${data.usedMemoryMb} MB`;
+        }
+        if (data.threads !== undefined) {
+            document.getElementById('jvm-threads').textContent = data.threads;
+        }
+
+        const tbody = document.querySelector('#tomcat-apps-table tbody');
+        if (tbody) {
+            tbody.innerHTML = '';
+            (data.apps || []).forEach(app => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${app.name}</td>
+                    <td>${app.path}</td>
+                    <td>${app.state}</td>
+                    <td>${app.sessions}</td>
+                    <td>
+                        <button class="app-action" data-action="start" data-path="${app.path}">Start</button>
+                        <button class="app-action" data-action="stop" data-path="${app.path}">Stop</button>
+                        <button class="app-action" data-action="reload" data-path="${app.path}">Reload</button>
+                    </td>`;
+                tbody.appendChild(row);
+            });
+        }
+    } catch (err) {
+        console.error('Failed to load Tomcat metrics', err);
+    }
+}
+
+async function saveJvmMemory() {
+    const input = document.getElementById('jvm-memory-input');
+    const statusEl = document.getElementById('jvm-memory-status');
+    const value = parseInt(input.value, 10);
+    try {
+        const resp = await fetch('/api/tomcat/metrics/maxMemory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ maxMemoryMb: value })
+        });
+        if (resp.ok) {
+            statusEl.textContent = 'Saved';
+            loadTomcatMetrics();
+            setTimeout(() => { statusEl.textContent = ''; }, 2000);
+        } else {
+            statusEl.textContent = 'Error';
+        }
+    } catch (err) {
+        console.error('Failed to save JVM memory', err);
+        statusEl.textContent = 'Error';
+    }
+}
+
+async function handleTomcatAppAction(e) {
+    const btn = e.target.closest('.app-action');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const path = btn.dataset.path;
+    try {
+        const resp = await fetch('/api/tomcat/app', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, path })
+        });
+        if (resp.ok) {
+            showNotification(`Application ${action} succeeded`, 'success');
+            loadTomcatMetrics();
+        } else {
+            showNotification(`Failed to ${action}`, 'error');
+        }
+    } catch (err) {
+        console.error('Tomcat app action failed', err);
+        showNotification(`Failed to ${action}`, 'error');
+    }
+}
+
 // Start polling Tomcat status every 5 seconds after DOM is ready
 window.addEventListener('DOMContentLoaded', function() {
     setInterval(pollTomcatStatus, 5000);
+    const saveBtn = document.getElementById('save-jvm-memory');
+    if (saveBtn) saveBtn.addEventListener('click', saveJvmMemory);
+    const appsTable = document.getElementById('tomcat-apps-table');
+    if (appsTable) appsTable.addEventListener('click', handleTomcatAppAction);
 });
 
 
