@@ -276,27 +276,70 @@
 
             <!-- Tomcat Metrics Panel (hidden by default) -->
             <div id="tomcat-metrics-panel" style="display:none;">
-                <h2>Tomcat JVM Metrics</h2>
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-label">JVM Max Memory</div>
-                        <div class="metric-value" id="jvm-max-memory">1024 MB</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">JVM Used Memory</div>
-                        <div class="metric-value" id="jvm-used-memory">512 MB</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-label">JVM Threads</div>
-                        <div class="metric-value" id="jvm-threads">45</div>
-                    </div>
-                </div>
-                <div class="form-group" style="margin-top: 20px; max-width: 320px;">
-                    <label for="jvm-memory-input">Edit JVM Max Memory (MB):</label>
-                    <input type="number" id="jvm-memory-input" min="128" max="32768" value="1024" style="width: 100px; margin-right: 12px;">
-                    <button id="save-jvm-memory" class="settings-save" type="button">Save</button>
-                    <span id="jvm-memory-status" style="margin-left: 12px; font-size: 13px;"></span>
-                </div>
+                <div id="tomcat-metrics-panel-container">
+                    <aside class="tomcat-sidebar">
+                      <h2 class="tomcat-sidebar-title">Tomcat Manager</h2>
+                      <nav class="tomcat-nav">
+                        <ul>
+                          <li class="tomcat-nav-item active"><i>📊</i> Server Overview</li>
+                          <li class="tomcat-nav-item"><i>📈</i> Thread & Connection</li>
+                          <li class="tomcat-nav-item"><i>💾</i> JVM & Memory</li>
+                          <li class="tomcat-nav-item"><i>📂</i> Applications</li>
+                          <li class="tomcat-nav-item"><i>⚙️</i> Server Settings</li>
+                          <li class="tomcat-nav-item"><i>📄</i> Log Viewer</li>
+                          <li class="tomcat-nav-item"><i>🔒</i> Security</li>
+                          <li class="tomcat-nav-item"><i>⚡</i> Health Check</li>
+                        </ul>
+                      </nav>
+                      <div class="tomcat-sidebar-footer">v9.0.65 ⟳</div>
+                    </aside>
+                  
+                    <main class="tomcat-content">
+                      <div class="tomcat-header">
+                        <h1>Server Overview</h1>
+                        <div class="tomcat-updated">Last updated: 4:12:19 PM</div>
+                        <button class="tomcat-refresh-btn">⟳ Refresh</button>
+                      </div>
+                  
+                      <div class="tomcat-cards">
+                        <div class="tomcat-card">
+                          <div class="tomcat-card-title">Server Status</div>
+                          <div class="tomcat-status-pill tomcat-running">● Running</div>
+                          <small>Apache Tomcat/9.0.65</small>
+                        </div>
+                        <div class="tomcat-card">
+                          <div class="tomcat-card-title">Uptime</div>
+                          <div class="tomcat-card-value">15 days, 7 hours, 23 minutes</div>
+                          <small>Started: 2024-01-01 08:30:15</small>
+                        </div>
+                        <div class="tomcat-card">
+                          <div class="tomcat-card-title">JVM Version</div>
+                          <div class="tomcat-card-value">OpenJDK 11.0.16</div>
+                          <small>Tomcat 9.0.65</small>
+                        </div>
+                      </div>
+                  
+                      <div class="tomcat-cards tomcat-two-col">
+                        <div class="tomcat-card">
+                          <div class="tomcat-card-title">System Information</div>
+                          <div class="tomcat-grid-info">
+                            <div>
+                              <div class="tomcat-info-label">Operating System</div>
+                              <div class="tomcat-info-value">Linux Ubuntu 20.04.5 LTS</div>
+                            </div>
+                            <div>
+                              <div class="tomcat-info-label">Java Runtime</div>
+                              <div class="tomcat-info-value">OpenJDK 11.0.16</div>
+                            </div>
+                            <div>
+                              <div class="tomcat-info-label">Server Version</div>
+                              <div class="tomcat-info-value">Apache Tomcat/9.0.65</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </main>
+                  </div>                  
             </div>
             <!-- Windows Service Metrics Panel (default, visible) -->
             <div id="windows-metrics-panel">
