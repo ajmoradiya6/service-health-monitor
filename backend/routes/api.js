@@ -4,28 +4,29 @@ const { getAllServices, updateService, deleteService, createUserNotificationFrom
 const registerServiceRouter = require('./registerService');
 const path = require('path');
 const fs = require('fs').promises;
+const { v4: uuidv4 } = require('uuid');
 
 router.get('/services', async (req, res) => {
     const data = await getAllServices();
-    res.json(data);
+    // Return both windowsServices and tomcatService
+    res.json({
+        windowsServices: data.windowsServices || [],
+        tomcatService: data.tomcatService || null
+    });
 });
 
 router.put('/services/:id', async (req, res) => {
     const serviceId = req.params.id;
     const updatedServiceData = req.body;
-
-    // Basic validation (optional but recommended)
     if (!updatedServiceData || !updatedServiceData.name || !updatedServiceData.url || !updatedServiceData.port) {
         return res.status(400).json({ error: 'Missing required service fields' });
     }
-
     try {
         await updateService(serviceId, updatedServiceData);
         res.status(200).json({ message: 'Service updated successfully' });
     } catch (error) {
-        console.error('Error updating service:', error);
         if (error.message.includes('not found')) {
-             res.status(404).json({ error: error.message });
+            res.status(404).json({ error: error.message });
         } else {
             res.status(500).json({ error: 'Failed to update service' });
         }
@@ -45,6 +46,43 @@ router.delete('/services/:id', async (req, res) => {
         } else {
             res.status(500).json({ error: 'Failed to delete service' });
         }
+    }
+});
+
+router.post('/services', async (req, res) => {
+    const { name, url, port } = req.body;
+    if (!name || !url || !port) {
+        return res.status(400).json({ error: 'Service name, URL, and port are required.' });
+    }
+    try {
+        const servicesFilePath = path.join(__dirname, '..', '..', 'database', 'RegisteredServices.json');
+        let data = {};
+        try {
+            const fileContent = await fs.readFile(servicesFilePath, 'utf8');
+            data = fileContent ? JSON.parse(fileContent) : {};
+        } catch (error) {
+            if (error.code === 'ENOENT') {
+                data = { windowsServices: [], tomcatService: null };
+            } else {
+                throw error;
+            }
+        }
+        if (name.toLowerCase().includes('tomcat')) {
+            // Save as tomcatService
+            const newTomcat = { id: uuidv4(), name, url, port };
+            data.tomcatService = newTomcat;
+            await fs.writeFile(servicesFilePath, JSON.stringify(data, null, 2), 'utf8');
+            res.status(201).json({ message: 'Tomcat service registered successfully', service: newTomcat });
+        } else {
+            // Save as windowsService
+            if (!Array.isArray(data.windowsServices)) data.windowsServices = [];
+            const newService = { id: uuidv4(), name, url, port };
+            data.windowsServices.push(newService);
+            await fs.writeFile(servicesFilePath, JSON.stringify(data, null, 2), 'utf8');
+            res.status(201).json({ message: 'Service registered successfully', service: newService });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to register service', details: error.message });
     }
 });
 

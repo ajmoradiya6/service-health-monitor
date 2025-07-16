@@ -10,9 +10,9 @@
         return; // Stop execution if fetch failed
     }
 
-    const services = await response.json();
-
-    // Correctly get the services list container by its new ID
+    const data = await response.json();
+    const windowsServices = data.windowsServices || [];
+    const tomcatService = data.tomcatService || null;
     const container = document.getElementById('service-list');
     
     if (!container) {
@@ -22,7 +22,8 @@
 
     container.innerHTML = '';  // Clear any existing content
 
-    services.forEach((service, index) => {
+    // Render windows services
+    windowsServices.forEach((service, index) => {
       const div = document.createElement('div');
       // Use the existing service-item class and add click handler
       // The main div click will handle service selection
@@ -53,6 +54,14 @@
       }
     });
 
+    // Render Tomcat (if present)
+    if (tomcatService) {
+      const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
+      if (tomcatSidebarItem) {
+        tomcatSidebarItem.dataset.service = JSON.stringify(tomcatService);
+      }
+    }
+
     // After adding all service items, create Lucide icons within the container
     lucide.createIcons({
         parentElement: container // Only create icons within the service list container
@@ -61,14 +70,14 @@
     // Add event listener for service actions (ellipsis) using delegation
     container.addEventListener('click', handleServiceActionsClick);
 
-    // Auto-select the first service and attempt connections to all services
-    if (services.length > 0) {
+    // Auto-select the first windows service if present
+    if (windowsServices.length > 0) {
         const firstItem = container.querySelector('.service-item');
         if (firstItem) {
-            selectService(firstItem, 0, services[0]);
+            selectService(firstItem, 0, windowsServices[0]);
         }
 
-        services.forEach((srv, idx) => {
+        windowsServices.forEach((srv, idx) => {
             if (idx !== 0) {
                 connectToSignalR(srv);
             }

@@ -9,15 +9,15 @@ const servicesFilePath = path.join(__dirname, '..', '..' ,'database', 'Registere
 async function getAllServices() {
     try {
         const fileContent = await fsp.readFile(servicesFilePath, 'utf8');
-        const services = fileContent ? JSON.parse(fileContent) : [];
-        return services;
-
+        const data = fileContent ? JSON.parse(fileContent) : {};
+        return {
+            windowsServices: Array.isArray(data.windowsServices) ? data.windowsServices : [],
+            tomcatService: data.tomcatService || null
+        };
     } catch (error) {
         if (error.code === 'ENOENT') {
-            console.log(`Services file not found at ${servicesFilePath}, returning an empty array.`);
-            return [];
+            return { windowsServices: [], tomcatService: null };
         } else {
-            console.error('Error reading services file:', error);
             throw error;
         }
     }
@@ -25,44 +25,53 @@ async function getAllServices() {
 
 async function updateService(serviceId, updatedService) {
     try {
-        const services = await getAllServices(); // Read existing services
-        const index = services.findIndex(service => service.id === serviceId);
-
-        if (index === -1) {
+        const fileContent = await fsp.readFile(servicesFilePath, 'utf8').catch(() => '{}');
+        let data = fileContent ? JSON.parse(fileContent) : { windowsServices: [], tomcatService: null };
+        let found = false;
+        // Update in windowsServices
+        if (Array.isArray(data.windowsServices)) {
+            const idx = data.windowsServices.findIndex(s => s.id === serviceId);
+            if (idx !== -1) {
+                data.windowsServices[idx] = { ...data.windowsServices[idx], ...updatedService };
+                found = true;
+            }
+        }
+        // Update tomcatService
+        if (!found && data.tomcatService && data.tomcatService.id === serviceId) {
+            data.tomcatService = { ...data.tomcatService, ...updatedService };
+            found = true;
+        }
+        if (!found) {
             throw new Error(`Service with ID ${serviceId} not found.`);
         }
-
-        // Update the service properties
-        services[index] = { ...services[index], ...updatedService };
-
-        // Write the updated array back to the file
-        await fsp.writeFile(servicesFilePath, JSON.stringify(services, null, 2), 'utf8');
-        console.log(`Service with ID ${serviceId} updated successfully.`);
-
+        await fsp.writeFile(servicesFilePath, JSON.stringify(data, null, 2), 'utf8');
     } catch (error) {
-        console.error('Error updating service:', error);
-        throw error; // Re-throw the error for the caller to handle
+        throw error;
     }
 }
 
 async function deleteService(serviceId) {
     try {
-        const services = await getAllServices(); // Read existing services
-        const initialLength = services.length;
-        const updatedServices = services.filter(service => service.id !== serviceId);
-
-        if (updatedServices.length === initialLength) {
-            // No service was deleted, meaning the ID wasn't found
+        const fileContent = await fsp.readFile(servicesFilePath, 'utf8').catch(() => '{}');
+        let data = fileContent ? JSON.parse(fileContent) : { windowsServices: [], tomcatService: null };
+        let changed = false;
+        // Remove from windowsServices
+        if (Array.isArray(data.windowsServices)) {
+            const origLen = data.windowsServices.length;
+            data.windowsServices = data.windowsServices.filter(s => s.id !== serviceId);
+            if (data.windowsServices.length !== origLen) changed = true;
+        }
+        // Remove tomcatService
+        if (data.tomcatService && data.tomcatService.id === serviceId) {
+            data.tomcatService = null;
+            changed = true;
+        }
+        if (!changed) {
             throw new Error(`Service with ID ${serviceId} not found.`);
         }
-
-        // Write the updated array back to the file
-        await fsp.writeFile(servicesFilePath, JSON.stringify(updatedServices, null, 2), 'utf8');
-        console.log(`Service with ID ${serviceId} deleted successfully.`);
-
+        await fsp.writeFile(servicesFilePath, JSON.stringify(data, null, 2), 'utf8');
     } catch (error) {
-        console.error('Error deleting service:', error);
-        throw error; // Re-throw the error for the caller to handle
+        throw error;
     }
 }
 
