@@ -3395,3 +3395,27 @@
           padding: 0;
         }
 
+        /* Tomcat applications table */
+        .apps-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 16px;
+          font-size: 14px;
+        }
+
+        .apps-table th,
+        .apps-table td {
+          border: 1px solid var(--border-color);
+          padding: 8px;
+        }
+
+        .apps-table th {
+          background-color: var(--bg-secondary);
+          color: var(--text-secondary);
+          text-align: left;
+        }
+
+        .apps-table td button {
+          margin-right: 4px;
+        }
+
