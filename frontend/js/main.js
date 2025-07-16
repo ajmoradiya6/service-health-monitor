@@ -91,13 +91,22 @@
     // Add event listener for service actions (ellipsis) using delegation
     container.addEventListener('click', handleServiceActionsClick);
 
-    // Auto-select the first windows service if present
-    if (windowsServices.length > 0) {
+    // Auto-select the Tomcat service if present, otherwise the first windows service
+    if (tomcatService && tomcatService.id) {
+        const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
+        if (tomcatSidebarItem) {
+            tomcatSidebarItem.classList.add('active');
+            // Set Tomcat as the active service
+            activeServiceId = tomcatService.id;
+            activeServiceType = 'tomcat';
+            document.dispatchEvent(new CustomEvent('serviceSelected', { detail: { serviceId: activeServiceId, serviceType: activeServiceType } }));
+            showTomcatPanel();
+        }
+    } else if (windowsServices.length > 0) {
         const firstItem = container.querySelector('.service-item');
         if (firstItem) {
             selectService(firstItem, 0, windowsServices[0]);
         }
-
         windowsServices.forEach((srv, idx) => {
             if (idx !== 0) {
                 connectToSignalR(srv);
