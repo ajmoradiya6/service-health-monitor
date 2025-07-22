@@ -281,17 +281,17 @@
                       <h2 class="tomcat-sidebar-title">Tomcat Manager</h2>
                       <nav class="tomcat-nav">
                         <ul>
-                          <li class="tomcat-nav-item active"><i>📊</i> Server Overview</li>
-                          <li class="tomcat-nav-item"><i>📈</i> Thread & Connection</li>
-                          <li class="tomcat-nav-item"><i>💾</i> JVM & Memory</li>
-                          <li class="tomcat-nav-item"><i>📂</i> Applications</li>
-                          <li class="tomcat-nav-item"><i>⚙️</i> Server Settings</li>
-                          <li class="tomcat-nav-item"><i>📄</i> Log Viewer</li>
-                          <li class="tomcat-nav-item"><i>🔒</i> Security</li>
-                          <li class="tomcat-nav-item"><i>⚡</i> Health Check</li>
+                          <li class="tomcat-nav-item active"><i data-lucide="bar-chart-2"></i> Server Overview</li>
+                          <li class="tomcat-nav-item"><i data-lucide="activity"></i> Thread & Connection</li>
+                          <li class="tomcat-nav-item"><i data-lucide="database"></i> JVM & Memory</li>
+                          <li class="tomcat-nav-item"><i data-lucide="folder-open"></i> Applications</li>
+                          <li class="tomcat-nav-item"><i data-lucide="settings"></i> Server Settings</li>
+                          <li class="tomcat-nav-item"><i data-lucide="file-text"></i> Log Viewer</li>
+                          <li class="tomcat-nav-item"><i data-lucide="shield"></i> Security</li>
+                          <li class="tomcat-nav-item"><i data-lucide="zap"></i> Health Check</li>
                         </ul>
                       </nav>
-                      <div class="tomcat-sidebar-footer">v9.0.65 ⟳</div>
+                      <!-- <div class="tomcat-sidebar-footer">v9.0.65 ⟳</div> -->
                     </aside>
                   
                     <main class="tomcat-content">
@@ -544,3 +544,13 @@
         </div>
     </div>
 </div>
+
+<!-- Lucide Icons CDN -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+  });
+</script>
