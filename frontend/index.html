@@ -303,9 +303,15 @@
                   
                       <div class="tomcat-cards">
                         <div class="tomcat-card">
-                          <div class="tomcat-card-title">Server Status</div>
-                          <div class="tomcat-status-pill tomcat-running">● Running</div>
-                          <small>Apache Tomcat/9.0.65</small>
+                            <div class="tomcat-card-title">Server Status</div>
+                            <!-- <div class="tomcat-status-pill tomcat-running">● Running</div> -->
+                            <div class="tomcat-card-value">
+                                <div class="tomcat-card-value-container" style="display: flex; align-items: center;">
+                                    <div class="status-dot" id="tomcat-status-dot-card"></div>
+                                    <span id="tomcat-status-label-card">--</span>
+                                </div>
+                            </div>
+                            <small>Apache Tomcat/9.0.65</small>
                         </div>
                         <div class="tomcat-card">
                           <div class="tomcat-card-title">Uptime</div>

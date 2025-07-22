@@ -72,14 +72,14 @@
           .then(resp => resp.ok ? resp.json() : null)
           .then(data => {
             if (data && typeof data.status === 'string') {
-              updateTomcatStatusDot(data.status === 'Running');
+              updateTomcatStatusDotBoth(data.status === 'Running');
             } else {
-              updateTomcatStatusDot(false);
+              updateTomcatStatusDotBoth(false);
             }
           })
-          .catch(() => updateTomcatStatusDot(false));
+          .catch(() => updateTomcatStatusDotBoth(false));
       } else {
-        updateTomcatStatusDot(false);
+        updateTomcatStatusDotBoth(false);
       }
     }
 
@@ -410,7 +410,7 @@ function setupServicePowerButton() {
                 // Update Tomcat status dot if Tomcat is selected
                 const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
                 if (tomcatSidebarItem && activeServiceId === JSON.parse(tomcatSidebarItem.dataset.service).id) {
-                    updateTomcatStatusDot(false);
+                    updateTomcatStatusDotBoth(false);
                 }
             } else {
                 const err = await resp.json();
@@ -434,7 +434,7 @@ function setupServicePowerButton() {
                         if (tomcatSidebarItem && activeServiceId === JSON.parse(tomcatSidebarItem.dataset.service).id) {
                             hideServiceSpinner();
                             window._serviceSpinnerShouldHideOnRunning = false;
-                            updateTomcatStatusDot(true);
+                            updateTomcatStatusDotBoth(true);
                         }
                         break;
                     }
@@ -474,7 +474,7 @@ function setupServicePowerButton() {
         // Update Tomcat status dot if Tomcat is selected
         const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
         if (tomcatSidebarItem && id === JSON.parse(tomcatSidebarItem.dataset.service).id) {
-            updateTomcatStatusDot(status === 'Running');
+            updateTomcatStatusDotBoth(status === 'Running');
         }
     });
 }
@@ -2453,8 +2453,9 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Helper to update Tomcat status dot in the sidebar
-function updateTomcatStatusDot(isRunning) {
+// Helper to update Tomcat status dot in the sidebar and card
+function updateTomcatStatusDotBoth(isRunning) {
+    // Sidebar
     const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
     if (tomcatSidebarItem) {
         const statusDot = tomcatSidebarItem.querySelector('.status-dot');
@@ -2462,6 +2463,15 @@ function updateTomcatStatusDot(isRunning) {
             const color = isRunning ? 'var(--green-primary)' : 'var(--red-primary)';
             statusDot.style.setProperty('--dot-color', color);
         }
+    }
+    // Card
+    const cardDot = document.getElementById('tomcat-status-dot-card');
+    const cardLabel = document.getElementById('tomcat-status-label-card');
+    if (cardDot) {
+        cardDot.style.setProperty('--dot-color', isRunning ? 'var(--green-primary)' : 'var(--red-primary)');
+    }
+    if (cardLabel) {
+        cardLabel.textContent = isRunning ? 'Running' : 'Stopped';
     }
 }
 
@@ -2481,7 +2491,7 @@ async function pollTomcatStatus() {
         const isRunning = data.status === 'Running';
 
         // Update the status dot
-        updateTomcatStatusDot(isRunning);
+        updateTomcatStatusDotBoth(isRunning);
 
         // Notification logic: only notify on state change
         if (tomcatPrevStatus !== null && tomcatPrevStatus !== isRunning) {

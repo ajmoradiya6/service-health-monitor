@@ -3944,17 +3944,36 @@ body {
 }
 
 .tomcat-status-pill {
-    display: inline-block;
-    font-size: 14px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-weight: 500;
-    background: var(--bg-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 0;
+    background: none;
+    color: var(--text-primary);
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.tomcat-status-pill .status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+    background-color: var(--dot-color, var(--green-primary));
+    position: relative;
+    transition: color 0.3s ease;
+    flex-shrink: 0;
+}
+
+.tomcat-status-pill span {
+    font-size: 20px;
+    font-weight: 700;
     color: var(--text-primary);
 }
 
 .tomcat-running {
-    background-color: #16a34a33;
     color: #16a34a;
 }
 
