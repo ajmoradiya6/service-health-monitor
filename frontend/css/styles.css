@@ -1661,7 +1661,6 @@ body {
     font-size: 12px;
     color: var(--text-secondary);
     font-family: 'Courier New', monospace;
-    min-width: 80px;
 }
 
 .log-message {
@@ -2721,12 +2720,6 @@ body {
     background-color: #1d4fbc;
 }
 
-.settings-icon {
-    width: 16px;
-    height: 16px;
-}
-
-/* Notification Subsections (Email/SMS) */
 .notification-subsection {
     max-height: 0;
     overflow: hidden;
@@ -2763,9 +2756,10 @@ body {
     /* Increased height to match email entries */
 }
 
+/* Focus state for input-with-button */
 .notification-subsection .input-with-button:focus-within {
     border-color: var(--blue-primary);
-    box-shadow: 0 0 0 3px var(--blue-glow);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     outline: none;
 }
 
@@ -3310,7 +3304,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 4px;
+    padding: 0px 4px;
 }
 
 [data-theme="light"] .notification-panel {
@@ -3912,12 +3906,29 @@ body {
 
 .tomcat-card {
     background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
     border-radius: var(--card-radius);
     padding: 16px;
-    flex: 1;
-    min-width: 250px;
-    box-shadow: 0 0 0 1px var(--border-color);
+    min-height: 90px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
     color: var(--text-primary);
+}
+
+.tomcat-card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(78, 93, 120, 0.4);
+    background-color: rgba(30, 41, 59, 0.7);
+}
+
+[data-theme="light"] .tomcat-card:hover {
+    background-color: rgba(248, 250, 252, 0.8);
+    border-color: rgba(148, 163, 184, 0.5);
 }
 
 .tomcat-card-title {
@@ -3929,6 +3940,7 @@ body {
 .tomcat-card-value {
     font-size: 20px;
     font-weight: bold;
+    margin-bottom: 8px;
 }
 
 .tomcat-status-pill {
@@ -3946,6 +3958,13 @@ body {
     color: #16a34a;
 }
 
+/* Fix Tomcat card min-width for status/uptime/JVM cards */
+.tomcat-cards .tomcat-card {
+    min-width: 280px;
+    max-width: 100%;
+    flex: 1 1 280px;
+}
+
 /* System Info Grid */
 .tomcat-grid-info {
     display: grid;
@@ -3956,7 +3975,9 @@ body {
 
 .tomcat-info-label {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: color 0.3s;
 }
 
 .tomcat-info-value {
