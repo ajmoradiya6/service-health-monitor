@@ -1945,6 +1945,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Pure DOM solution for static nav: only one .tomcat-nav-item active at a time
+
+    // document.querySelectorAll('.tomcat-nav').forEach(function (nav) {
+    //     nav.addEventListener('click', function (e) {
+    //         const li = e.target.closest('.tomcat-nav-item');
+    //         if (!li) return;
+    //         nav.querySelectorAll('.tomcat-nav-item').forEach(function (item) {
+    //             item.classList.remove('active');
+    //         });
+    //         li.classList.add('active');
+
+    //         // Show the corresponding tomcat-content-<section> div, hide others
+    //         const navText = li.textContent.trim().toLowerCase().replace(/\s+/g, '-').replace(/&/g, '').replace(/[^a-z0-9\-]/g, '');
+    //         document.querySelectorAll('[class^="tomcat-content-"]').forEach(function (contentDiv) {
+    //             contentDiv.style.display = 'none';
+    //         });
+    //         var sectionDiv = document.querySelector('.tomcat-content-' + navText);
+    //         if (sectionDiv) sectionDiv.style.display = 'block';
+    //     });
+    // });
+
+    document.querySelectorAll('.tomcat-nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            // Remove active class from all items
+            document.querySelectorAll('.tomcat-nav-item').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+
+            // Hide all content sections
+            document.querySelectorAll('[class^="tomcat-content-"]').forEach(div => {
+                div.style.display = 'none';
+            });
+
+            // Show the one linked to the clicked item
+            const target = item.getAttribute('data-target');
+            const section = document.querySelector(`.${target}`);
+            if (section) section.style.display = 'block';
+
+            const titleText = item.textContent.trim();
+            const header = document.querySelector('.tomcat-header h1');
+            if (header) header.textContent = titleText;
+        });
+    });
+
+
     // Initialize settings when the page loads
     // initializeNotificationSettings();
 

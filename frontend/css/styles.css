@@ -334,6 +334,11 @@ body {
     --transition-normal: all 0.3s ease;
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+    --bg-refresh : rgba(0, 0, 0, 0.1);
+}
+/* ===== DARK MODE VARIABLES ===== */
+[data-theme="dark"] {
+    --bg-refresh : #0f1419;
 }
 
 /* ===== RESET & BASE STYLES ===== */
@@ -3819,7 +3824,7 @@ body {
 
 .tomcat-sidebar {
     border-right: 1px solid var(--border-color);
-    width: 220px;
+    width: 250px;
     background-color: var(--bg-card);
     display: flex;
     flex-direction: column;
@@ -3936,8 +3941,10 @@ body {
 }
 
 .tomcat-refresh-btn {
-    padding: 8px 12px;
-    background-color: var(--border-color-hover);
+    height: 36px;
+    width: 36px;
+    padding: 8px 10px;
+    background-color: var(--bg-refresh);
     color: var(--text-primary);
     border: none;
     border-radius: 5px;
@@ -4055,4 +4062,10 @@ body {
 /* Two-column layout modifier */
 .tomcat-two-col .tomcat-card {
     flex: 1 1 100%;
+}
+
+.tomcat-header-right{
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }

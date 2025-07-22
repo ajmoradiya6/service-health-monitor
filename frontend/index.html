@@ -281,69 +281,94 @@
                       <h2 class="tomcat-sidebar-title">Tomcat Manager</h2>
                       <nav class="tomcat-nav">
                         <ul>
-                          <li class="tomcat-nav-item active"><i data-lucide="bar-chart-2"></i> Server Overview</li>
-                          <li class="tomcat-nav-item"><i data-lucide="activity"></i> Thread & Connection</li>
-                          <li class="tomcat-nav-item"><i data-lucide="database"></i> JVM & Memory</li>
-                          <li class="tomcat-nav-item"><i data-lucide="folder-open"></i> Applications</li>
-                          <li class="tomcat-nav-item"><i data-lucide="settings"></i> Server Settings</li>
-                          <li class="tomcat-nav-item"><i data-lucide="file-text"></i> Log Viewer</li>
-                          <li class="tomcat-nav-item"><i data-lucide="shield"></i> Security</li>
-                          <li class="tomcat-nav-item"><i data-lucide="zap"></i> Health Check</li>
+                          <li class="tomcat-nav-item active" data-target="tomcat-content-server-overview"><i data-lucide="bar-chart-2"></i> Server Overview</li>
+                          <li class="tomcat-nav-item" data-target="tomcat-content-thread-connection"><i data-lucide="activity"></i> Thread & Connection</li>
+                          <li class="tomcat-nav-item" data-target="tomcat-content-jvm-memory"><i data-lucide="database"></i> JVM & Memory</li>
+                          <li class="tomcat-nav-item" data-target="tomcat-content-applications"><i data-lucide="folder-open"></i> Applications</li>
+                          <li class="tomcat-nav-item" data-target="tomcat-content-server-settings"><i data-lucide="settings"></i> Server Settings</li>
+                          <li class="tomcat-nav-item" data-target="tomcat-content-log-viewer"><i data-lucide="file-text"></i> Log Viewer</li>
+                          <li class="tomcat-nav-item" data-target="tomcat-content-security"><i data-lucide="shield"></i> Security</li>
+                          <li class="tomcat-nav-item" data-target="tomcat-content-health-check"><i data-lucide="zap"></i> Health Check</li>
                         </ul>
                       </nav>
                       <!-- <div class="tomcat-sidebar-footer">v9.0.65 ⟳</div> -->
                     </aside>
                   
                     <main class="tomcat-content">
-                      <div class="tomcat-header">
-                        <h1>Server Overview</h1>
-                        <div class="tomcat-updated">Last updated: 4:12:19 PM</div>
-                        <button class="tomcat-refresh-btn">⟳ Refresh</button>
-                      </div>
-                  
-                      <div class="tomcat-cards">
-                        <div class="tomcat-card">
-                            <div class="tomcat-card-title">Server Status</div>
-                            <!-- <div class="tomcat-status-pill tomcat-running">● Running</div> -->
-                            <div class="tomcat-card-value">
-                                <div class="tomcat-card-value-container" style="display: flex; align-items: center;">
-                                    <div class="status-dot" id="tomcat-status-dot-card"></div>
-                                    <span id="tomcat-status-label-card">--</span>
+                        <div class="tomcat-header">
+                            <h1>Server Overview</h1>
+                            <div class="tomcat-header-right">
+                                <div class="tomcat-updated">Last updated: 4:12:19 PM</div>
+                                <div class="tomcat-refresh-btn theme-icon-container" title="Refresh">
+                                    <i data-lucide="refresh-cw" class="theme-icon"></i>
                                 </div>
                             </div>
-                            <small>Apache Tomcat/9.0.65</small>
                         </div>
-                        <div class="tomcat-card">
-                          <div class="tomcat-card-title">Uptime</div>
-                          <div class="tomcat-card-value">15 days, 7 hours, 23 minutes</div>
-                          <small>Started: 2024-01-01 08:30:15</small>
-                        </div>
-                        <div class="tomcat-card">
-                          <div class="tomcat-card-title">JVM Version</div>
-                          <div class="tomcat-card-value">OpenJDK 11.0.16</div>
-                          <small>Tomcat 9.0.65</small>
-                        </div>
-                      </div>
-                  
-                      <div class="tomcat-cards tomcat-two-col">
-                        <div class="tomcat-card">
-                          <div class="tomcat-card-title">System Information</div>
-                          <div class="tomcat-grid-info">
-                            <div>
-                              <div class="tomcat-info-label">Operating System</div>
-                              <div class="tomcat-info-value">Linux Ubuntu 20.04.5 LTS</div>
+                        <div class="tomcat-content-server-overview" style="display:block;">
+                            <div class="tomcat-cards">
+                                <div class="tomcat-card">
+                                    <div class="tomcat-card-title">Server Status</div>
+                                    <!-- <div class="tomcat-status-pill tomcat-running">● Running</div> -->
+                                    <div class="tomcat-card-value">
+                                        <div class="tomcat-card-value-container" style="display: flex; align-items: center;">
+                                            <div class="status-dot" id="tomcat-status-dot-card"></div>
+                                            <span id="tomcat-status-label-card">--</span>
+                                        </div>
+                                    </div>
+                                    <small>Apache Tomcat/9.0.65</small>
+                                </div>
+                                <div class="tomcat-card">
+                                    <div class="tomcat-card-title">Uptime</div>
+                                    <div class="tomcat-card-value">15 days, 7 hours, 23 minutes</div>
+                                    <small>Started: 2024-01-01 08:30:15</small>
+                                </div>
+                                <div class="tomcat-card">
+                                    <div class="tomcat-card-title">JVM Version</div>
+                                    <div class="tomcat-card-value">OpenJDK 11.0.16</div>
+                                    <small>Tomcat 9.0.65</small>
+                                </div>
                             </div>
-                            <div>
-                              <div class="tomcat-info-label">Java Runtime</div>
-                              <div class="tomcat-info-value">OpenJDK 11.0.16</div>
+                            <div class="tomcat-cards tomcat-two-col">
+                                <div class="tomcat-card">
+                                    <div class="tomcat-card-title">System Information</div>
+                                    <div class="tomcat-grid-info">
+                                        <div>
+                                            <div class="tomcat-info-label">Operating System</div>
+                                            <div class="tomcat-info-value">Linux Ubuntu 20.04.5 LTS</div>
+                                        </div>
+                                        <div>
+                                            <div class="tomcat-info-label">Java Runtime</div>
+                                            <div class="tomcat-info-value">OpenJDK 11.0.16</div>
+                                        </div>
+                                        <div>
+                                            <div class="tomcat-info-label">Server Version</div>
+                                            <div class="tomcat-info-value">Apache Tomcat/9.0.65</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                              <div class="tomcat-info-label">Server Version</div>
-                              <div class="tomcat-info-value">Apache Tomcat/9.0.65</div>
-                            </div>
-                          </div>
                         </div>
-                      </div>
+                        <div class="tomcat-content-thread-connection" style="display:none;">
+                    
+                        </div>
+                        <div class="tomcat-content-jvm-memory" style="display:none;">
+                    
+                        </div>
+                        <div class="tomcat-content-applications" style="display:none;">
+                    
+                        </div>
+                        <div class="tomcat-content-server-settings" style="display:none;">
+                    
+                        </div>
+                        <div class="tomcat-content-log-viewer" style="display:none;">
+                    
+                        </div>
+                        <div class="tomcat-content-security" style="display:none;">
+                    
+                        </div>
+                        <div class="tomcat-content-health-check" style="display:none;">
+                    
+                        </div>
                     </main>
                   </div>                  
             </div>
