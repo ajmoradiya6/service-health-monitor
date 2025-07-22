@@ -3848,11 +3848,59 @@ body {
     gap: 8px;
     font-size: 13px;
     margin-bottom: 6px;
+    transition: background 0.2s, color 0.2s;
 }
 
-.tomcat-nav-item.active,
-.tomcat-nav-item:hover {
-    background-color: var(--border-color-hover);
+.tomcat-nav-item.active {
+    background-color: var(--blue-accent);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    color: white;
+}
+
+.tomcat-nav-item.active i[data-lucide],
+.tomcat-nav-item.active i[data-lucide] svg,
+.tomcat-nav-item.active svg,
+.tomcat-nav-item:focus i[data-lucide],
+.tomcat-nav-item:focus i[data-lucide] svg,
+.tomcat-nav-item:focus svg,
+.tomcat-nav-item:active i[data-lucide],
+.tomcat-nav-item:active i[data-lucide] svg,
+.tomcat-nav-item:active svg {
+    color: #fff !important;
+    stroke: #fff !important;
+    fill: none !important;
+    transition: color 0.2s, stroke 0.2s;
+}
+
+
+.tomcat-nav-item.active i svg,
+.tomcat-nav-item:focus i svg,
+.tomcat-nav-item:active i svg {
+    color: white !important;
+    fill: white !important;
+}
+
+.tomcat-nav-item:not(.active):hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.tomcat-nav-item:focus {
+    outline: none;
+    background-color: var(--blue-accent);
+    color: white;
+}
+
+.tomcat-nav-item:focus i svg {
+    color: white !important;
+    fill: white !important;
+}
+
+.tomcat-nav-item:not(.active):hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] .tomcat-nav-item:not(.active):hover {
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
 .tomcat-sidebar-footer {
