@@ -348,8 +348,86 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="tomcat-content-thread-connection" style="display:none;">
-                    
+                        <div class="tomcat-content-thread-connection" style="display:none; padding-top: 20px;">
+                            <!-- Thread & Connection Metrics UI -->
+                            <div class="metrics-grid">
+                                <div class="metric-card">
+                                    <div class="metric-header">
+                                        <i data-lucide="users" class="metric-icon"></i>
+                                        <div class="metric-label">Max Threads</div>
+                                    </div>
+                                    <div class="metric-value">200</div>
+                                    <div class="metric-subtext">Current: 120</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-header">
+                                        <i data-lucide="activity" class="metric-icon"></i>
+                                        <div class="metric-label">Busy Threads</div>
+                                    </div>
+                                    <div class="metric-value">95</div>
+                                    <div class="metric-subtext">47.5% utilization</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-header">
+                                        <i data-lucide="zap" class="metric-icon"></i>
+                                        <div class="metric-label">Request Count</div>
+                                    </div>
+                                    <div class="metric-value">45,678</div>
+                                    <div class="metric-subtext">Errors: 234</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-header">
+                                        <i data-lucide="clock" class="metric-icon"></i>
+                                        <div class="metric-label">Avg Processing Time</div>
+                                    </div>
+                                    <div class="metric-value">125ms</div>
+                                    <div class="metric-subtext">Timeout: 20000ms</div>
+                                </div>
+                            </div>
+                            <div class="metrics-charts" style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 16px;">
+                                <div class="metric-card" style="flex: 2 1 400px; min-width: 340px;">
+                                    <div class="metric-header" style="margin-bottom: 16px;">
+                                        <div class="metric-label" style="font-size: 22px; font-weight: 700; color: #fff;">Thread Usage Over Time</div>
+                                    </div>
+                                    <canvas id="thread-usage-chart" style="width:100%;height:260px;"></canvas>
+                                </div>
+                                <div class="metric-card" style="flex: 2 1 400px; min-width: 340px;">
+                                    <div class="metric-header" style="margin-bottom: 16px;">
+                                        <div class="metric-label" style="font-size: 22px; font-weight: 700; color: #fff;">Requests & Errors</div>
+                                    </div>
+                                    <canvas id="requests-errors-chart" style="width:100%;height:260px;"></canvas>
+                                </div>
+                            </div>
+                            <script>
+                            if (window.lucide) lucide.createIcons();
+                            // Example Chart.js setup (replace with real data)
+                            if (window.Chart) {
+                                const ctx1 = document.getElementById('thread-usage-chart').getContext('2d');
+                                new Chart(ctx1, {
+                                    type: 'line',
+                                    data: {
+                                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                                        datasets: [
+                                            { label: 'Max Threads', data: [200, 200, 200, 200, 200, 200], borderColor: '#22d3ee', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#22d3ee', fill: false },
+                                            { label: 'Current Threads', data: [45, 35, 70, 110, 140, 100], borderColor: '#3b82f6', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#3b82f6', fill: false }
+                                        ]
+                                    },
+                                    options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } } }
+                                });
+                                const ctx2 = document.getElementById('requests-errors-chart').getContext('2d');
+                                new Chart(ctx2, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                                        datasets: [
+                                            { label: 'Requests', data: [1200, 800, 1800, 2600, 3200, 1700], backgroundColor: '#f59e0b', borderRadius: 6 },
+                                            { label: 'Errors', data: [10, 5, 20, 15, 30, 12], backgroundColor: '#a21caf', borderRadius: 6 }
+                                        ]
+                                    },
+                                    options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } } }
+                                });
+                            }
+                            </script>
                         </div>
                         <div class="tomcat-content-jvm-memory" style="display:none;">
                     
