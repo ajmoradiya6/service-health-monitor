@@ -3807,28 +3807,31 @@ body {
     padding: 0;
 }
 
+/* Tomcat Metrics Panel Container - theme aware */
 #tomcat-metrics-panel-container {
-    display: flex    ;
+    display: flex;
     height: calc(100vh - 112px);
-    border-radius: 12px;
-    border: 1px solid #334155;
+    border-radius: var(--card-radius);
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
 }
 
 #tomcat-metrics-panel-container svg {
     height: 16px;
     width: 16px;
+    color: var(--icon-color);
 }
 
 
 .tomcat-sidebar {
-    border-right: 1px solid #334155;
+    border-right: 1px solid var(--border-color);
     width: 220px;
-    background-color: #1e293b;
+    background-color: var(--bg-card);
     display: flex;
     flex-direction: column;
     padding: 20px;
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
+    border-top-left-radius: var(--card-radius);
+    border-bottom-left-radius: var(--card-radius);
 }
 
 .tomcat-sidebar-title {
@@ -3855,18 +3858,22 @@ body {
 
 .tomcat-nav-item.active,
 .tomcat-nav-item:hover {
-    background-color: #334155;
+    background-color: var(--border-color-hover);
 }
 
 .tomcat-sidebar-footer {
     font-size: 12px;
-    color: #cbd5e1;
+    color: var(--text-secondary);
 }
 
 /* Main Content */
 .tomcat-content {
     flex: 1;
     padding: 20px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
 }
 
 .tomcat-header {
@@ -3878,20 +3885,22 @@ body {
 .tomcat-header h1 {
     margin: 0;
     font-size: 24px;
+    color: var(--text-primary);
 }
 
 .tomcat-updated {
     font-size: 14px;
-    color: #94a3b8;
+    color: var(--text-secondary);
 }
 
 .tomcat-refresh-btn {
     padding: 8px 12px;
-    background-color: #334155;
-    color: white;
+    background-color: var(--border-color-hover);
+    color: var(--text-primary);
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    transition: background 0.3s, color 0.3s;
 }
 
 .tomcat-cards {
@@ -3902,17 +3911,18 @@ body {
 }
 
 .tomcat-card {
-    background-color: #1e293b;
-    border-radius: 8px;
+    background-color: var(--bg-card);
+    border-radius: var(--card-radius);
     padding: 16px;
     flex: 1;
     min-width: 250px;
-    box-shadow: 0 0 0 1px #334155;
+    box-shadow: 0 0 0 1px var(--border-color);
+    color: var(--text-primary);
 }
 
 .tomcat-card-title {
     font-size: 14px;
-    color: #cbd5e1;
+    color: var(--text-secondary);
     margin-bottom: 8px;
 }
 
@@ -3927,6 +3937,8 @@ body {
     padding: 4px 10px;
     border-radius: 999px;
     font-weight: 500;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
 }
 
 .tomcat-running {
