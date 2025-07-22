@@ -2464,14 +2464,20 @@ function updateTomcatStatusDotBoth(isRunning) {
             statusDot.style.setProperty('--dot-color', color);
         }
     }
-    // Card
+    // Also update the card dot and label if present
     const cardDot = document.getElementById('tomcat-status-dot-card');
     const cardLabel = document.getElementById('tomcat-status-label-card');
     if (cardDot) {
-        cardDot.style.setProperty('--dot-color', isRunning ? 'var(--green-primary)' : 'var(--red-primary)');
-    }
-    if (cardLabel) {
+        const dotColor = isRunning ? 'var(--green-primary)' : 'var(--red-primary)';
+        cardDot.style.setProperty('--dot-color', dotColor);
+        if (cardLabel) {
+            cardLabel.textContent = isRunning ? 'Running' : 'Stopped';
+            cardLabel.style.setProperty('--dot-color', dotColor);
+            cardLabel.style.color = 'var(--dot-color)';
+        }
+    } else if (cardLabel) {
         cardLabel.textContent = isRunning ? 'Running' : 'Stopped';
+        cardLabel.style.color = '';
     }
 }
 
