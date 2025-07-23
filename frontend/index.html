@@ -28,8 +28,8 @@
     cursor: pointer;
   }
 </style>
-
 </head>
+
 <body data-theme="dark">
     <div class="bg-gradient"></div>
     <div class="container">
@@ -45,7 +45,7 @@
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h2 class="sidebar-title">Services</h2>
-                
+
             </div>
             <div class="sidebar-content">
                 <div class="sidebar-content-top" style="padding-bottom: 10px;">
@@ -63,19 +63,19 @@
                         <h4>Windows Services</h4>
                         <i data-lucide="plus" class="expand-icon" onclick="handleRegisterServiceClick(event)"></i>
                     </div>
-                    
+
                     <ul class="service-list" id="service-list">
                         <!-- Default services removed. Only dynamically loaded services will be rendered here. -->
-        
+
                     </ul>
                 </div>
             </div>
-           
+
         </div>
 
         <!-- Sidebar Resizer -->
         <div class="sidebar-resizer" id="sidebar-resizer">
-            
+
         </div>
 
         <!-- Main Content -->
@@ -116,8 +116,10 @@
                     <div class="settings-container">
                         <div class="settings-list">
                             <ul>
-                                <li class="settings-item active" data-target="notification-settings"><i data-lucide="bell" class="settings-icon"></i><span>Notification</span></li>
-                                <li class="settings-item" data-target="email-config-settings"><i data-lucide="mail" class="settings-icon"></i><span>SMTP Configuration</span></li>
+                                <li class="settings-item active" data-target="notification-settings"><i
+                                        data-lucide="bell" class="settings-icon"></i><span>Notification</span></li>
+                                <li class="settings-item" data-target="email-config-settings"><i data-lucide="mail"
+                                        class="settings-icon"></i><span>SMTP Configuration</span></li>
                             </ul>
                         </div>
                         <div class="settings-details">
@@ -150,8 +152,10 @@
                                             <div id="email-settings-subsection" class="notification-subsection">
                                                 <div id="email-list" class="list-container"></div>
                                                 <div class="input-with-button">
-                                                    <input type="email" id="email-input" placeholder="Add email address">
-                                                    <button id="add-email-btn" class="add-btn-inline"><i data-lucide="plus"></i></button>
+                                                    <input type="email" id="email-input"
+                                                        placeholder="Add email address">
+                                                    <button id="add-email-btn" class="add-btn-inline"><i
+                                                            data-lucide="plus"></i></button>
                                                 </div>
                                             </div>
                                             <label>
@@ -165,7 +169,8 @@
                                                 <div id="phone-list" class="list-container"></div>
                                                 <div class="input-with-button">
                                                     <input type="text" id="phone-input" placeholder="Add phone number">
-                                                    <button id="add-phone-btn" class="add-btn-inline"><i data-lucide="plus"></i></button>
+                                                    <button id="add-phone-btn" class="add-btn-inline"><i
+                                                            data-lucide="plus"></i></button>
                                                 </div>
                                             </div>
                                         </div>
@@ -245,11 +250,13 @@
                                             </div>
                                             <div class="form-group">
                                                 <label for="smtp-from-email">From Email</label>
-                                                <input type="email" id="smtp-from-email" placeholder="notifications@example.com">
+                                                <input type="email" id="smtp-from-email"
+                                                    placeholder="notifications@example.com">
                                             </div>
                                             <div class="form-group">
                                                 <label for="smtp-from-name">From Name</label>
-                                                <input type="text" id="smtp-from-name" placeholder="Service Health Monitor">
+                                                <input type="text" id="smtp-from-name"
+                                                    placeholder="Service Health Monitor">
                                             </div>
                                             <div class="form-group">
                                                 <label>
@@ -260,15 +267,17 @@
                                                     </div>
                                                 </label>
                                             </div>
-                                            <button id="test-email-config" class="test-config-button" style="margin-top: 16px;">Test Configuration</button>
+                                            <button id="test-email-config" class="test-config-button"
+                                                style="margin-top: 16px;">Test Configuration</button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="settings-save-container">
-                                <button class="settings-save" type="button" onclick="saveAllSettingsToBackend()">Save</button>
+                                <button class="settings-save" type="button"
+                                    onclick="saveAllSettingsToBackend()">Save</button>
                             </div>
-                            
+
                         </div>
                     </div>
                 </div>
@@ -278,22 +287,30 @@
             <div id="tomcat-metrics-panel" style="display:none;">
                 <div id="tomcat-metrics-panel-container">
                     <aside class="tomcat-sidebar">
-                      <h2 class="tomcat-sidebar-title">Tomcat Manager</h2>
-                      <nav class="tomcat-nav">
-                        <ul>
-                          <li class="tomcat-nav-item active" data-target="tomcat-content-server-overview"><i data-lucide="bar-chart-2"></i> Server Overview</li>
-                          <li class="tomcat-nav-item" data-target="tomcat-content-thread-connection"><i data-lucide="activity"></i> Thread & Connection</li>
-                          <li class="tomcat-nav-item" data-target="tomcat-content-jvm-memory"><i data-lucide="database"></i> JVM & Memory</li>
-                          <li class="tomcat-nav-item" data-target="tomcat-content-applications"><i data-lucide="folder-open"></i> Applications</li>
-                          <li class="tomcat-nav-item" data-target="tomcat-content-server-settings"><i data-lucide="settings"></i> Server Settings</li>
-                          <li class="tomcat-nav-item" data-target="tomcat-content-log-viewer"><i data-lucide="file-text"></i> Log Viewer</li>
-                          <li class="tomcat-nav-item" data-target="tomcat-content-security"><i data-lucide="shield"></i> Security</li>
-                          <li class="tomcat-nav-item" data-target="tomcat-content-health-check"><i data-lucide="zap"></i> Health Check</li>
-                        </ul>
-                      </nav>
-                      <!-- <div class="tomcat-sidebar-footer">v9.0.65 ⟳</div> -->
+                        <h2 class="tomcat-sidebar-title">Tomcat Manager</h2>
+                        <nav class="tomcat-nav">
+                            <ul>
+                                <li class="tomcat-nav-item active" data-target="tomcat-content-server-overview"><i
+                                        data-lucide="bar-chart-2"></i> Server Overview</li>
+                                <li class="tomcat-nav-item" data-target="tomcat-content-thread-connection"><i
+                                        data-lucide="activity"></i> Thread & Connection</li>
+                                <li class="tomcat-nav-item" data-target="tomcat-content-jvm-memory"><i
+                                        data-lucide="database"></i> JVM & Memory</li>
+                                <li class="tomcat-nav-item" data-target="tomcat-content-applications"><i
+                                        data-lucide="folder-open"></i> Applications</li>
+                                <li class="tomcat-nav-item" data-target="tomcat-content-server-settings"><i
+                                        data-lucide="settings"></i> Server Settings</li>
+                                <li class="tomcat-nav-item" data-target="tomcat-content-log-viewer"><i
+                                        data-lucide="file-text"></i> Log Viewer</li>
+                                <li class="tomcat-nav-item" data-target="tomcat-content-security"><i
+                                        data-lucide="shield"></i> Security</li>
+                                <li class="tomcat-nav-item" data-target="tomcat-content-health-check"><i
+                                        data-lucide="zap"></i> Health Check</li>
+                            </ul>
+                        </nav>
+                        <!-- <div class="tomcat-sidebar-footer">v9.0.65 ⟳</div> -->
                     </aside>
-                  
+
                     <main class="tomcat-content">
                         <div class="tomcat-header">
                             <h1>Server Overview</h1>
@@ -313,7 +330,8 @@
                                     </div>
                                     <!-- <div class="tomcat-status-pill tomcat-running">● Running</div> -->
                                     <div class="tomcat-card-value">
-                                        <div class="tomcat-card-value-container" style="display: flex; align-items: center;">
+                                        <div class="tomcat-card-value-container"
+                                            style="display: flex; align-items: center;">
                                             <div class="status-dot" id="tomcat-status-dot-card"></div>
                                             <span id="tomcat-status-label-card">--</span>
                                         </div>
@@ -396,50 +414,25 @@
                                     <div class="metric-subtext">Timeout: 20000ms</div>
                                 </div>
                             </div>
-                            <div class="metrics-charts" style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 16px;">
+                            <div class="metrics-charts"
+                                style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 16px;">
                                 <div class="metric-card" style="flex: 2 1 400px; min-width: 340px;">
                                     <div class="metric-header" style="margin-bottom: 16px;">
-                                        <div class="metric-label" style="font-size: 22px; font-weight: 700; color: #fff;">Thread Usage Over Time</div>
+                                        <div class="metric-label"
+                                            style="font-size: 22px; font-weight: 700; color: #fff;">Thread Usage Over
+                                            Time</div>
                                     </div>
                                     <canvas id="thread-usage-chart" style="width:100%;height:260px;"></canvas>
                                 </div>
                                 <div class="metric-card" style="flex: 2 1 400px; min-width: 340px;">
                                     <div class="metric-header" style="margin-bottom: 16px;">
-                                        <div class="metric-label" style="font-size: 22px; font-weight: 700; color: #fff;">Requests & Errors</div>
+                                        <div class="metric-label"
+                                            style="font-size: 22px; font-weight: 700; color: #fff;">Requests & Errors
+                                        </div>
                                     </div>
                                     <canvas id="requests-errors-chart" style="width:100%;height:260px;"></canvas>
                                 </div>
                             </div>
-                            <script>
-                            if (window.lucide) lucide.createIcons();
-                            // Example Chart.js setup (replace with real data)
-                            if (window.Chart) {
-                                const ctx1 = document.getElementById('thread-usage-chart').getContext('2d');
-                                new Chart(ctx1, {
-                                    type: 'line',
-                                    data: {
-                                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
-                                        datasets: [
-                                            { label: 'Max Threads', data: [200, 200, 200, 200, 200, 200], borderColor: '#22d3ee', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#22d3ee', fill: false },
-                                            { label: 'Current Threads', data: [45, 35, 70, 110, 140, 100], borderColor: '#3b82f6', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#3b82f6', fill: false }
-                                        ]
-                                    },
-                                    options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } } }
-                                });
-                                const ctx2 = document.getElementById('requests-errors-chart').getContext('2d');
-                                new Chart(ctx2, {
-                                    type: 'bar',
-                                    data: {
-                                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
-                                        datasets: [
-                                            { label: 'Requests', data: [1200, 800, 1800, 2600, 3200, 1700], backgroundColor: '#f59e0b', borderRadius: 6 },
-                                            { label: 'Errors', data: [10, 5, 20, 15, 30, 12], backgroundColor: '#a21caf', borderRadius: 6 }
-                                        ]
-                                    },
-                                    options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } } }
-                                });
-                            }
-                            </script>
                         </div>
                         <div class="tomcat-content-jvm-memory" style="display:none; padding-top: 20px;">
                             <!-- JVM & Memory Metrics UI (Dark Theme, metric-card style) -->
@@ -477,253 +470,255 @@
                                     <div class="metric-subtext">Total GC time</div>
                                 </div>
                             </div>
-                            <div class="metrics-charts" style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 16px;">
+                            <div class="metrics-charts"
+                                style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 16px;">
                                 <div class="metric-card" style="flex: 2 1 400px; min-width: 340px;">
                                     <div class="metric-header" style="margin-bottom: 16px;">
-                                        <div class="metric-label" style="font-size: 22px; font-weight: 700; color: #fff;">Memory Usage Over Time</div>
+                                        <div class="metric-label"
+                                            style="font-size: 22px; font-weight: 700; color: #fff;">Memory Usage Over
+                                            Time</div>
                                     </div>
                                     <canvas id="memory-usage-chart" style="width:100%;height:260px;"></canvas>
                                 </div>
                                 <div class="metric-card" style="flex: 2 1 400px; min-width: 340px;">
                                     <div class="metric-header" style="margin-bottom: 16px;">
-                                        <div class="metric-label" style="font-size: 22px; font-weight: 700; color: #fff;">Memory Pool Distribution</div>
+                                        <div class="metric-label"
+                                            style="font-size: 22px; font-weight: 700; color: #fff;">Memory Pool
+                                            Distribution</div>
                                     </div>
                                     <canvas id="memory-pool-chart" style="width:100%;height:260px;"></canvas>
                                 </div>
                             </div>
-                            <script>
-                            if (window.lucide) lucide.createIcons();
-                            // Example Chart.js setup (replace with real data)
-                            if (window.Chart) {
-                                const ctx1 = document.getElementById('memory-usage-chart').getContext('2d');
-                                new Chart(ctx1, {
-                                    type: 'line',
-                                    data: {
-                                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
-                                        datasets: [
-                                            { label: 'Heap Memory', data: [500, 450, 650, 800, 850, 750], borderColor: '#3b82f6', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#3b82f6', fill: false },
-                                            { label: 'Non-Heap Memory', data: [100, 110, 120, 140, 150, 130], borderColor: '#22d3ee', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#22d3ee', fill: false }
-                                        ]
-                                    },
-                                    options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } } }
-                                });
-                                const ctx2 = document.getElementById('memory-pool-chart').getContext('2d');
-                                new Chart(ctx2, {
-                                    type: 'pie',
-                                    data: {
-                                        labels: ['Eden Space: 256MB', 'Old Generation: 512MB', 'Metaspace: 128MB', 'Survivor Space: 64MB'],
-                                        datasets: [
-                                            { data: [256, 512, 128, 64], backgroundColor: ['#a78bfa', '#fde68a', '#f59e0b', '#4ade80'] }
-                                        ]
-                                    },
-                                    options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } } }
-                                });
-                            }
-                            </script>
                         </div>
                         <div class="tomcat-content-applications" style="display:none;">
-                          <!-- Web Applications Table UI -->
-                          <div class="metric-card">
-                            <div class="metric-card-header">
-                              <i data-lucide="globe"></i>
-                              <span class="metric-card-title">Web Applications</span>
+                            <!-- Web Applications Table UI -->
+                            <div class="metric-card">
+                                <div class="metric-card-header">
+                                    <i data-lucide="globe"></i>
+                                    <span class="metric-card-title">Web Applications</span>
+                                </div>
+                                <div class="applications-table-container">
+                                    <table class="applications-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Application Name</th>
+                                                <th>Context Path</th>
+                                                <th>Status</th>
+                                                <th>Sessions</th>
+                                                <th>Version</th>
+                                                <th>Deploy Time</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tomcat-applications-tbody">
+                                            <tr>
+                                                <td>ROOT</td>
+                                                <td>/</td>
+                                                <td><span class="status-pill running">Running</span></td>
+                                                <td><i data-lucide="users"></i> 45/100</td>
+                                                <td><b>1.0.0</b></td>
+                                                <td>2024-01-01 08:30:15</td>
+                                                <td class="actions-cell">
+                                                    <button class="action-btn" title="Stop"><i
+                                                            data-lucide="stop-circle"></i></button>
+                                                    <button class="action-btn" title="Reload"><i
+                                                            data-lucide="rotate-cw"></i></button>
+                                                    <button class="action-btn" title="Delete"><i
+                                                            data-lucide="trash-2"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>manager</td>
+                                                <td>/manager</td>
+                                                <td><span class="status-pill running">Running</span></td>
+                                                <td><i data-lucide="users"></i> 2/10</td>
+                                                <td><b>9.0.65</b></td>
+                                                <td>2024-01-01 08:30:20</td>
+                                                <td class="actions-cell">
+                                                    <button class="action-btn" title="Stop"><i
+                                                            data-lucide="stop-circle"></i></button>
+                                                    <button class="action-btn" title="Reload"><i
+                                                            data-lucide="rotate-cw"></i></button>
+                                                    <button class="action-btn" title="Delete"><i
+                                                            data-lucide="trash-2"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>host-manager</td>
+                                                <td>/host-manager</td>
+                                                <td><span class="status-pill running">Running</span></td>
+                                                <td><i data-lucide="users"></i> 1/5</td>
+                                                <td><b>9.0.65</b></td>
+                                                <td>2024-01-01 08:30:25</td>
+                                                <td class="actions-cell">
+                                                    <button class="action-btn" title="Stop"><i
+                                                            data-lucide="stop-circle"></i></button>
+                                                    <button class="action-btn" title="Reload"><i
+                                                            data-lucide="rotate-cw"></i></button>
+                                                    <button class="action-btn" title="Delete"><i
+                                                            data-lucide="trash-2"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>myapp</td>
+                                                <td>/myapp</td>
+                                                <td><span class="status-pill stopped">Stopped</span></td>
+                                                <td><i data-lucide="users"></i> 0/50</td>
+                                                <td><b>2.1.0</b></td>
+                                                <td>2024-01-15 14:22:10</td>
+                                                <td class="actions-cell">
+                                                    <button class="action-btn" title="Start"><i
+                                                            data-lucide="play"></i></button>
+                                                    <button class="action-btn" title="Reload"><i
+                                                            data-lucide="rotate-cw"></i></button>
+                                                    <button class="action-btn" title="Delete"><i
+                                                            data-lucide="trash-2"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>api-service</td>
+                                                <td>/api</td>
+                                                <td><span class="status-pill running">Running</span></td>
+                                                <td><i data-lucide="users"></i> 23/200</td>
+                                                <td><b>3.2.1</b></td>
+                                                <td>2024-01-20 09:15:30</td>
+                                                <td class="actions-cell">
+                                                    <button class="action-btn" title="Stop"><i
+                                                            data-lucide="stop-circle"></i></button>
+                                                    <button class="action-btn" title="Reload"><i
+                                                            data-lucide="rotate-cw"></i></button>
+                                                    <button class="action-btn" title="Delete"><i
+                                                            data-lucide="trash-2"></i></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                            <div class="applications-table-container">
-                              <table class="applications-table">
-                                <thead>
-                                  <tr>
-                                    <th>Application Name</th>
-                                    <th>Context Path</th>
-                                    <th>Status</th>
-                                    <th>Sessions</th>
-                                    <th>Version</th>
-                                    <th>Deploy Time</th>
-                                    <th>Actions</th>
-                                  </tr>
-                                </thead>
-                                <tbody id="tomcat-applications-tbody">
-                                  <tr>
-                                    <td>ROOT</td>
-                                    <td>/</td>
-                                    <td><span class="status-pill running">Running</span></td>
-                                    <td><i data-lucide="users"></i> 45/100</td>
-                                    <td><b>1.0.0</b></td>
-                                    <td>2024-01-01 08:30:15</td>
-                                    <td class="actions-cell">
-                                      <button class="action-btn" title="Stop"><i data-lucide="stop-circle"></i></button>
-                                      <button class="action-btn" title="Reload"><i data-lucide="rotate-cw"></i></button>
-                                      <button class="action-btn" title="Delete"><i data-lucide="trash-2"></i></button>
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td>manager</td>
-                                    <td>/manager</td>
-                                    <td><span class="status-pill running">Running</span></td>
-                                    <td><i data-lucide="users"></i> 2/10</td>
-                                    <td><b>9.0.65</b></td>
-                                    <td>2024-01-01 08:30:20</td>
-                                    <td class="actions-cell">
-                                      <button class="action-btn" title="Stop"><i data-lucide="stop-circle"></i></button>
-                                      <button class="action-btn" title="Reload"><i data-lucide="rotate-cw"></i></button>
-                                      <button class="action-btn" title="Delete"><i data-lucide="trash-2"></i></button>
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td>host-manager</td>
-                                    <td>/host-manager</td>
-                                    <td><span class="status-pill running">Running</span></td>
-                                    <td><i data-lucide="users"></i> 1/5</td>
-                                    <td><b>9.0.65</b></td>
-                                    <td>2024-01-01 08:30:25</td>
-                                    <td class="actions-cell">
-                                      <button class="action-btn" title="Stop"><i data-lucide="stop-circle"></i></button>
-                                      <button class="action-btn" title="Reload"><i data-lucide="rotate-cw"></i></button>
-                                      <button class="action-btn" title="Delete"><i data-lucide="trash-2"></i></button>
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td>myapp</td>
-                                    <td>/myapp</td>
-                                    <td><span class="status-pill stopped">Stopped</span></td>
-                                    <td><i data-lucide="users"></i> 0/50</td>
-                                    <td><b>2.1.0</b></td>
-                                    <td>2024-01-15 14:22:10</td>
-                                    <td class="actions-cell">
-                                      <button class="action-btn" title="Start"><i data-lucide="play"></i></button>
-                                      <button class="action-btn" title="Reload"><i data-lucide="rotate-cw"></i></button>
-                                      <button class="action-btn" title="Delete"><i data-lucide="trash-2"></i></button>
-                                    </td>
-                                  </tr>
-                                  <tr>
-                                    <td>api-service</td>
-                                    <td>/api</td>
-                                    <td><span class="status-pill running">Running</span></td>
-                                    <td><i data-lucide="users"></i> 23/200</td>
-                                    <td><b>3.2.1</b></td>
-                                    <td>2024-01-20 09:15:30</td>
-                                    <td class="actions-cell">
-                                      <button class="action-btn" title="Stop"><i data-lucide="stop-circle"></i></button>
-                                      <button class="action-btn" title="Reload"><i data-lucide="rotate-cw"></i></button>
-                                      <button class="action-btn" title="Delete"><i data-lucide="trash-2"></i></button>
-                                    </td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                          <script>if(window.lucide) lucide.createIcons();</script>
+                            <script>if (window.lucide) lucide.createIcons();</script>
                         </div>
                         <div class="tomcat-content-server-settings" style="display:none;">
-    <!-- Server Settings Tabs & Form UI -->
-    <div class="tomcat-settings-tabs">
-        <div class="tab active">Connector</div>
-        <div class="tab">JVM Memory</div>
-        <div class="tab">Session</div>
-        <div class="tab">Logging</div>
-        <div class="tab">Security</div>
-    </div>
-    <div class="server-settings-card metric-card">
-        <h2>Connector Settings</h2>
-        <div class="settings-row">
-            <div class="settings-col">
-                <label for="max-threads">Max Threads</label>
-                <input type="number" class="settings-input" id="max-threads" value="200" min="1" />
-            </div>
-            <div class="settings-col">
-                <label for="max-connections">Max Connections</label>
-                <input type="number" class="settings-input" id="max-connections" value="8192" min="1" />
-            </div>
-        </div>
-        <div class="settings-row">
-            <div class="settings-col" style="width:100%">
-                <label for="connection-timeout">Connection Timeout (ms)</label>
-                <input type="number" class="settings-input" id="connection-timeout" value="20000" min="1" />
-            </div>
-        </div>
-    </div>
-    <!-- JVM Memory Tab Content -->
-    <div class="settings-tab-content" id="jvm-memory-settings" style="display: none;">
-      <div class="metric-card">
-        <h2>JVM Memory Settings</h2>
-        <div class="settings-row">
-          <div class="settings-col">
-            <label for="jvm-xms">Initial Heap Size (Xms) MB</label>
-            <input type="number" id="jvm-xms" class="settings-input" value="512" min="0">
-          </div>
-          <div class="settings-col">
-            <label for="jvm-xmx">Maximum Heap Size (Xmx) MB</label>
-            <input type="number" id="jvm-xmx" class="settings-input" value="1024" min="0">
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Session Tab Content -->
-    <div class="settings-tab-content" id="session-settings" style="display: none;">
-      <div class="metric-card">
-        <h2>Session Configuration</h2>
-        <div class="settings-row">
-          <div class="settings-col" style="width:100%">
-            <label for="session-timeout">Session Timeout (minutes)</label>
-            <input type="number" id="session-timeout" class="settings-input" value="30" min="1">
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Logging Tab Content -->
-    <div class="settings-tab-content" id="logging-settings" style="display: none;">
-      <div class="metric-card">
-        <h2>Logging Settings</h2>
-        <div class="settings-row">
-          <div class="settings-col" style="width:100%">
-            <label class="switch-label">
-              <input type="checkbox" id="access-logging-toggle" class="switch-input" checked>
-              <span class="switch-slider"></span>
-              Enable Access Logging
-            </label>
-            <label for="access-log-pattern" style="margin-top:1.5rem;display:block;">Access Log Pattern</label>
-            <input type="text" id="access-log-pattern" class="settings-input" value="common">
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Security Tab Content -->
-    <div class="settings-tab-content" id="security-settings" style="display: none;">
-      <div class="metric-card">
-        <h2>Security & Deployment</h2>
-        <div class="settings-row">
-          <div class="settings-col" style="width:100%">
-            <label class="switch-label">
-              <input type="checkbox" id="auto-deploy-toggle" class="switch-input" checked>
-              <span class="switch-slider"></span>
-              Auto Deploy
-            </label>
-            <label class="switch-label">
-              <input type="checkbox" id="reloadable-toggle" class="switch-input">
-              <span class="switch-slider"></span>
-              Reloadable
-            </label>
-            <label class="switch-label">
-              <input type="checkbox" id="enable-cors-toggle" class="switch-input" checked>
-              <span class="switch-slider"></span>
-              Enable CORS
-            </label>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- End Settings Tab Content -->
+                            <!-- Server Settings Tabs & Form UI -->
+                            <div class="tomcat-settings-tabs">
+                                <div class="tab active">Connector</div>
+                                <div class="tab">JVM Memory</div>
+                                <div class="tab">Session</div>
+                                <div class="tab">Logging</div>
+                                <div class="tab">Security</div>
+                            </div>
+                            <div class="server-settings-card metric-card">
+                                <h2>Connector Settings</h2>
+                                <div class="settings-row">
+                                    <div class="settings-col">
+                                        <label for="max-threads">Max Threads</label>
+                                        <input type="number" class="settings-input" id="max-threads" value="200"
+                                            min="1" />
+                                    </div>
+                                    <div class="settings-col">
+                                        <label for="max-connections">Max Connections</label>
+                                        <input type="number" class="settings-input" id="max-connections" value="8192"
+                                            min="1" />
+                                    </div>
+                                </div>
+                                <div class="settings-row">
+                                    <div class="settings-col" style="width:100%">
+                                        <label for="connection-timeout">Connection Timeout (ms)</label>
+                                        <input type="number" class="settings-input" id="connection-timeout"
+                                            value="20000" min="1" />
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- JVM Memory Tab Content -->
+                            <div class="settings-tab-content" id="jvm-memory-settings" style="display: none;">
+                                <div class="metric-card">
+                                    <h2>JVM Memory Settings</h2>
+                                    <div class="settings-row">
+                                        <div class="settings-col">
+                                            <label for="jvm-xms">Initial Heap Size (Xms) MB</label>
+                                            <input type="number" id="jvm-xms" class="settings-input" value="512"
+                                                min="0">
+                                        </div>
+                                        <div class="settings-col">
+                                            <label for="jvm-xmx">Maximum Heap Size (Xmx) MB</label>
+                                            <input type="number" id="jvm-xmx" class="settings-input" value="1024"
+                                                min="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Session Tab Content -->
+                            <div class="settings-tab-content" id="session-settings" style="display: none;">
+                                <div class="metric-card">
+                                    <h2>Session Configuration</h2>
+                                    <div class="settings-row">
+                                        <div class="settings-col" style="width:100%">
+                                            <label for="session-timeout">Session Timeout (minutes)</label>
+                                            <input type="number" id="session-timeout" class="settings-input" value="30"
+                                                min="1">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Logging Tab Content -->
+                            <div class="settings-tab-content" id="logging-settings" style="display: none;">
+                                <div class="metric-card">
+                                    <h2>Logging Settings</h2>
+                                    <div class="settings-row">
+                                        <div class="settings-col" style="width:100%">
+                                            <label class="switch-label">
+                                                <input type="checkbox" id="access-logging-toggle" class="switch-input"
+                                                    checked>
+                                                <span class="switch-slider"></span>
+                                                Enable Access Logging
+                                            </label>
+                                            <label for="access-log-pattern"
+                                                style="margin-top:1.5rem;display:block;">Access Log Pattern</label>
+                                            <input type="text" id="access-log-pattern" class="settings-input"
+                                                value="common">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Security Tab Content -->
+                            <div class="settings-tab-content" id="security-settings" style="display: none;">
+                                <div class="metric-card">
+                                    <h2>Security & Deployment</h2>
+                                    <div class="settings-row">
+                                        <div class="settings-col" style="width:100%">
+                                            <label class="switch-label">
+                                                <input type="checkbox" id="auto-deploy-toggle" class="switch-input"
+                                                    checked>
+                                                <span class="switch-slider"></span>
+                                                Auto Deploy
+                                            </label>
+                                            <label class="switch-label">
+                                                <input type="checkbox" id="reloadable-toggle" class="switch-input">
+                                                <span class="switch-slider"></span>
+                                                Reloadable
+                                            </label>
+                                            <label class="switch-label">
+                                                <input type="checkbox" id="enable-cors-toggle" class="switch-input"
+                                                    checked>
+                                                <span class="switch-slider"></span>
+                                                Enable CORS
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- End Settings Tab Content -->
                         </div>
                         <div class="tomcat-content-log-viewer" style="display:none;">
-                    
+
                         </div>
                         <div class="tomcat-content-security" style="display:none;">
-                    
+
                         </div>
                         <div class="tomcat-content-health-check" style="display:none;">
-                    
+
                         </div>
                     </main>
-                  </div>                  
+                </div>
             </div>
             <!-- Windows Service Metrics Panel (default, visible) -->
             <div id="windows-metrics-panel">
@@ -795,7 +790,7 @@
                         <canvas id="chartCanvas" style="width:100%;height:300px;"></canvas>
                     </div>
                 </div>
-                
+
                 <!-- Logs Container -->
                 <div class="logs-container" id="logs-container">
                     <div class="logs-header">
@@ -805,85 +800,93 @@
                                 <input type="text" class="search-input" placeholder="Search logs..." id="log-search">
                             </div>
                             <div class="logs-actions-right">
-                            <div class="filter-dropdown">
-                                <button class="filter-button" onclick="toggleFilter()">
-                                    <i data-lucide="filter"></i>
-                                    <span>All Levels</span>
-                                    <i data-lucide="chevron-down"></i>
+                                <div class="filter-dropdown">
+                                    <button class="filter-button" onclick="toggleFilter()">
+                                        <i data-lucide="filter"></i>
+                                        <span>All Levels</span>
+                                        <i data-lucide="chevron-down"></i>
+                                    </button>
+                                </div>
+                                <button class="export-button" onclick="exportLogs()">
+                                    <i data-lucide="download"></i>
+                                    <span>Export CSV</span>
                                 </button>
-                            </div>
-                            <button class="export-button" onclick="exportLogs()">
-                                <i data-lucide="download"></i>
-                                <span>Export CSV</span>
-                            </button>
                             </div>
                         </div>
 
-                    <div class="logs-stats">
-                        <div class="log-stat total">Total: <strong>0</strong></div>
-                        <div class="log-stat info">Info: <strong>0</strong></div>
-                        <div class="log-stat warning">Warnings: <strong>0</strong></div>
-                        <div class="log-stat error">Errors: <strong>0</strong></div>
-                    </div>
+                        <div class="logs-stats">
+                            <div class="log-stat total">Total: <strong>0</strong></div>
+                            <div class="log-stat info">Info: <strong>0</strong></div>
+                            <div class="log-stat warning">Warnings: <strong>0</strong></div>
+                            <div class="log-stat error">Errors: <strong>0</strong></div>
+                        </div>
 
-                    <div class="logs-list" id="logs-list">
-                        <!-- Log entries will be populated by JavaScript -->
+                        <div class="logs-list" id="logs-list">
+                            <!-- Log entries will be populated by JavaScript -->
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="js/notifications.js"></script>
-    <script src="js/main.js"></script>
-    <script src="http://localhost:35729/livereload.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="js/notifications.js"></script>
+        <script src="js/main.js"></script>
+        <script src="http://localhost:35729/livereload.js"></script>
 
-    <!-- Edit Service Modal -->
-    <div id="edit-service-modal" class="modal">
-        <div class="modal-content">
-            <i data-lucide="x" class="close-button" onclick="closeEditServiceModal()"></i>
-            <h2>Modify Service</h2>
-            <form id="edit-service-form">
-                <input type="hidden" id="edit-service-id">
-                <div class="form-group">
-                    <label for="edit-service-name">Service Name <span class="info-icon" title="Enter the exact service name as shown in the Windows Services properties."><i data-lucide="info"></i></span></label>
-                    <input type="text" id="edit-service-name" required>
-                </div>
-                <div class="form-group">
-                    <label for="edit-service-url">Service URL <span class="info-icon" title="Specify the host URL where the service is accessible (e.g., http://localhost)."><i data-lucide="info"></i></span></label>
-                    <input type="text" id="edit-service-url" required>
-                </div>
-                <div class="form-group">
-                    <label for="edit-service-port">Port Number <span class="info-icon" title="Enter the port number on which the service is running."><i data-lucide="info"></i></span></label>
-                    <input type="number" id="edit-service-port" required>
-                </div>
-                <button type="submit">Modify</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Confirmation Modal for Deletion -->
-    <div id="confirmation-modal" class="modal">
-        <div class="modal-content">
-            <i data-lucide="x" class="close-button" onclick="closeConfirmationModal()"></i>
-            <h2>Confirm Deletion</h2>
-            <p>Are you sure you want to delete this service?</p>
-            <div class="modal-buttons">
-                <button class="btn secondary" onclick="closeConfirmationModal()">Cancel</button>
-                <button class="btn danger" id="confirm-delete-btn">Delete</button>
+        <!-- Edit Service Modal -->
+        <div id="edit-service-modal" class="modal">
+            <div class="modal-content">
+                <i data-lucide="x" class="close-button" onclick="closeEditServiceModal()"></i>
+                <h2>Modify Service</h2>
+                <form id="edit-service-form">
+                    <input type="hidden" id="edit-service-id">
+                    <div class="form-group">
+                        <label for="edit-service-name">Service Name <span class="info-icon"
+                                title="Enter the exact service name as shown in the Windows Services properties."><i
+                                    data-lucide="info"></i></span></label>
+                        <input type="text" id="edit-service-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-service-url">Service URL <span class="info-icon"
+                                title="Specify the host URL where the service is accessible (e.g., http://localhost)."><i
+                                    data-lucide="info"></i></span></label>
+                        <input type="text" id="edit-service-url" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-service-port">Port Number <span class="info-icon"
+                                title="Enter the port number on which the service is running."><i
+                                    data-lucide="info"></i></span></label>
+                        <input type="number" id="edit-service-port" required>
+                    </div>
+                    <button type="submit">Modify</button>
+                </form>
             </div>
         </div>
-    </div>
 
-    <!-- Spinner Overlay for Service Start (replace spinner with Lottie) -->
-    <div class="spinner-overlay" id="service-spinner-overlay" style="display:none;">
-        <div class="spinner-content">
-            <lottie-player id="lottie-service-spinner" src="assets/spinner.json" background="transparent" speed="1" style="width: 120px; height: 120px;" loop autoplay></lottie-player>
-            <div class="spinner-message" id="service-spinner-message">Service is being started</div>
+        <!-- Confirmation Modal for Deletion -->
+        <div id="confirmation-modal" class="modal">
+            <div class="modal-content">
+                <i data-lucide="x" class="close-button" onclick="closeConfirmationModal()"></i>
+                <h2>Confirm Deletion</h2>
+                <p>Are you sure you want to delete this service?</p>
+                <div class="modal-buttons">
+                    <button class="btn secondary" onclick="closeConfirmationModal()">Cancel</button>
+                    <button class="btn danger" id="confirm-delete-btn">Delete</button>
+                </div>
+            </div>
         </div>
-    </div>
+
+        <!-- Spinner Overlay for Service Start (replace spinner with Lottie) -->
+        <div class="spinner-overlay" id="service-spinner-overlay" style="display:none;">
+            <div class="spinner-content">
+                <lottie-player id="lottie-service-spinner" src="assets/spinner.json" background="transparent" speed="1"
+                    style="width: 120px; height: 120px;" loop autoplay></lottie-player>
+                <div class="spinner-message" id="service-spinner-message">Service is being started</div>
+            </div>
+        </div>
 </body>
+
 </html>
 
 <!-- Register Service Modal -->
@@ -893,15 +896,21 @@
         <h2>Register Service</h2>
         <form id="register-service-form">
             <div class="form-group">
-                <label for="service-name">Service Name <span class="info-icon" title="Enter the exact service name as shown in the Windows Services properties."><i data-lucide="info"></i></span></label>
+                <label for="service-name">Service Name <span class="info-icon"
+                        title="Enter the exact service name as shown in the Windows Services properties."><i
+                            data-lucide="info"></i></span></label>
                 <input type="text" id="service-name" required>
             </div>
             <div class="form-group">
-                <label for="service-url">Service URL <span class="info-icon" title="Specify the host URL where the service is accessible (e.g., http://localhost)."><i data-lucide="info"></i></span></label>
+                <label for="service-url">Service URL <span class="info-icon"
+                        title="Specify the host URL where the service is accessible (e.g., http://localhost)."><i
+                            data-lucide="info"></i></span></label>
                 <input type="text" id="service-url" required>
             </div>
             <div class="form-group">
-                <label for="service-port">Port Number <span class="info-icon" title="Enter the port number on which the service is running."><i data-lucide="info"></i></span></label>
+                <label for="service-port">Port Number <span class="info-icon"
+                        title="Enter the port number on which the service is running."><i
+                            data-lucide="info"></i></span></label>
                 <input type="number" id="service-port" required>
             </div>
             <button type="submit">Register</button>
@@ -932,9 +941,9 @@
 <!-- Lucide Icons CDN -->
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    if (window.lucide) {
-      lucide.createIcons();
-    }
-  });
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    });
 </script>
