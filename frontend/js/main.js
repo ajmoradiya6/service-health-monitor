@@ -1,4 +1,4 @@
-﻿async function loadServices() {
+async function loadServices() {
   try {
     const response = await fetch('/api/services');
     
@@ -1674,55 +1674,6 @@ function handleClickOutsideMenu(event) {
     }
 }
 
-// ===== EVENT LISTENERS =====
-
-// Event listener for window resize to redraw chart and update tab slider
-window.addEventListener('resize', () => {
-    setTimeout(resizeCanvas, 100);
-
-    // Update tab slider position
-    const tabs = document.querySelectorAll('.tab');
-    const tabSlider = document.querySelector('.tab-slider');
-    if (!tabs || !tabSlider) return;
-    const activeIndex = Array.from(tabs).findIndex(tab => tab.classList.contains('active'));
-
-    tabSlider.style.transform = `translateX(${(activeIndex * 100)}%)`; // Use percentage for flexibility
-});
-
-// Event listener for orientation change to redraw chart
-window.addEventListener('orientationchange', () => {
-    setTimeout(resizeCanvas, 100);
-});
-
-// Event listener to close sidebar on mobile when clicking outside
-document.addEventListener('click', (e) => {
-    const sidebar = document.getElementById('sidebar');
-    const menuBtn = document.querySelector('.mobile-menu-btn');
-
-    if (sidebar && menuBtn && window.innerWidth <= 768 &&
-        sidebar.classList.contains('open') &&
-        !sidebar.contains(e.target) &&
-        !menuBtn.contains(e.target)) {
-        closeSidebar();
-    }
-});
-
-// Event listener to close the modal when clicking outside the modal content
-window.addEventListener('click', function(event) {
-    const registerServiceModal = document.getElementById('register-service-modal');
-    const editServiceModal = document.getElementById('edit-service-modal');
-
-    if (registerServiceModal && event.target == registerServiceModal) {
-        closeRegisterServiceModal();
-    }
-    if (editServiceModal && event.target == editServiceModal) {
-        closeEditServiceModal();
-    }
-    if (settingsModal && event.target == settingsModal) {
-        closeSettingsModal();
-    }
-});
-
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded fired.');
@@ -1987,6 +1938,49 @@ document.addEventListener('DOMContentLoaded', () => {
             if (header) header.textContent = titleText;
         });
     });
+
+
+   
+
+
+    // --- Server Settings Tab Switching Logic ---
+    const settingsTabs = document.querySelectorAll('.tomcat-content-server-settings .tomcat-settings-tabs .tab');
+    const tabContents = [
+      document.querySelector('.tomcat-content-server-settings .metric-card'),
+      document.getElementById('jvm-memory-settings'),
+      document.getElementById('session-settings'),
+      document.getElementById('logging-settings'),
+      document.getElementById('security-settings')
+    ];
+    function showSettingsTab(idx) {
+      settingsTabs.forEach((t, i) => {
+        if (i === idx) t.classList.add('active');
+        else t.classList.remove('active');
+      });
+      tabContents.forEach((content, cidx) => {
+        if (content) {
+          if (cidx === idx) {
+            content.style.display = 'block';
+            content.style.flexDirection = '';
+          } else {
+            content.style.display = 'none';
+          }
+        }
+      });
+    }
+    settingsTabs.forEach((tab, idx) => {
+      tab.addEventListener('click', function() {
+        showSettingsTab(idx);
+      });
+      tab.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          showSettingsTab(idx);
+        }
+      });
+    });
+    // Show only the first tab content by default
+    showSettingsTab(0);
 
 
     // Initialize settings when the page loads

@@ -441,14 +441,282 @@
                             }
                             </script>
                         </div>
-                        <div class="tomcat-content-jvm-memory" style="display:none;">
-                    
+                        <div class="tomcat-content-jvm-memory" style="display:none; padding-top: 20px;">
+                            <!-- JVM & Memory Metrics UI (Dark Theme, metric-card style) -->
+                            <div class="metrics-grid">
+                                <div class="metric-card">
+                                    <div class="metric-header">
+                                        <i data-lucide="database" class="metric-icon"></i>
+                                        <div class="metric-label">Heap Memory</div>
+                                    </div>
+                                    <div class="metric-value">834 MB</div>
+                                    <div class="metric-subtext">Max: 1024 MB (81.4%)</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-header">
+                                        <i data-lucide="lock" class="metric-icon"></i>
+                                        <div class="metric-label">Non-Heap Memory</div>
+                                    </div>
+                                    <div class="metric-value">167 MB</div>
+                                    <div class="metric-subtext">Max: 256 MB (65.2%)</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-header">
+                                        <i data-lucide="trash-2" class="metric-icon"></i>
+                                        <div class="metric-label">GC Count</div>
+                                    </div>
+                                    <div class="metric-value">1,247</div>
+                                    <div class="metric-subtext">Total collections</div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-header">
+                                        <i data-lucide="settings" class="metric-icon"></i>
+                                        <div class="metric-label">GC Time</div>
+                                    </div>
+                                    <div class="metric-value">2345 ms</div>
+                                    <div class="metric-subtext">Total GC time</div>
+                                </div>
+                            </div>
+                            <div class="metrics-charts" style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 16px;">
+                                <div class="metric-card" style="flex: 2 1 400px; min-width: 340px;">
+                                    <div class="metric-header" style="margin-bottom: 16px;">
+                                        <div class="metric-label" style="font-size: 22px; font-weight: 700; color: #fff;">Memory Usage Over Time</div>
+                                    </div>
+                                    <canvas id="memory-usage-chart" style="width:100%;height:260px;"></canvas>
+                                </div>
+                                <div class="metric-card" style="flex: 2 1 400px; min-width: 340px;">
+                                    <div class="metric-header" style="margin-bottom: 16px;">
+                                        <div class="metric-label" style="font-size: 22px; font-weight: 700; color: #fff;">Memory Pool Distribution</div>
+                                    </div>
+                                    <canvas id="memory-pool-chart" style="width:100%;height:260px;"></canvas>
+                                </div>
+                            </div>
+                            <script>
+                            if (window.lucide) lucide.createIcons();
+                            // Example Chart.js setup (replace with real data)
+                            if (window.Chart) {
+                                const ctx1 = document.getElementById('memory-usage-chart').getContext('2d');
+                                new Chart(ctx1, {
+                                    type: 'line',
+                                    data: {
+                                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                                        datasets: [
+                                            { label: 'Heap Memory', data: [500, 450, 650, 800, 850, 750], borderColor: '#3b82f6', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#3b82f6', fill: false },
+                                            { label: 'Non-Heap Memory', data: [100, 110, 120, 140, 150, 130], borderColor: '#22d3ee', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#22d3ee', fill: false }
+                                        ]
+                                    },
+                                    options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } } }
+                                });
+                                const ctx2 = document.getElementById('memory-pool-chart').getContext('2d');
+                                new Chart(ctx2, {
+                                    type: 'pie',
+                                    data: {
+                                        labels: ['Eden Space: 256MB', 'Old Generation: 512MB', 'Metaspace: 128MB', 'Survivor Space: 64MB'],
+                                        datasets: [
+                                            { data: [256, 512, 128, 64], backgroundColor: ['#a78bfa', '#fde68a', '#f59e0b', '#4ade80'] }
+                                        ]
+                                    },
+                                    options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } } }
+                                });
+                            }
+                            </script>
                         </div>
                         <div class="tomcat-content-applications" style="display:none;">
-                    
+                          <!-- Web Applications Table UI -->
+                          <div class="metric-card">
+                            <div class="metric-card-header">
+                              <i data-lucide="globe"></i>
+                              <span class="metric-card-title">Web Applications</span>
+                            </div>
+                            <div class="applications-table-container">
+                              <table class="applications-table">
+                                <thead>
+                                  <tr>
+                                    <th>Application Name</th>
+                                    <th>Context Path</th>
+                                    <th>Status</th>
+                                    <th>Sessions</th>
+                                    <th>Version</th>
+                                    <th>Deploy Time</th>
+                                    <th>Actions</th>
+                                  </tr>
+                                </thead>
+                                <tbody id="tomcat-applications-tbody">
+                                  <tr>
+                                    <td>ROOT</td>
+                                    <td>/</td>
+                                    <td><span class="status-pill running">Running</span></td>
+                                    <td><i data-lucide="users"></i> 45/100</td>
+                                    <td><b>1.0.0</b></td>
+                                    <td>2024-01-01 08:30:15</td>
+                                    <td class="actions-cell">
+                                      <button class="action-btn" title="Stop"><i data-lucide="stop-circle"></i></button>
+                                      <button class="action-btn" title="Reload"><i data-lucide="rotate-cw"></i></button>
+                                      <button class="action-btn" title="Delete"><i data-lucide="trash-2"></i></button>
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>manager</td>
+                                    <td>/manager</td>
+                                    <td><span class="status-pill running">Running</span></td>
+                                    <td><i data-lucide="users"></i> 2/10</td>
+                                    <td><b>9.0.65</b></td>
+                                    <td>2024-01-01 08:30:20</td>
+                                    <td class="actions-cell">
+                                      <button class="action-btn" title="Stop"><i data-lucide="stop-circle"></i></button>
+                                      <button class="action-btn" title="Reload"><i data-lucide="rotate-cw"></i></button>
+                                      <button class="action-btn" title="Delete"><i data-lucide="trash-2"></i></button>
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>host-manager</td>
+                                    <td>/host-manager</td>
+                                    <td><span class="status-pill running">Running</span></td>
+                                    <td><i data-lucide="users"></i> 1/5</td>
+                                    <td><b>9.0.65</b></td>
+                                    <td>2024-01-01 08:30:25</td>
+                                    <td class="actions-cell">
+                                      <button class="action-btn" title="Stop"><i data-lucide="stop-circle"></i></button>
+                                      <button class="action-btn" title="Reload"><i data-lucide="rotate-cw"></i></button>
+                                      <button class="action-btn" title="Delete"><i data-lucide="trash-2"></i></button>
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>myapp</td>
+                                    <td>/myapp</td>
+                                    <td><span class="status-pill stopped">Stopped</span></td>
+                                    <td><i data-lucide="users"></i> 0/50</td>
+                                    <td><b>2.1.0</b></td>
+                                    <td>2024-01-15 14:22:10</td>
+                                    <td class="actions-cell">
+                                      <button class="action-btn" title="Start"><i data-lucide="play"></i></button>
+                                      <button class="action-btn" title="Reload"><i data-lucide="rotate-cw"></i></button>
+                                      <button class="action-btn" title="Delete"><i data-lucide="trash-2"></i></button>
+                                    </td>
+                                  </tr>
+                                  <tr>
+                                    <td>api-service</td>
+                                    <td>/api</td>
+                                    <td><span class="status-pill running">Running</span></td>
+                                    <td><i data-lucide="users"></i> 23/200</td>
+                                    <td><b>3.2.1</b></td>
+                                    <td>2024-01-20 09:15:30</td>
+                                    <td class="actions-cell">
+                                      <button class="action-btn" title="Stop"><i data-lucide="stop-circle"></i></button>
+                                      <button class="action-btn" title="Reload"><i data-lucide="rotate-cw"></i></button>
+                                      <button class="action-btn" title="Delete"><i data-lucide="trash-2"></i></button>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                          <script>if(window.lucide) lucide.createIcons();</script>
                         </div>
                         <div class="tomcat-content-server-settings" style="display:none;">
-                    
+    <!-- Server Settings Tabs & Form UI -->
+    <div class="tomcat-settings-tabs">
+        <div class="tab active">Connector</div>
+        <div class="tab">JVM Memory</div>
+        <div class="tab">Session</div>
+        <div class="tab">Logging</div>
+        <div class="tab">Security</div>
+    </div>
+    <div class="server-settings-card metric-card">
+        <div class="metric-card-header">
+            <i data-lucide="settings" class="metric-icon"></i>
+            <span class="metric-card-title">Connector Settings</span>
+        </div>
+        <form class="settings-tab-content" style="display: block;">
+            <div class="settings-form-row">
+                <div class="settings-col">
+                    <label for="max-threads">Max Threads</label>
+                    <input type="number" class="settings-input" id="max-threads" value="200" readonly />
+                </div>
+                <div class="settings-col">
+                    <label for="max-connections">Max Connections</label>
+                    <input type="number" class="settings-input" id="max-connections" value="8192" readonly />
+                </div>
+            </div>
+            <div class="settings-form-row">
+                <div class="settings-col" style="flex:2;max-width:none;">
+                    <label for="connection-timeout">Connection Timeout (ms)</label>
+                    <input type="number" class="settings-input" id="connection-timeout" value="20000" readonly />
+                </div>
+            </div>
+        </form>
+    </div>
+    <!-- JVM Memory Tab Content -->
+    <div class="settings-tab-content" id="jvm-memory-settings" style="display: none;">
+      <div class="metric-card">
+        <h2>JVM Memory Settings</h2>
+        <div class="settings-row">
+          <div class="settings-col">
+            <label for="jvm-xms">Initial Heap Size (Xms) MB</label>
+            <input type="number" id="jvm-xms" class="settings-input" value="512" min="0">
+          </div>
+          <div class="settings-col">
+            <label for="jvm-xmx">Maximum Heap Size (Xmx) MB</label>
+            <input type="number" id="jvm-xmx" class="settings-input" value="1024" min="0">
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Session Tab Content -->
+    <div class="settings-tab-content" id="session-settings" style="display: none;">
+      <div class="metric-card">
+        <h2>Session Configuration</h2>
+        <div class="settings-row">
+          <div class="settings-col" style="width:100%">
+            <label for="session-timeout">Session Timeout (minutes)</label>
+            <input type="number" id="session-timeout" class="settings-input" value="30" min="1">
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Logging Tab Content -->
+    <div class="settings-tab-content" id="logging-settings" style="display: none;">
+      <div class="metric-card">
+        <h2>Logging Settings</h2>
+        <div class="settings-row">
+          <div class="settings-col" style="width:100%">
+            <label class="switch-label">
+              <input type="checkbox" id="access-logging-toggle" class="switch-input" checked>
+              <span class="switch-slider"></span>
+              Enable Access Logging
+            </label>
+            <label for="access-log-pattern" style="margin-top:1.5rem;display:block;">Access Log Pattern</label>
+            <input type="text" id="access-log-pattern" class="settings-input" value="common">
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Security Tab Content -->
+    <div class="settings-tab-content" id="security-settings" style="display: none;">
+      <div class="metric-card">
+        <h2>Security & Deployment</h2>
+        <div class="settings-row">
+          <div class="settings-col" style="width:100%">
+            <label class="switch-label">
+              <input type="checkbox" id="auto-deploy-toggle" class="switch-input" checked>
+              <span class="switch-slider"></span>
+              Auto Deploy
+            </label>
+            <label class="switch-label">
+              <input type="checkbox" id="reloadable-toggle" class="switch-input">
+              <span class="switch-slider"></span>
+              Reloadable
+            </label>
+            <label class="switch-label">
+              <input type="checkbox" id="enable-cors-toggle" class="switch-input" checked>
+              <span class="switch-slider"></span>
+              Enable CORS
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End Settings Tab Content -->
                         </div>
                         <div class="tomcat-content-log-viewer" style="display:none;">
                     
