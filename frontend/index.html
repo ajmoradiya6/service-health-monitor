@@ -623,28 +623,23 @@
         <div class="tab">Security</div>
     </div>
     <div class="server-settings-card metric-card">
-        <div class="metric-card-header">
-            <i data-lucide="settings" class="metric-icon"></i>
-            <span class="metric-card-title">Connector Settings</span>
+        <h2>Connector Settings</h2>
+        <div class="settings-row">
+            <div class="settings-col">
+                <label for="max-threads">Max Threads</label>
+                <input type="number" class="settings-input" id="max-threads" value="200" min="1" />
+            </div>
+            <div class="settings-col">
+                <label for="max-connections">Max Connections</label>
+                <input type="number" class="settings-input" id="max-connections" value="8192" min="1" />
+            </div>
         </div>
-        <form class="settings-tab-content" style="display: block;">
-            <div class="settings-form-row">
-                <div class="settings-col">
-                    <label for="max-threads">Max Threads</label>
-                    <input type="number" class="settings-input" id="max-threads" value="200" readonly />
-                </div>
-                <div class="settings-col">
-                    <label for="max-connections">Max Connections</label>
-                    <input type="number" class="settings-input" id="max-connections" value="8192" readonly />
-                </div>
+        <div class="settings-row">
+            <div class="settings-col" style="width:100%">
+                <label for="connection-timeout">Connection Timeout (ms)</label>
+                <input type="number" class="settings-input" id="connection-timeout" value="20000" min="1" />
             </div>
-            <div class="settings-form-row">
-                <div class="settings-col" style="flex:2;max-width:none;">
-                    <label for="connection-timeout">Connection Timeout (ms)</label>
-                    <input type="number" class="settings-input" id="connection-timeout" value="20000" readonly />
-                </div>
-            </div>
-        </form>
+        </div>
     </div>
     <!-- JVM Memory Tab Content -->
     <div class="settings-tab-content" id="jvm-memory-settings" style="display: none;">
