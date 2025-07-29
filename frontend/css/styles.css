@@ -1631,6 +1631,7 @@ body {
 
 /* ===== CHART CONTAINER ===== */
 .chart-container {
+    height: calc(-300px + 100vh);
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--card-radius);
@@ -1738,6 +1739,8 @@ body {
 
 /* ===== LOGS CONTAINER ===== */
 .logs-container {
+    overflow-y: auto;
+    height: calc(100vh - 300px);
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--card-radius);
@@ -1745,7 +1748,7 @@ body {
     box-shadow: var(--shadow-sm);
     transition: var(--transition-normal);
     position: relative;
-    overflow: hidden;
+    /* overflow: hidden; */
     flex: 1;
     min-height: 0;
     display: none;
