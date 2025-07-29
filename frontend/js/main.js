@@ -1,70 +1,74 @@
 // Chart.js setup for Tomcat Thread & Connection tab
+
 window.addEventListener('DOMContentLoaded', function () {
-  if (window.Chart) {
-    // Thread Usage Over Time
-    const threadUsage = document.getElementById('thread-usage-chart');
-    if (threadUsage) {
-      const ctx1 = threadUsage.getContext('2d');
-      new Chart(ctx1, {
-        type: 'line',
-        data: {
-          labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
-          datasets: [
-            { label: 'Max Threads', data: [200, 200, 200, 200, 200, 200], borderColor: '#22d3ee', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#22d3ee', fill: false },
-            { label: 'Current Threads', data: [45, 35, 70, 110, 140, 100], borderColor: '#3b82f6', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#3b82f6', fill: false }
-          ]
-        },
-        options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } } }
-      });
+    //const fontColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim();
+    //console.log('Chart.js font color:', fontColor); // Debug log
+    
+    if (window.Chart) {
+        // Thread Usage Over Time
+        const threadUsage = document.getElementById('thread-usage-chart');
+        if (threadUsage) {
+            const ctx1 = threadUsage.getContext('2d');
+            new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                    datasets: [
+                        { label: 'Max Threads', data: [200, 200, 200, 200, 200, 200], borderColor: '#22d3ee', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#22d3ee', fill: false },
+                        { label: 'Current Threads', data: [45, 35, 70, 110, 140, 100], borderColor: '#3b82f6', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#3b82f6', fill: false }
+                    ]
+                },
+                options: { responsive: true, plugins: { legend: { labels: { color: "#64748b" } } }, scales: { x: { ticks: { color: "#64748b" } }, y: { ticks: { color: "#64748b" } } } }
+            });
+        }
+        // Requests & Errors
+        const requestsErrors = document.getElementById('requests-errors-chart');
+        if (requestsErrors) {
+            const ctx2 = requestsErrors.getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                    datasets: [
+                        { label: 'Requests', data: [1200, 800, 1800, 2600, 3200, 1700], backgroundColor: '#f59e0b', borderRadius: 6 },
+                        { label: 'Errors', data: [10, 5, 20, 15, 30, 12], backgroundColor: '#a21caf', borderRadius: 6 }
+                    ]
+                },
+                options: { responsive: true, plugins: { legend: { labels: { color: '#64748b' } } }, scales: { x: { ticks: { color: '#64748b' } }, y: { ticks: { color: '#64748b' } } } }
+            });
+        }
+        // JVM Memory Usage Over Time
+        const memoryUsage = document.getElementById('memory-usage-chart');
+        if (memoryUsage) {
+            const ctx3 = memoryUsage.getContext('2d');
+            new Chart(ctx3, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                    datasets: [
+                        { label: 'Heap Memory', data: [500, 450, 650, 800, 850, 750], borderColor: '#3b82f6', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#3b82f6', fill: false },
+                        { label: 'Non-Heap Memory', data: [100, 110, 120, 140, 150, 130], borderColor: '#22d3ee', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#22d3ee', fill: false }
+                    ]
+                },
+                options: { responsive: true, plugins: { legend: { labels: { color: '#64748b' } } }, scales: { x: { ticks: { color: '#64748b' } }, y: { ticks: { color: '#64748b' } } } }
+            });
+        }
+        // JVM Memory Pool Distribution
+        const memoryPool = document.getElementById('memory-pool-chart');
+        if (memoryPool) {
+            const ctx4 = memoryPool.getContext('2d');
+            new Chart(ctx4, {
+                type: 'pie',
+                data: {
+                    labels: ['Eden Space: 256MB', 'Old Generation: 512MB', 'Metaspace: 128MB', 'Survivor Space: 64MB'],
+                    datasets: [
+                        { data: [256, 512, 128, 64], backgroundColor: ['#a78bfa', '#fde68a', '#f59e0b', '#4ade80'] }
+                    ]
+                },
+                options: { responsive: true, plugins: { legend: { labels: { color: '#64748b' } } } }
+            });
+        }
     }
-    // Requests & Errors
-    const requestsErrors = document.getElementById('requests-errors-chart');
-    if (requestsErrors) {
-      const ctx2 = requestsErrors.getContext('2d');
-      new Chart(ctx2, {
-        type: 'bar',
-        data: {
-          labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
-          datasets: [
-            { label: 'Requests', data: [1200, 800, 1800, 2600, 3200, 1700], backgroundColor: '#f59e0b', borderRadius: 6 },
-            { label: 'Errors', data: [10, 5, 20, 15, 30, 12], backgroundColor: '#a21caf', borderRadius: 6 }
-          ]
-        },
-        options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } } }
-      });
-    }
-    // JVM Memory Usage Over Time
-    const memoryUsage = document.getElementById('memory-usage-chart');
-    if (memoryUsage) {
-      const ctx3 = memoryUsage.getContext('2d');
-      new Chart(ctx3, {
-        type: 'line',
-        data: {
-          labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
-          datasets: [
-            { label: 'Heap Memory', data: [500, 450, 650, 800, 850, 750], borderColor: '#3b82f6', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#3b82f6', fill: false },
-            { label: 'Non-Heap Memory', data: [100, 110, 120, 140, 150, 130], borderColor: '#22d3ee', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#22d3ee', fill: false }
-          ]
-        },
-        options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } } }
-      });
-    }
-    // JVM Memory Pool Distribution
-    const memoryPool = document.getElementById('memory-pool-chart');
-    if (memoryPool) {
-      const ctx4 = memoryPool.getContext('2d');
-      new Chart(ctx4, {
-        type: 'pie',
-        data: {
-          labels: ['Eden Space: 256MB', 'Old Generation: 512MB', 'Metaspace: 128MB', 'Survivor Space: 64MB'],
-          datasets: [
-            { data: [256, 512, 128, 64], backgroundColor: ['#a78bfa', '#fde68a', '#f59e0b', '#4ade80'] }
-          ]
-        },
-        options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } } }
-      });
-    }
-  }
 });
 async function loadServices() {
   try {

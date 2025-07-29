@@ -16,7 +16,7 @@
     border-radius: 8px;
     background: transparent;
     color: var(--text-secondary);
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     border: none;
@@ -833,11 +833,12 @@ body {
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
     --bg-refresh : rgba(0, 0, 0, 0.1);
+    --chart-font : black;
 }
 /* ===== DARK MODE VARIABLES ===== */
 [data-theme="dark"] {
     --bg-refresh : rgba(255, 255, 255, 0.15);
-
+    --chart-font : white;
 }
 
 /* ===== RESET & BASE STYLES ===== */
@@ -1783,7 +1784,6 @@ body {
     /* Align items to the top */
     width: 100%;
     flex-wrap: wrap;
-    /* Allow wrapping on smaller screens */
 }
 
 .logs-actions-right {
@@ -4529,6 +4529,14 @@ body {
 
 .tomcat-running {
     color: #16a34a;
+}
+
+[data-theme="light"] .metrics-charts .metric-label{
+    color: black !important;
+}
+
+[data-theme="dark"] .metrics-charts .metric-label{
+    color: white !important;
 }
 
 .metrics-charts .metric-card{
