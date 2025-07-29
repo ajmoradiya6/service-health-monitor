@@ -475,6 +475,7 @@ function setupServicePowerButton() {
         }
         if (status === 'Running') {
             // Stop the service
+            showServiceSpinner('Stopping Service...');
             const resp = await fetch(`/api/service-control/${activeServiceId}/stop`, { method: 'POST' });
             if (resp.ok) {
                 showNotification('Service stopped', 'success');
@@ -484,7 +485,10 @@ function setupServicePowerButton() {
                 if (tomcatSidebarItem && activeServiceId === JSON.parse(tomcatSidebarItem.dataset.service).id) {
                     updateTomcatStatusDotBoth(false);
                 }
+                hideServiceSpinner();
+                // We do not need to update status dot for windows services
             } else {
+                hideServiceSpinner();
                 const err = await resp.json();
                 showNotification('Failed to stop service: ' + (err.error || resp.statusText), 'error');
             }
@@ -505,33 +509,50 @@ function setupServicePowerButton() {
                         const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
                         if (tomcatSidebarItem && activeServiceId === JSON.parse(tomcatSidebarItem.dataset.service).id) {
                             hideServiceSpinner();
+                            updatePowerButton('Running');
                             window._serviceSpinnerShouldHideOnRunning = false;
                             updateTomcatStatusDotBoth(true);
+                        }else{
+                            showServiceSpinner('Connecting to Service...');
+                            updatePowerButton('Running');
+                            showNotification('Service started', 'success');
+                            updateServiceStatus('Running');
                         }
                         break;
                     }
-                    tries++;
-                }
-                if (running) {
-                    showNotification('Service started', 'success');
-                    updatePowerButton('Running');
-                    // For Windows, hide spinner here (after notification)
-                    const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
-                    if (!tomcatSidebarItem || activeServiceId !== JSON.parse(tomcatSidebarItem.dataset.service).id) {
+                    else {
                         hideServiceSpinner();
                         window._serviceSpinnerShouldHideOnRunning = false;
+                        showNotification('Service start timed out', 'error');
+                        updatePowerButton('Stopped');
+                        break;
                     }
+                    tries++;
+                }/*
+                if (running && activeServiceId !== JSON.parse(tomcatSidebarItem.dataset.service).id) {
+                    //showNotification('Service started', 'success');
+                    showServiceSpinner('Connecting to Service...');
+                    updatePowerButton('Running');
+                    showNotification('Service started', 'success');
+                    updateServiceStatus('Running');
+                    
+                    // For Windows, hide spinner here (after notification)
+                    // const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
+                    // if (!tomcatSidebarItem || activeServiceId !== JSON.parse(tomcatSidebarItem.dataset.service).id) {
+                    //     hideServiceSpinner();
+                    //     window._serviceSpinnerShouldHideOnRunning = false;
+                    // }
                 } else {
                     hideServiceSpinner();
                     window._serviceSpinnerShouldHideOnRunning = false;
                     showNotification('Service start timed out', 'error');
                     updatePowerButton('Stopped');
-                }
+                }*/
             } else {
                 hideServiceSpinner();
                 window._serviceSpinnerShouldHideOnRunning = false;
                 const err = await resp.json();
-                showNotification('Failed to start service: ' + (err.error || resp.statusText), 'error');
+                showNotification('Failed to start service', 'error');
                 updatePowerButton('Stopped');
             }
         }
@@ -2663,6 +2684,8 @@ async function pollTomcatStatus() {
         // tomcatPrevStatus = false;
     }
 }
+
+
 
 // Start polling Tomcat status every 5 seconds after DOM is ready
 window.addEventListener('DOMContentLoaded', function() {
