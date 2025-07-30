@@ -8,13 +8,13 @@ const serviceControlRoutes = require('./routes/serviceControl');
 
 app.use(express.json());
 
-// ✅ Inject LiveReload script into HTML
+//  Inject LiveReload script into HTML
 app.use(connectLivereload());
 
-// ✅ Serve frontend static files (HTML, CSS, JS)
+//  Serve frontend static files (HTML, CSS, JS)
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// ✅ Mount API routes under /api
+//  Mount API routes under /api
 app.use('/api', apiRoutes);
 //app.use('/api/service-control', serviceControlRoutes);
 

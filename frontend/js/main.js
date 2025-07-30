@@ -2066,8 +2066,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const tabs = document.querySelectorAll(".tomcat-content-log-viewer .tomcat-settings-tabs .tab");
     const containers = {
-        "API Access": document.getElementById("api-access-logs"),
-        "Std Error": document.getElementById("std-error-logs")
+        "API Access": document.getElementById("api-access-logs-container"),
+        "Std Error": document.getElementById("std-error-logs-container")
     };
 
     tabs.forEach(tab => {
@@ -2625,6 +2625,21 @@ function updateTomcatStatusDotBoth(isRunning) {
 
 // === Tomcat status polling and notification logic ===
 let tomcatPrevStatus = null;
+// Persistent buffers for each log type
+const apiAccessLogBuffer = [];
+const stdErrorLogBuffer = [];
+
+// Helper to maintain a fixed size buffer
+function pushToBuffer(buffer, lines, maxSize = 200) {
+    for (const line of lines) {
+        if (!buffer.includes(line)) { // Prevent duplicates
+            buffer.push(line);
+        }
+    }
+    // Keep only last 'maxSize' lines
+    while (buffer.length > maxSize) buffer.shift();
+}
+
 
 async function pollTomcatStatus() {
 
@@ -2691,9 +2706,6 @@ async function pollTomcatStatus() {
         const metrics = await resp.json();
         updateTomcatMetricsUI(metrics);
 
-        // Only now, update charts
-        
-
         updateLiveChart(threadUsageChart, nowLabel, [
             metrics.threads?.max ?? null,
             metrics.threads?.busy ?? null
@@ -2724,9 +2736,52 @@ async function pollTomcatStatus() {
         el.textContent = nowLabel;
     });
 
+    // Add logic to fetch logs
+    try {
+        const logsResp = await fetch(`/api/service-control/tomcat/logs`);
+        if (!logsResp.ok) throw new Error('Failed to fetch Tomcat logs');
+        const logsData = await logsResp.json();
+
+        const apiAccessLogsEl = document.getElementById('api-access-logs');
+        const stdErrorLogsEl = document.getElementById('std-error-logs');
+
+        // Process new logs and add to buffer
+        const accessLines = logsData.logs?.localhostAccess
+            ? Object.values(logsData.logs.localhostAccess).map(logObj => logObj.line)
+            : [];
+        const stdErrLines = logsData.logs?.stdError
+            ? Object.values(logsData.logs.stdError).map(logObj => logObj.line)
+            : [];
+
+        pushToBuffer(apiAccessLogBuffer, accessLines, 200);
+        pushToBuffer(stdErrorLogBuffer, stdErrLines, 200);
+
+        // Render current buffers
+        if (apiAccessLogsEl) {
+            apiAccessLogsEl.innerHTML = '';
+            apiAccessLogBuffer.forEach(line => {
+                const div = document.createElement('div');
+                div.className = 'log-line';
+                div.textContent = line;
+                apiAccessLogsEl.appendChild(div);
+            });
+        }
+        if (stdErrorLogsEl) {
+            stdErrorLogsEl.innerHTML = '';
+            stdErrorLogBuffer.forEach(line => {
+                const div = document.createElement('div');
+                div.className = 'log-line';
+                div.textContent = line;
+                stdErrorLogsEl.appendChild(div);
+            });
+        }
+
+    } catch (err) {
+        console.error('Error fetching Tomcat logs:', err);
+        // Show error but keep current logs in view
+    }
+
 }
-
-
 
 function updateTomcatMetricsUI(metrics) {
 

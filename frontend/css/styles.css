@@ -4572,14 +4572,7 @@ body {
     overflow-x: auto;
     box-sizing: border-box;
 }
-/*
-.metrics-charts canvas {
-    max-width: 100% !important;
-    height: 260px !important;
-    display: block;
-    margin: 0 auto;
-    box-sizing: border-box;
-}*/
+
 /* Fix Tomcat card min-width for status/uptime/JVM cards */
 .tomcat-cards .tomcat-card {
     min-width: 280px;
@@ -4616,4 +4609,21 @@ body {
     display: flex;
     align-items: center;
     gap: 20px;
+}
+
+.log-line {
+    font-family: monospace;
+    font-size: 13px;
+    padding: 2px;               
+    margin: 0;             
+    border-bottom: 1px solid #eee;
+    white-space: pre-wrap;
+    word-break: break-all;
+    line-height: 1.2;  
+}
+
+
+#std-error-logs, #api-access-logs{
+    overflow-y: auto;
+    justify-content: flex-start !important;
 }
