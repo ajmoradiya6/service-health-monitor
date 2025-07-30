@@ -14,7 +14,7 @@ window.addEventListener('DOMContentLoaded', function () {
                 data: {
                     labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
                     datasets: [
-                        { label: 'Max Threads', data: [200, 200, 200, 200, 200, 200], borderColor: '#22d3ee', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#22d3ee', fill: false },
+                        { label: 'Max Threads', data: [1000, 200, 200, 200, 200, 200], borderColor: '#22d3ee', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#22d3ee', fill: false },
                         { label: 'Current Threads', data: [45, 35, 70, 110, 140, 100], borderColor: '#3b82f6', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#3b82f6', fill: false }
                     ]
                 },
@@ -2683,9 +2683,161 @@ async function pollTomcatStatus() {
         // }
         // tomcatPrevStatus = false;
     }
+
+    try {
+        const resp = await fetch('/api/service-control/tomcat/metrics');
+        if (!resp.ok) return;
+        const metrics = await resp.json();
+        updateTomcatMetricsUI(metrics);
+    } catch (err) {
+        console.error('Error fetching Tomcat metrics:', err);
+    }
 }
 
 
+
+function updateTomcatMetricsUI(metrics) {
+
+    // Server status, uptime, JVM version, Tomcat version, start time, OS
+    const uptimeEl = document.querySelectorAll('.tomcat-uptime-card');
+    uptimeEl.forEach(el => {
+        el.textContent = metrics.server?.uptime || '--';
+    });
+
+    const jvmVerEls = document.querySelectorAll('.tomcat-jvm-version-card');
+    jvmVerEls.forEach(el => {
+        el.textContent = metrics.server?.jvmVersion || '--';
+    });
+
+    const tomcatVerEls = document.querySelectorAll('.tomcat-version-card');
+    tomcatVerEls.forEach(el => {
+        el.textContent = metrics.server?.tomcatVersion || '--';
+    });
+
+    const startTimeEl = document.querySelectorAll('.tomcat-start-time-card');
+    startTimeEl.forEach(el => {
+        el.textContent = metrics.server?.startTime || '--';
+    });
+
+    const osEls = document.querySelectorAll('.tomcat-os-card');
+    osEls.forEach(el => {
+        el.textContent = metrics.server?.os || '--';
+    });
+
+    // Thread metrics
+    document.querySelectorAll('.tomcat-max-threads').forEach(el => {
+  el.textContent = metrics.threads?.max ?? '--';
+});
+
+document.querySelectorAll('.tomcat-current-threads').forEach(el => {
+  el.textContent = `Current: ${metrics.threads?.current ?? '--'}`;
+});
+
+    // const maxThreadsEl = document.getElementById('tomcat-max-threads');
+    // if (maxThreadsEl) maxThreadsEl.textContent = metrics.threads?.max ?? '--';
+
+    // const currentThreadsEl = document.getElementById('tomcat-current-threads');
+    // if (currentThreadsEl) currentThreadsEl.textContent = metrics.threads?.current ?? '--';
+
+    // Busy threads
+document.querySelectorAll('.tomcat-busy-threads').forEach(el => {
+  el.textContent = metrics.threads?.busy ?? '--';
+});
+
+// Utilization with % text
+document.querySelectorAll('.tomcat-threads-utilization').forEach(el => {
+  el.textContent = `${metrics.threads?.utilization ?? '--'}% utilization`;
+});
+
+// Request count
+document.querySelectorAll('.tomcat-request-count').forEach(el => {
+  el.textContent = metrics.requests?.count ?? '--';
+});
+
+// Errors with label
+document.querySelectorAll('.tomcat-errors').forEach(el => {
+  el.textContent = `Errors: ${metrics.requests?.errors ?? '--'}`;
+});
+
+// Avg processing time with "ms"
+document.querySelectorAll('.tomcat-avg-processing-time').forEach(el => {
+  el.textContent = `${metrics.requests?.avgProcessingTime ?? '--'}ms`;
+});
+
+// Timeout with label and "ms"
+document.querySelectorAll('.tomcat-request-timeout').forEach(el => {
+  el.textContent = `Timeout: ${metrics.requests?.timeout ?? '--'}ms`;
+});
+
+
+    // Memory metrics
+    /*
+    const heapUsedEl = document.getElementById('tomcat-heap-used');
+    if (heapUsedEl) heapUsedEl.textContent = metrics.memory?.heap?.usedMB ?? '--';
+
+    const heapMaxEl = document.getElementById('tomcat-heap-max');
+    if (heapMaxEl) heapMaxEl.textContent = metrics.memory?.heap?.maxMB ?? '--';
+
+    const heapPercentEl = document.getElementById('tomcat-heap-percent');
+    if (heapPercentEl) heapPercentEl.textContent = metrics.memory?.heap?.usagePercent ?? '--';
+
+    const nonHeapUsedEl = document.getElementById('tomcat-nonheap-used');
+    if (nonHeapUsedEl) nonHeapUsedEl.textContent = metrics.memory?.nonHeap?.usedMB ?? '--';
+
+    const nonHeapMaxEl = document.getElementById('tomcat-nonheap-max');
+    if (nonHeapMaxEl) nonHeapMaxEl.textContent = metrics.memory?.nonHeap?.maxMB ?? '--';
+
+    const nonHeapPercentEl = document.getElementById('tomcat-nonheap-percent');
+    if (nonHeapPercentEl) nonHeapPercentEl.textContent = metrics.memory?.nonHeap?.usagePercent ?? '--';
+*/
+    document.querySelectorAll('.tomcat-heap-used').forEach(el => {
+    el.textContent = `${metrics.memory?.heap?.usedMB ?? '--'} MB`;
+});
+
+document.querySelectorAll('.tomcat-heap-max').forEach(el => {
+    el.textContent = `Max: ${metrics.memory?.heap?.maxMB ?? '--'} MB`;
+});
+
+document.querySelectorAll('.tomcat-heap-percent').forEach(el => {
+    el.textContent = `(${metrics.memory?.heap?.usagePercent ?? '--'}%)`;
+});
+
+
+   document.querySelectorAll('.tomcat-nonheap-used').forEach(el => {
+    el.textContent = `${metrics.memory?.nonHeap?.usedMB ?? '--'} MB`;
+});
+
+document.querySelectorAll('.tomcat-nonheap-max').forEach(el => {
+    el.textContent = `Max: ${metrics.memory?.nonHeap?.maxMB ?? '--'} MB`;
+});
+
+document.querySelectorAll('.tomcat-nonheap-percent').forEach(el => {
+    el.textContent = `(${metrics.memory?.nonHeap?.usagePercent ?? '--'}%)`;
+});
+
+
+    const gcCountEl = document.getElementById('tomcat-gc-count');
+    if (gcCountEl) gcCountEl.textContent = metrics.memory?.gc?.count ?? '--';
+
+    const gcTimeEl = document.getElementById('tomcat-gc-time');
+    if (gcTimeEl) gcTimeEl.textContent = metrics.memory?.gc?.time ?? '--';
+
+    // Applications table
+    const tbody = document.getElementById('tomcat-applications-tbody');
+    if (tbody && Array.isArray(metrics.applications)) {
+        tbody.innerHTML = '';
+        metrics.applications.forEach(app => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${app.name || ''}</td>
+                    <td>${app.contextPath || ''}</td>
+                    <td><span class="status-pill ${app.status === 'Running' ? 'running' : 'stopped'}">${app.status || '--'}</span></td>
+                    <td>${app.sessions ?? ''}</td>
+                </tr>
+            `;
+        });
+    }
+}
 
 // Start polling Tomcat status every 5 seconds after DOM is ready
 window.addEventListener('DOMContentLoaded', function() {

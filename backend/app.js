@@ -16,6 +16,6 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 
 // ✅ Mount API routes under /api
 app.use('/api', apiRoutes);
-app.use('/api/service-control', serviceControlRoutes);
+//app.use('/api/service-control', serviceControlRoutes);
 
 module.exports = app;

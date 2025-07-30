@@ -336,23 +336,25 @@
                                             <span id="tomcat-status-label-card">--</span>
                                         </div>
                                     </div>
-                                    <small>Apache Tomcat/9.0.65</small>
+                                    <small><span class="tomcat-version-card">--</span></small>
                                 </div>
                                 <div class="tomcat-card">
                                     <div class="metric-header">
                                         <i data-lucide="clock-arrow-up" class="metric-icon"></i>
                                         <div class="metric-label">Uptime</div>
                                     </div>
-                                    <div class="tomcat-card-value">15 days, 7 hours, 23 minutes</div>
-                                    <small>Started: 2024-01-01 08:30:15</small>
+                                    <div class="tomcat-card-value tomcat-uptime-card">--</div>
+                                    <small>Started: 
+                                        <span class="tomcat-start-time-card">--</span>
+                                    </small>
                                 </div>
                                 <div class="tomcat-card">
                                     <div class="metric-header">
                                         <i data-lucide="cpu" class="metric-icon"></i>
                                         <div class="metric-label">JVM Version</div>
                                     </div>
-                                    <div class="tomcat-card-value">OpenJDK 11.0.16</div>
-                                    <small>Tomcat 9.0.65</small>
+                                    <div class="tomcat-card-value tomcat-jvm-version-card">--</div>
+                                    <small><span class="tomcat-version-card">--</span></small>
                                 </div>
                             </div>
                             <div class="tomcat-cards tomcat-two-col">
@@ -364,15 +366,15 @@
                                     <div class="tomcat-grid-info">
                                         <div>
                                             <div class="tomcat-info-label">Operating System</div>
-                                            <div class="tomcat-info-value">Linux Ubuntu 20.04.5 LTS</div>
+                                            <div class="tomcat-info-value tomcat-os-card">--</div>
                                         </div>
                                         <div>
                                             <div class="tomcat-info-label">Java Runtime</div>
-                                            <div class="tomcat-info-value">OpenJDK 11.0.16</div>
+                                            <div class="tomcat-info-value tomcat-jvm-version-card">--</div>
                                         </div>
                                         <div>
                                             <div class="tomcat-info-label">Server Version</div>
-                                            <div class="tomcat-info-value">Apache Tomcat/9.0.65</div>
+                                            <div class="tomcat-info-value  tomcat-version-card">--</div>
                                         </div>
                                     </div>
                                 </div>
@@ -386,32 +388,32 @@
                                         <i data-lucide="users" class="metric-icon"></i>
                                         <div class="metric-label">Max Threads</div>
                                     </div>
-                                    <div class="metric-value">200</div>
-                                    <div class="metric-subtext">Current: 120</div>
+                                    <div class="metric-value tomcat-max-threads">--</div>
+                                    <div class="metric-subtext tomcat-current-threads">--</div>
                                 </div>
                                 <div class="metric-card">
                                     <div class="metric-header">
                                         <i data-lucide="activity" class="metric-icon"></i>
                                         <div class="metric-label">Busy Threads</div>
                                     </div>
-                                    <div class="metric-value">95</div>
-                                    <div class="metric-subtext">47.5% utilization</div>
+                                    <div class="metric-value tomcat-busy-threads">--</div>
+                                    <div class="metric-subtext tomcat-threads-utilization">--</div>
                                 </div>
                                 <div class="metric-card">
                                     <div class="metric-header">
                                         <i data-lucide="zap" class="metric-icon"></i>
                                         <div class="metric-label">Request Count</div>
                                     </div>
-                                    <div class="metric-value">45,678</div>
-                                    <div class="metric-subtext">Errors: 234</div>
+                                    <div class="metric-value tomcat-request-count">--</div>
+                                    <div class="metric-subtext tomcat-errors">--</div>
                                 </div>
                                 <div class="metric-card">
                                     <div class="metric-header">
                                         <i data-lucide="clock" class="metric-icon"></i>
                                         <div class="metric-label">Avg Processing Time</div>
                                     </div>
-                                    <div class="metric-value">125ms</div>
-                                    <div class="metric-subtext">Timeout: 20000ms</div>
+                                    <div class="metric-value tomcat-avg-processing-time">--</div>
+                                    <div class="metric-subtext tomcat-request-timeout">--</div>
                                 </div>
                             </div>
                             <div class="metrics-charts"
@@ -442,18 +444,24 @@
                                         <i data-lucide="database" class="metric-icon"></i>
                                         <div class="metric-label">Heap Memory</div>
                                     </div>
-                                    <div class="metric-value">834 MB</div>
-                                    <div class="metric-subtext">Max: 1024 MB (81.4%)</div>
+                                    <div class="metric-value tomcat-heap-used">--</div>
+                                    <div class="metric-subtext">
+                                        <span class="tomcat-heap-max">--</span> 
+                                        <span class="tomcat-heap-percent">--</span>  
+                                    </div>
                                 </div>
                                 <div class="metric-card">
                                     <div class="metric-header">
                                         <i data-lucide="lock" class="metric-icon"></i>
                                         <div class="metric-label">Non-Heap Memory</div>
                                     </div>
-                                    <div class="metric-value">167 MB</div>
-                                    <div class="metric-subtext">Max: 256 MB (65.2%)</div>
+                                    <div class="metric-value tomcat-nonheap-used">--</div>
+                                    <div class="metric-subtext"> 
+                                        <span class="tomcat-nonheap-max">--</span> 
+                                        <span class="tomcat-nonheap-percent">--</span>  
+                                    </div>
                                 </div>
-                                <div class="metric-card">
+                                <!-- <div class="metric-card">
                                     <div class="metric-header">
                                         <i data-lucide="trash-2" class="metric-icon"></i>
                                         <div class="metric-label">GC Count</div>
@@ -468,7 +476,7 @@
                                     </div>
                                     <div class="metric-value">2345 ms</div>
                                     <div class="metric-subtext">Total GC time</div>
-                                </div>
+                                </div> -->
                             </div>
                             <div class="metrics-charts"
                                 style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 16px;">
@@ -478,7 +486,7 @@
                                             style="font-size: 22px; font-weight: 700; color: #fff;">Memory Usage Over
                                             Time</div>
                                     </div>
-                                    <canvas id="memory-usage-chart" style=""></canvas>
+                                    <canvas id="memory-usage-chart"></canvas>
                                 </div>
                                 <div class="metric-card" style="flex: 2 1 400px; min-width: 340px;">
                                     <div class="metric-header" style="margin-bottom: 16px;">
@@ -505,13 +513,13 @@
                                                 <th>Context Path</th>
                                                 <th>Status</th>
                                                 <th>Sessions</th>
-                                                <th>Version</th>
+                                                <!-- <th>Version</th>
                                                 <th>Deploy Time</th>
-                                                <th>Actions</th>
+                                                <th>Actions</th> -->
                                             </tr>
                                         </thead>
                                         <tbody id="tomcat-applications-tbody">
-                                            <tr>
+                                            <!-- <tr>
                                                 <td>ROOT</td>
                                                 <td>/</td>
                                                 <td><span class="status-pill running">Running</span></td>
@@ -590,7 +598,7 @@
                                                     <button class="action-btn" title="Delete"><i
                                                             data-lucide="trash-2"></i></button>
                                                 </td>
-                                            </tr>
+                                            </tr> -->
                                         </tbody>
                                     </table>
                                 </div>

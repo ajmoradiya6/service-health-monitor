@@ -367,6 +367,8 @@
   border: 1px solid var(--border-color);
   max-width: 100%;
   font-size: 14px;
+  height: calc(100vh - 210px);
+  justify-content: flex-start;
 }
 .tomcat-content-applications .metric-card-header {
   display: flex;
@@ -2980,6 +2982,11 @@ body {
     font-size: 13px;
     margin-bottom: 4px;
     /* Add space between items */
+}
+
+.settings-item svg{
+    height: 16px !important;
+    width: 16px !important;
 }
 
 .settings-item.active,

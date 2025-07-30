@@ -2,10 +2,14 @@
 const router = express.Router();
 const { getAllServices, updateService, deleteService, createUserNotificationFromLog } = require('../services/healthService');
 const registerServiceRouter = require('./registerService');
+const serviceControlRouter = require('./serviceControl');
 const path = require('path');
 const fs = require('fs').promises;
 const { v4: uuidv4 } = require('uuid');
 
+
+router.use('/register-service', registerServiceRouter);
+router.use('/service-control', serviceControlRouter);
 router.get('/services', async (req, res) => {
     const data = await getAllServices();
     // Return both windowsServices and tomcatService
@@ -85,8 +89,6 @@ router.post('/services', async (req, res) => {
         res.status(500).json({ error: 'Failed to register service', details: error.message });
     }
 });
-
-router.use('/register-service', registerServiceRouter);
 
 // POST endpoint to save user settings (emails, phone numbers, and all settings)
 router.post('/user-settings', async (req, res) => {
