@@ -1,75 +1,111 @@
 // Chart.js setup for Tomcat Thread & Connection tab
+let threadUsageChart = null;
+let memoryUsageChart = null;
+let requestsErrorsChart = null;
+let memoryPoolChart = null;
 
 window.addEventListener('DOMContentLoaded', function () {
-    //const fontColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim();
-    //console.log('Chart.js font color:', fontColor); // Debug log
-    
     if (window.Chart) {
-        // Thread Usage Over Time
+        // THREAD USAGE CHART
         const threadUsage = document.getElementById('thread-usage-chart');
         if (threadUsage) {
-            const ctx1 = threadUsage.getContext('2d');
-            new Chart(ctx1, {
+            threadUsageChart = new Chart(threadUsage.getContext('2d'), {
                 type: 'line',
                 data: {
-                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                    labels: [],
                     datasets: [
-                        { label: 'Max Threads', data: [1000, 200, 200, 200, 200, 200], borderColor: '#22d3ee', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#22d3ee', fill: false },
-                        { label: 'Current Threads', data: [45, 35, 70, 110, 140, 100], borderColor: '#3b82f6', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#3b82f6', fill: false }
+                        { label: 'Max Threads', data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.2)', fill: true, pointRadius: 0, borderWidth: 1, tension: 0.4 },
+                        { label: 'Busy Threads', data: [],  borderColor: '#22d3ee', backgroundColor: 'rgba(34, 211, 238, 0.2)', fill: true, pointRadius: 0, borderWidth: 1, tension: 0.4 }
                     ]
                 },
-                options: { responsive: true, plugins: { legend: { labels: { color: "#64748b" } } }, scales: { x: { ticks: { color: "#64748b" } }, y: { ticks: { color: "#64748b" } } } }
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#64748b' } } },
+                    scales: { x: { ticks: { color: '#64748b' } }, y: { ticks: { color: '#64748b' } } }
+                }
             });
         }
-        // Requests & Errors
+
+        // REQUESTS/ERRORS BAR CHART
         const requestsErrors = document.getElementById('requests-errors-chart');
         if (requestsErrors) {
-            const ctx2 = requestsErrors.getContext('2d');
-            new Chart(ctx2, {
+            requestsErrorsChart = new Chart(requestsErrors.getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                    labels: [],
                     datasets: [
-                        { label: 'Requests', data: [1200, 800, 1800, 2600, 3200, 1700], backgroundColor: '#f59e0b', borderRadius: 6 },
-                        { label: 'Errors', data: [10, 5, 20, 15, 30, 12], backgroundColor: '#a21caf', borderRadius: 6 }
+                        { label: 'Requests', data: [], backgroundColor: '#f59e0b'},
+                        { label: 'Errors', data: [], backgroundColor: '#a21caf'}
                     ]
                 },
-                options: { responsive: true, plugins: { legend: { labels: { color: '#64748b' } } }, scales: { x: { ticks: { color: '#64748b' } }, y: { ticks: { color: '#64748b' } } } }
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#64748b' } } },
+                    scales: { x: { ticks: { color: '#64748b' } }, y: { ticks: { color: '#64748b' } } }
+                }
             });
         }
-        // JVM Memory Usage Over Time
+
+        // MEMORY USAGE CHART
         const memoryUsage = document.getElementById('memory-usage-chart');
         if (memoryUsage) {
-            const ctx3 = memoryUsage.getContext('2d');
-            new Chart(ctx3, {
+            memoryUsageChart = new Chart(memoryUsage.getContext('2d'), {
                 type: 'line',
                 data: {
-                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                    labels: [],
                     datasets: [
-                        { label: 'Heap Memory', data: [500, 450, 650, 800, 850, 750], borderColor: '#3b82f6', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#3b82f6', fill: false },
-                        { label: 'Non-Heap Memory', data: [100, 110, 120, 140, 150, 130], borderColor: '#22d3ee', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 5, pointBackgroundColor: '#22d3ee', fill: false }
+                        { label: 'Max-Heap Memory', data: [], borderColor: '#0fc5b5', backgroundColor: 'rgba(15, 197, 181, 0.2)', fill: true, pointRadius: 0, borderWidth: 1, tension: 0.4 },
+                        { label: 'Used-Heap Memory', data: [], borderColor: '#ff6b6b', backgroundColor: 'rgba(255, 107, 107, 0.2)',   fill: true, pointRadius: 0, borderWidth: 1, tension: 0.4}
                     ]
                 },
-                options: { responsive: true, plugins: { legend: { labels: { color: '#64748b' } } }, scales: { x: { ticks: { color: '#64748b' } }, y: { ticks: { color: '#64748b' } } } }
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#64748b' } } },
+                    scales: { x: { ticks: { color: '#64748b' } }, y: { ticks: { color: '#64748b' } } }
+                }
             });
         }
-        // JVM Memory Pool Distribution
+
+        // MEMORY POOL PIE CHART (non-time series)
         const memoryPool = document.getElementById('memory-pool-chart');
         if (memoryPool) {
-            const ctx4 = memoryPool.getContext('2d');
-            new Chart(ctx4, {
-                type: 'pie',
+            memoryPoolChart = new Chart(memoryPool.getContext('2d'),  {
+                type: 'line',
                 data: {
-                    labels: ['Eden Space: 256MB', 'Old Generation: 512MB', 'Metaspace: 128MB', 'Survivor Space: 64MB'],
+                    labels: [],
                     datasets: [
-                        { data: [256, 512, 128, 64], backgroundColor: ['#a78bfa', '#fde68a', '#f59e0b', '#4ade80'] }
+                        { label: 'Max-Non Heap Memory', data: [], borderColor: '#f97316',  backgroundColor: 'rgba(249, 115, 22, 0.2)', fill: true, pointRadius: 0, borderWidth: 1, tension: 0.4 },
+                        { label: 'Used-Non Heap Memory', data: [], borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.2)', fill: true, pointRadius: 0, borderWidth: 1, tension: 0.4 }
                     ]
                 },
-                options: { responsive: true, plugins: { legend: { labels: { color: '#64748b' } } } }
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#64748b' } } },
+                    scales: { x: { ticks: { color: '#64748b' } }, y: { ticks: { color: '#64748b' } } }
+                }
             });
         }
     }
 });
+
+function updateLiveChart(chart, label, datasetValues) {
+    if (!chart) return;
+
+    chart.data.labels.push(label);
+    datasetValues.forEach((value, i) => {
+        chart.data.datasets[i].data.push(value);
+        if (chart.data.datasets[i].data.length > 10) {
+            chart.data.datasets[i].data.shift();
+        }
+    });
+
+    if (chart.data.labels.length > 10) {
+        chart.data.labels.shift();
+    }
+
+    chart.update();
+}
+
 async function loadServices() {
   try {
     const response = await fetch('/api/services');
@@ -89,7 +125,7 @@ async function loadServices() {
     
     if (!container) {
         console.error('Service list container not found in the DOM.');
-        return; // Exit if the container is still not found (should not happen after adding ID)
+        return; 
     }
 
     container.innerHTML = '';
@@ -296,9 +332,6 @@ const notifAIAssistToggle = document.getElementById('notif-ai-assist');
 
 // Track previous running status for each service
 const servicePrevStatus = {};
-
-// Add Chart.js integration for resource usage chart
-//import Chart from 'chart.js/auto';
 
 let resourceChart = null;
 let chartDataBuffer = [];
@@ -528,26 +561,7 @@ function setupServicePowerButton() {
                         break;
                     }
                     tries++;
-                }/*
-                if (running && activeServiceId !== JSON.parse(tomcatSidebarItem.dataset.service).id) {
-                    //showNotification('Service started', 'success');
-                    showServiceSpinner('Connecting to Service...');
-                    updatePowerButton('Running');
-                    showNotification('Service started', 'success');
-                    updateServiceStatus('Running');
-                    
-                    // For Windows, hide spinner here (after notification)
-                    // const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
-                    // if (!tomcatSidebarItem || activeServiceId !== JSON.parse(tomcatSidebarItem.dataset.service).id) {
-                    //     hideServiceSpinner();
-                    //     window._serviceSpinnerShouldHideOnRunning = false;
-                    // }
-                } else {
-                    hideServiceSpinner();
-                    window._serviceSpinnerShouldHideOnRunning = false;
-                    showNotification('Service start timed out', 'error');
-                    updatePowerButton('Stopped');
-                }*/
+                }
             } else {
                 hideServiceSpinner();
                 window._serviceSpinnerShouldHideOnRunning = false;
@@ -1989,27 +2003,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Pure DOM solution for static nav: only one .tomcat-nav-item active at a time
-
-    // document.querySelectorAll('.tomcat-nav').forEach(function (nav) {
-    //     nav.addEventListener('click', function (e) {
-    //         const li = e.target.closest('.tomcat-nav-item');
-    //         if (!li) return;
-    //         nav.querySelectorAll('.tomcat-nav-item').forEach(function (item) {
-    //             item.classList.remove('active');
-    //         });
-    //         li.classList.add('active');
-
-    //         // Show the corresponding tomcat-content-<section> div, hide others
-    //         const navText = li.textContent.trim().toLowerCase().replace(/\s+/g, '-').replace(/&/g, '').replace(/[^a-z0-9\-]/g, '');
-    //         document.querySelectorAll('[class^="tomcat-content-"]').forEach(function (contentDiv) {
-    //             contentDiv.style.display = 'none';
-    //         });
-    //         var sectionDiv = document.querySelector('.tomcat-content-' + navText);
-    //         if (sectionDiv) sectionDiv.style.display = 'block';
-    //     });
-    // });
-
     document.querySelectorAll('.tomcat-nav-item').forEach(item => {
         item.addEventListener('click', () => {
             // Remove active class from all items
@@ -2031,10 +2024,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (header) header.textContent = titleText;
         });
     });
-
-
-   
-
 
     // --- Server Settings Tab Switching Logic ---
     const settingsTabs = document.querySelectorAll('.tomcat-content-server-settings .tomcat-settings-tabs .tab');
@@ -2075,12 +2064,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // Show only the first tab content by default
     showSettingsTab(0);
 
+    const tabs = document.querySelectorAll(".tomcat-content-log-viewer .tomcat-settings-tabs .tab");
+    const containers = {
+        "API Access": document.getElementById("api-access-logs"),
+        "Std Error": document.getElementById("std-error-logs")
+    };
 
-    // Initialize settings when the page loads
-    // initializeNotificationSettings();
+    tabs.forEach(tab => {
+        tab.addEventListener("click", function () {
+            // Remove "active" class from all tabs
+            tabs.forEach(t => t.classList.remove("active"));
 
-    // Initial load of services
-    // loadServices();
+            // Hide all containers
+            Object.values(containers).forEach(c => c.style.display = "none");
+
+            // Add "active" class to clicked tab
+            this.classList.add("active");
+
+            // Show the corresponding log container
+            const tabLabel = this.textContent.trim();
+            if (containers[tabLabel]) {
+                containers[tabLabel].style.display = "block";
+            }
+        });
+    });
+
+    // Trigger default active tab content to show
+    document.querySelector(".tomcat-settings-tabs .tab.active")?.click();
+
 });
 
 // Function to open the Confirmation modal
@@ -2616,6 +2627,12 @@ function updateTomcatStatusDotBoth(isRunning) {
 let tomcatPrevStatus = null;
 
 async function pollTomcatStatus() {
+
+
+    //const nowLabel = new Date().toLocaleTimeString().slice(0, 8);
+    const nowLabel = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+
+
     const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
     if (!tomcatSidebarItem) return;
     const tomcatData = JSON.parse(tomcatSidebarItem.dataset.service);
@@ -2665,23 +2682,7 @@ async function pollTomcatStatus() {
         // Update previous status
         tomcatPrevStatus = isRunning;
     } catch (err) {
-        // Optionally handle fetch errors (could set status to DOWN if desired)
-        // Uncomment below to treat fetch errors as DOWN:
-        // if (tomcatPrevStatus !== null && tomcatPrevStatus !== false) {
-        //     const now = new Date().toISOString();
-        //     addNotification({
-        //         level: 'error',
-        //         message: `${tomcatData.name} is DOWN`,
-        //         timestamp: now
-        //     }, tomcatData.id, tomcatData.name, false);
-        //     sendNotificationToBackend({
-        //         serviceName: tomcatData.name,
-        //         timestamp: now,
-        //         type: 'down',
-        //         message: `${tomcatData.name} is DOWN`
-        //     });
-        // }
-        // tomcatPrevStatus = false;
+        
     }
 
     try {
@@ -2689,9 +2690,40 @@ async function pollTomcatStatus() {
         if (!resp.ok) return;
         const metrics = await resp.json();
         updateTomcatMetricsUI(metrics);
+
+        // Only now, update charts
+        
+
+        updateLiveChart(threadUsageChart, nowLabel, [
+            metrics.threads?.max ?? null,
+            metrics.threads?.busy ?? null
+        ]);
+
+        updateLiveChart(memoryUsageChart, nowLabel, [
+            metrics.memory?.heap?.maxMB ?? null,
+            metrics.memory?.heap?.usedMB ?? null
+        ]);
+
+        updateLiveChart(requestsErrorsChart, nowLabel, [
+            metrics.requests?.count ?? null,
+            metrics.requests?.errors ?? null
+        ]);
+
+        updateLiveChart(memoryPoolChart, nowLabel, [
+            metrics.memory?.nonHeap?.maxMB ?? null,
+            metrics.memory?.nonHeap?.usedMB ?? null
+        ]);
+
+
+
     } catch (err) {
         console.error('Error fetching Tomcat metrics:', err);
     }
+
+    document.querySelectorAll('.tomcat-updated-time').forEach(el => {
+        el.textContent = nowLabel;
+    });
+
 }
 
 
@@ -2726,95 +2758,67 @@ function updateTomcatMetricsUI(metrics) {
 
     // Thread metrics
     document.querySelectorAll('.tomcat-max-threads').forEach(el => {
-  el.textContent = metrics.threads?.max ?? '--';
-});
+        el.textContent = metrics.threads?.max ?? '--';
+    });
 
-document.querySelectorAll('.tomcat-current-threads').forEach(el => {
-  el.textContent = `Current: ${metrics.threads?.current ?? '--'}`;
-});
-
-    // const maxThreadsEl = document.getElementById('tomcat-max-threads');
-    // if (maxThreadsEl) maxThreadsEl.textContent = metrics.threads?.max ?? '--';
-
-    // const currentThreadsEl = document.getElementById('tomcat-current-threads');
-    // if (currentThreadsEl) currentThreadsEl.textContent = metrics.threads?.current ?? '--';
+    document.querySelectorAll('.tomcat-current-threads').forEach(el => {
+        el.textContent = `Current: ${metrics.threads?.current ?? '--'}`;
+    });
 
     // Busy threads
-document.querySelectorAll('.tomcat-busy-threads').forEach(el => {
-  el.textContent = metrics.threads?.busy ?? '--';
-});
+    document.querySelectorAll('.tomcat-busy-threads').forEach(el => {
+        el.textContent = metrics.threads?.busy ?? '--';
+    });
 
-// Utilization with % text
-document.querySelectorAll('.tomcat-threads-utilization').forEach(el => {
-  el.textContent = `${metrics.threads?.utilization ?? '--'}% utilization`;
-});
+    // Utilization with % text
+    document.querySelectorAll('.tomcat-threads-utilization').forEach(el => {
+        el.textContent = `${metrics.threads?.utilization ?? '--'}% utilization`;
+    });
 
-// Request count
-document.querySelectorAll('.tomcat-request-count').forEach(el => {
-  el.textContent = metrics.requests?.count ?? '--';
-});
+    // Request count
+    document.querySelectorAll('.tomcat-request-count').forEach(el => {
+        el.textContent = metrics.requests?.count ?? '--';
+    });
 
-// Errors with label
-document.querySelectorAll('.tomcat-errors').forEach(el => {
-  el.textContent = `Errors: ${metrics.requests?.errors ?? '--'}`;
-});
+    // Errors with label
+    document.querySelectorAll('.tomcat-errors').forEach(el => {
+        el.textContent = `Errors: ${metrics.requests?.errors ?? '--'}`;
+    });
 
-// Avg processing time with "ms"
-document.querySelectorAll('.tomcat-avg-processing-time').forEach(el => {
-  el.textContent = `${metrics.requests?.avgProcessingTime ?? '--'}ms`;
-});
+    // Avg processing time with "ms"
+    document.querySelectorAll('.tomcat-avg-processing-time').forEach(el => {
+        el.textContent = `${metrics.requests?.avgProcessingTime ?? '--'}ms`;
+    });
 
-// Timeout with label and "ms"
-document.querySelectorAll('.tomcat-request-timeout').forEach(el => {
-  el.textContent = `Timeout: ${metrics.requests?.timeout ?? '--'}ms`;
-});
-
+    // Timeout with label and "ms"
+    document.querySelectorAll('.tomcat-request-timeout').forEach(el => {
+        el.textContent = `Timeout: ${metrics.requests?.timeout ?? '--'}ms`;
+    });
 
     // Memory metrics
-    /*
-    const heapUsedEl = document.getElementById('tomcat-heap-used');
-    if (heapUsedEl) heapUsedEl.textContent = metrics.memory?.heap?.usedMB ?? '--';
-
-    const heapMaxEl = document.getElementById('tomcat-heap-max');
-    if (heapMaxEl) heapMaxEl.textContent = metrics.memory?.heap?.maxMB ?? '--';
-
-    const heapPercentEl = document.getElementById('tomcat-heap-percent');
-    if (heapPercentEl) heapPercentEl.textContent = metrics.memory?.heap?.usagePercent ?? '--';
-
-    const nonHeapUsedEl = document.getElementById('tomcat-nonheap-used');
-    if (nonHeapUsedEl) nonHeapUsedEl.textContent = metrics.memory?.nonHeap?.usedMB ?? '--';
-
-    const nonHeapMaxEl = document.getElementById('tomcat-nonheap-max');
-    if (nonHeapMaxEl) nonHeapMaxEl.textContent = metrics.memory?.nonHeap?.maxMB ?? '--';
-
-    const nonHeapPercentEl = document.getElementById('tomcat-nonheap-percent');
-    if (nonHeapPercentEl) nonHeapPercentEl.textContent = metrics.memory?.nonHeap?.usagePercent ?? '--';
-*/
     document.querySelectorAll('.tomcat-heap-used').forEach(el => {
-    el.textContent = `${metrics.memory?.heap?.usedMB ?? '--'} MB`;
-});
+        el.textContent = `${metrics.memory?.heap?.usedMB ?? '--'} MB`;
+    });
 
-document.querySelectorAll('.tomcat-heap-max').forEach(el => {
-    el.textContent = `Max: ${metrics.memory?.heap?.maxMB ?? '--'} MB`;
-});
+    document.querySelectorAll('.tomcat-heap-max').forEach(el => {
+        el.textContent = `Max: ${metrics.memory?.heap?.maxMB ?? '--'} MB`;
+    });
 
-document.querySelectorAll('.tomcat-heap-percent').forEach(el => {
-    el.textContent = `(${metrics.memory?.heap?.usagePercent ?? '--'}%)`;
-});
+    document.querySelectorAll('.tomcat-heap-percent').forEach(el => {
+        el.textContent = `(${metrics.memory?.heap?.usagePercent ?? '--'}%)`;
+    });
 
+    document.querySelectorAll('.tomcat-nonheap-used').forEach(el => {
+        el.textContent = `${metrics.memory?.nonHeap?.usedMB ?? '--'} MB`;
+    });
 
-   document.querySelectorAll('.tomcat-nonheap-used').forEach(el => {
-    el.textContent = `${metrics.memory?.nonHeap?.usedMB ?? '--'} MB`;
-});
+    document.querySelectorAll('.tomcat-nonheap-max').forEach(el => {
+        el.textContent = `Max: ${metrics.memory?.nonHeap?.maxMB ?? '--'} MB`;
+    });
 
-document.querySelectorAll('.tomcat-nonheap-max').forEach(el => {
-    el.textContent = `Max: ${metrics.memory?.nonHeap?.maxMB ?? '--'} MB`;
-});
-
-document.querySelectorAll('.tomcat-nonheap-percent').forEach(el => {
-    el.textContent = `(${metrics.memory?.nonHeap?.usagePercent ?? '--'}%)`;
-});
-
+    document.querySelectorAll('.tomcat-nonheap-percent').forEach(el => {
+        el.textContent = `(${metrics.memory?.nonHeap?.usagePercent ?? '--'}%)`;
+    });
 
     const gcCountEl = document.getElementById('tomcat-gc-count');
     if (gcCountEl) gcCountEl.textContent = metrics.memory?.gc?.count ?? '--';
@@ -2843,5 +2847,4 @@ document.querySelectorAll('.tomcat-nonheap-percent').forEach(el => {
 window.addEventListener('DOMContentLoaded', function() {
     setInterval(pollTomcatStatus, 5000);
 });
-
 

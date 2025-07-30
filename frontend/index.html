@@ -315,10 +315,12 @@
                         <div class="tomcat-header">
                             <h1>Server Overview</h1>
                             <div class="tomcat-header-right">
-                                <div class="tomcat-updated">Last updated: 4:12:19 PM</div>
-                                <div class="tomcat-refresh-btn theme-icon-container" title="Refresh">
-                                    <i data-lucide="refresh-cw" class="theme-icon"></i>
+                                <div class="tomcat-updated">Last updated:
+                                    <span class="tomcat-updated-time">--</span>
                                 </div>
+                                <!-- <div class="tomcat-refresh-btn theme-icon-container" title="Refresh">
+                                    <i data-lucide="refresh-cw" class="theme-icon"></i>
+                                </div> -->
                             </div>
                         </div>
                         <div class="tomcat-content-server-overview" style="display:block;">
@@ -483,16 +485,14 @@
                                 <div class="metric-card" style="flex: 2 1 400px; min-width: 340px;">
                                     <div class="metric-header" style="margin-bottom: 16px;">
                                         <div class="metric-label"
-                                            style="font-size: 22px; font-weight: 700; color: #fff;">Memory Usage Over
-                                            Time</div>
+                                            style="font-size: 22px; font-weight: 700; color: #fff;">Heap Memory Usage</div>
                                     </div>
                                     <canvas id="memory-usage-chart"></canvas>
                                 </div>
                                 <div class="metric-card" style="flex: 2 1 400px; min-width: 340px;">
                                     <div class="metric-header" style="margin-bottom: 16px;">
                                         <div class="metric-label"
-                                            style="font-size: 22px; font-weight: 700; color: #fff;">Memory Pool
-                                            Distribution</div>
+                                            style="font-size: 22px; font-weight: 700; color: #fff;">Non Heap Memory Usage</div>
                                     </div>
                                     <canvas id="memory-pool-chart" style="display: flex; align-self: center;"></canvas>
                                 </div>
@@ -716,9 +716,27 @@
                             </div>
                             <!-- End Settings Tab Content -->
                         </div>
-                        <div class="tomcat-content-log-viewer" style="display:none;">
+                        <div class="tomcat-content-log-viewer" style="display:none; padding-top: 20px;">
+                            <div class="tomcat-settings-tabs tomcat-logs-tabs">
+                                <div class="tab active">API Access</div>
+                                <div class="tab">Std Error</div>
+                            </div>
 
+                            <div class="tomcat-log-container" id="api-access-logs" style="display: block;">
+                                <div class="metric-card">
+                                    <!-- <h2>API Access Logs</h2> -->
+                                </div>
+                            </div>
+
+                            <div class="tomcat-log-container" id="std-error-logs" style="display: none;">
+                                <div class="metric-card">
+                                    <!-- <h2>Std Error Logs</h2> -->
+                                </div>
+                            </div> 
                         </div>
+
+
+
                         <div class="tomcat-content-security" style="display:none;">
 
                         </div>
