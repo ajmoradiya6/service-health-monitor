@@ -2902,3 +2902,27 @@ function updateTomcatMetricsUI(metrics) {
 window.addEventListener('DOMContentLoaded', function() {
     setInterval(pollTomcatStatus, 5000);
 });
+
+// Show a tutorial tooltip on first visit
+document.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('tutorialSeen')) return;
+
+    const btn = document.getElementById('tutorial-btn');
+    const tooltip = document.getElementById('tutorial-tooltip');
+
+    if (btn && tooltip) {
+        const rect = btn.getBoundingClientRect();
+        tooltip.style.top = `${rect.bottom + 8}px`;
+        tooltip.style.left = `${rect.left}px`;
+        tooltip.classList.remove('hidden');
+
+        const closeBtn = document.getElementById('tutorial-tooltip-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                tooltip.classList.add('hidden');
+            });
+        }
+    }
+
+    localStorage.setItem('tutorialSeen', 'true');
+});
