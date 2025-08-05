@@ -1,3 +1,5 @@
+require('dotenv').config({ path: __dirname + '/.env' });
+
 const express = require('express');
 const os = require('os');
 const axios = require('axios');
@@ -8,6 +10,34 @@ const path = require('path');
 const fs = require('fs').promises;
 
 const servicesFilePath = path.join(__dirname, '..', '..', 'database', 'RegisteredServices.json');
+
+const BACKEND_HOST = process.env.BACKEND_HOST || 'http://localhost';
+const PORT         = parseInt(process.env.TOMCAT_PORT, 10) || 8080;
+
+// Add at the top
+let TOMCAT_PROCESS_NAME = 'Tomcat*'; // default fallback
+
+async function loadTomcatProcessName() {
+  try {
+    const servicesFilePath = process.env.SERVICES_FILE_PATH || path.join(__dirname, '..', '..', 'database', 'RegisteredServices.json');
+    const fileContent = await fs.readFile(servicesFilePath, 'utf8');
+    const data = JSON.parse(fileContent);
+
+    if (data.tomcatService && data.tomcatService.name) {
+      TOMCAT_PROCESS_NAME = data.tomcatService.name;
+    } else if (Array.isArray(data.windowsServices)) {
+      const found = data.windowsServices.find(s => s.name && s.name.toLowerCase().startsWith('tomcat'));
+      if (found) TOMCAT_PROCESS_NAME = found.name;
+    }
+    // else keep default
+  } catch (e) {
+    // Leave the default if anything goes wrong
+  }
+}
+
+// Immediately load it once at startup
+loadTomcatProcessName();
+
 
 // Helper to get service name by ID
 async function getServiceById(serviceId) {
@@ -69,10 +99,17 @@ router.get('/:id/status', async (req, res) => {
 
 router.get('/tomcat/metrics', async (req, res) => {
   try {
-    const auth = { username: 'admin', password: 'admin' };
+
+    //const auth = { username: 'admin', password: 'admin' };
+    const TOMCAT_USERNAME = process.env.TOMCAT_USER || 'admin';
+    const TOMCAT_PASSWORD = process.env.TOMCAT_PASS || 'admin';
+    const auth = { username: TOMCAT_USERNAME, password: TOMCAT_PASSWORD };
+
+    const tomcatBaseUrl = `${BACKEND_HOST}:${PORT}`;
 
     // Fetch XML status data
-    const { data: xml } = await axios.get('http://localhost:8080/manager/status/all?XML=true', { auth });
+    //const { data: xml } = await axios.get('http://localhost:8080/manager/status/all?XML=true', { auth });
+    const { data: xml } = await axios.get(`${tomcatBaseUrl}/manager/status/all?XML=true`, { auth });
     const result = await parseStringPromise(xml, { explicitArray: false, mergeAttrs: true });
     const status = result.status;
     const jvm = status.jvm;
@@ -83,7 +120,8 @@ router.get('/tomcat/metrics', async (req, res) => {
     const nonHeapPools = memoryPools.filter(pool => pool.type === 'Non-heap memory');
 
     // Fetch deployed applications from text endpoint
-    const { data: appListText } = await axios.get('http://localhost:8080/manager/text/list', { auth });
+    //const { data: appListText } = await axios.get('http://localhost:8080/manager/text/list', { auth });
+    const { data: appListText } = await axios.get(`${tomcatBaseUrl}/manager/text/list`, { auth });
     const appLines = appListText.split('\n').filter(line => line.startsWith('/'));
     const applications = appLines.map(line => {
       const [path, state, sessions, name] = line.trim().split(':');
@@ -137,7 +175,7 @@ router.get('/tomcat/metrics', async (req, res) => {
 
 async function getServerInfo() {
   return new Promise((resolve) => {
-    exec(`powershell -Command \"(Get-Process -Name Tomcat9_64bit* | Select-Object -First 1).StartTime.ToString('yyyy-MM-dd HH:mm:ss')\"`, async (err, stdout) => {
+    exec(`powershell -Command \"(Get-Process -Name '${TOMCAT_PROCESS_NAME}' | Select-Object -First 1).StartTime.ToString('yyyy-MM-dd HH:mm:ss')\"`, async (err, stdout) => {
       const startTime = stdout.trim() || 'Unknown';
       const uptime = startTime !== 'Unknown' ? calculateUptime(startTime) : 'Unknown';
 
@@ -172,7 +210,7 @@ async function getJvmVersion() {
   });
 }
 
-async function getTomcatVersion() {
+/*async function getTomcatVersion() {
   return new Promise((resolve) => {
     exec(
       `powershell -Command "(Get-Content -Path 'C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0_Tomcat9_64bit\\RELEASE-NOTES' -Raw) | Select-String -Pattern 'Apache Tomcat'"`,
@@ -182,7 +220,22 @@ async function getTomcatVersion() {
       }
     );
   });
+}*/
+
+async function getTomcatVersion() {
+  const TOMCAT_BASE = process.env.TOMCAT_BASE || 'C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0_Tomcat9_64bit';
+  const releaseNotesPath = path.join(TOMCAT_BASE, 'RELEASE-NOTES');
+  return new Promise((resolve) => {
+    exec(
+      `powershell -Command "(Get-Content -Path '${releaseNotesPath}' -Raw) | Select-String -Pattern 'Apache Tomcat'"`,
+      (err, stdout) => {
+        const match = stdout.match(/Apache Tomcat.*?(\d+\.\d+\.\d+)/);
+        resolve(match ? `Apache Tomcat/${match[1]}` : 'Apache Tomcat/Unknown');
+      }
+    );
+  });
 }
+
 
 function calculateMemory(pools) {
   const used = pools.reduce((sum, pool) => sum + parseInt(pool.usageUsed || 0), 0);
@@ -256,11 +309,15 @@ async function fetchLogsAsJson(file) {
 
 router.get('/tomcat/logs', async (req, res) => {
     try {
-        const logDir = 'C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0_Tomcat9_64bit\\logs';
+        //const logDir = 'C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0_Tomcat9_64bit\\logs';
+        const TOMCAT_BASE = process.env.TOMCAT_BASE || 'C:/Program Files/Apache Software Foundation/Tomcat 9.0_Tomcat9_64bit';
+        const logDir = path.join(TOMCAT_BASE, 'logs');
+        
+        
         const todayStr = getTodayDateStr();
 
         const file1 = path.join(logDir, `localhost_access_log.${todayStr}.txt`);
-        const file2 = path.join(logDir, `tomcat9_64bit-stderr.${todayStr}.log`);
+        const file2 = path.join(logDir, `${TOMCAT_PROCESS_NAME}-stderr.${todayStr}.log`);
 
         const [accessLogs, stderrLogs] = await Promise.all([
             fetchLogsAsJson(file1),

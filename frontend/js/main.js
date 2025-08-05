@@ -2902,4 +2902,3 @@ function updateTomcatMetricsUI(metrics) {
 window.addEventListener('DOMContentLoaded', function() {
     setInterval(pollTomcatStatus, 5000);
 });
-
