@@ -74,7 +74,7 @@ router.post('/:id/stop', async (req, res) => {
     try {
         const service = await getServiceById(req.params.id);
         if (!service) return res.status(404).json({ error: 'Service not found' });
-        exec(`powershell.exe Stop-Service -Name '${service.name}'`, (err, stdout, stderr) => {
+        exec(`powershell.exe Stop-Service -Name '${service.name}' -Force`, (err, stdout, stderr) => {
             if (err) return res.status(500).json({ error: stderr || err.message });
             res.json({ status: 'stopped', stdout });
         });
