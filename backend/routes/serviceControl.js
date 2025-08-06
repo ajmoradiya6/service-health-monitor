@@ -105,8 +105,9 @@ router.get('/tomcat/metrics', async (req, res) => {
     const TOMCAT_PASSWORD = process.env.TOMCAT_PASS || 'admin';
     const auth = { username: TOMCAT_USERNAME, password: TOMCAT_PASSWORD };
 
-    const tomcatBaseUrl = `${BACKEND_HOST}:${PORT}`;
-
+    //const tomcatBaseUrl = `${BACKEND_HOST}:${PORT}`;
+    const tomcatBaseUrl = `http://127.0.0.1:8080`;
+    
     // Fetch XML status data
     //const { data: xml } = await axios.get('http://localhost:8080/manager/status/all?XML=true', { auth });
     const { data: xml } = await axios.get(`${tomcatBaseUrl}/manager/status/all?XML=true`, { auth });
