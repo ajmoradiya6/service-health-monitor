@@ -101,8 +101,8 @@ router.get('/tomcat/metrics', async (req, res) => {
   try {
 
     //const auth = { username: 'admin', password: 'admin' };
-    const TOMCAT_USERNAME = process.env.TOMCAT_USER || 'admin';
-    const TOMCAT_PASSWORD = process.env.TOMCAT_PASS || 'admin';
+    const TOMCAT_USERNAME = process.env.TOMCAT_USERNAME || 'admin';
+    const TOMCAT_PASSWORD = process.env.TOMCAT_PASSWORD || 'admin';
     const auth = { username: TOMCAT_USERNAME, password: TOMCAT_PASSWORD };
 
     //const tomcatBaseUrl = `${BACKEND_HOST}:${PORT}`;
