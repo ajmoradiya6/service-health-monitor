@@ -304,24 +304,43 @@
       </section>
       <section id="section10" class="doc-section">
         <h2>10. Troubleshooting (For Admins)</h2>
-        <b>Check Configuration File</b>
-        <ol>
-          <li>Go to the server install path</li>
-          <li>Open <code>backend\.env</code></li>
-          <li>Ensure all values are correct, not commented out</li>
-        </ol>
-        <b>Tomcat-Specific Troubleshooting</b>
-        <ol>
-          <li>Check Tomcat Service Registration: All fields must match</li>
-          <li>Validate Tomcat Credentials: Ensure <code>tomcat-users.xml</code> is set and credentials in <code>.env</code>:
-            <ul>
-              <li><code>TOMCAT_USERNAME=your_username</code></li>
-              <li><code>TOMCAT_PASSWORD=your_password</code></li>
-            </ul>
+        <ul>
+          <li>
+            <b>Check Configuration File</b>
+          <ol>
+            <li>Go to the server install path</li>
+            <li>Open <code>backend\.env</code></li>
+            <li>Ensure all values are correct, not commented out</li>
+          </ol>
           </li>
-          <li>Set Tomcat Installation Path: <code>TOMCAT_HOME=C:\\Path\\To\\Your\\Tomcat</code></li>
-        </ol>
-        <p>Without these, Tomcat logs/metrics will not be fetched.</p>
+          <li>
+            <b>Tomcat-Specific Troubleshooting</b>
+          <ol>
+            <li>Check Tomcat Service Registration: All fields must match</li>
+            <li>Validate Tomcat Credentials: Ensure <code>tomcat-users.xml</code> is set and credentials in <code>.env</code>:
+              <ul>
+                <li><code>TOMCAT_USERNAME=your_username</code></li>
+                <li><code>TOMCAT_PASSWORD=your_password</code></li>
+              </ul>
+            </li>
+            <li>Set Tomcat Installation Path: <code>TOMCAT_HOME=C:\\Path\\To\\Your\\Tomcat</code></li>
+          </ol>
+          <p>Without these, Tomcat logs/metrics will not be fetched.</p>
+          </li>
+          <li>
+            <b>When It Will Show Fail to Start/Stop</b>
+            <ol>
+              <li>Go to <b>Services</b> &rarr; right-click the service &rarr; <b>Properties</b></li>
+              <li>Open the <b>Log On</b> tab</li>
+              <li>Choose <b>This account</b> and enter an admin account with all privileges</li>
+              <li>Click <b>Apply</b> and restart the service</li>
+            </ol>
+          </li>
+          
+          
+        </ul>
+        
+
       </section>
     </main>
   </div>
