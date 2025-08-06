@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Service Health Monitor – Tutorial & Guide</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/tutorial.css">
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <div class="sidebar-title">Guide</div>
+      <nav>
+        <ul id="navList">
+          <li><a href="#" class="active" data-section="section1">1. Introduction</a></li>
+          <li><a href="#" data-section="section2">2. Tomcat Server</a></li>
+          <li><a href="#" data-section="section3">3. Windows Services</a></li>
+          <li><a href="#" data-section="section4">4. Register Service</a></li>
+          <li><a href="#" data-section="section5">5. Edit Service</a></li>
+          <li><a href="#" data-section="section6">6. Delete Service</a></li>
+          <li><a href="#" data-section="section7">7. Top-Right Icons</a></li>
+          <li><a href="#" data-section="section8">8. Start & Stop</a></li>
+          <li><a href="#" data-section="section9">9. Settings</a></li>
+          <li><a href="#" data-section="section10">10. Troubleshooting</a></li>
+        </ul>
+      </nav>
+    </aside>
+    <main class="content">
+      <section id="section1" class="doc-section active">
+        <h2>1. Introduction</h2>
+        <p>
+          The Service Health Monitor Tool is designed to provide real-time visibility and status tracking for all Contentverse Windows services and Tomcat-based applications. It offers a unified interface for monitoring system health, performance metrics, and service availability—helping teams maintain uptime, diagnose issues faster, and ensure smooth application performance.
+        </p>
+        <b>Key Features:</b>
+        <ul>
+          <li><b>Windows Services Monitoring</b>
+            <ul>
+              <li>Real-time status (Running/Stopped)</li>
+              <li>CPU usage</li>
+              <li>Memory consumption</li>
+              <li>Active connections</li>
+              <li>Visual graphs for CPU and memory trends</li>
+              <li>Access to service-specific logs</li>
+            </ul>
+          </li>
+          <li><b>Tomcat Server Monitoring</b>
+            <ul>
+              <li>Thread activity tracking</li>
+              <li>JVM memory usage</li>
+              <li>Application health status</li>
+              <li>API access logs & STD error logs</li>
+              <li>Server overview panel</li>
+            </ul>
+          </li>
+          <li><b>Smart Notifications</b>
+            <ul>
+              <li>Instant in-app alerts, email notifications, and SMS messages for service up/down events</li>
+            </ul>
+          </li>
+        </ul>
+        <p>
+          With its intuitive dashboard and powerful monitoring capabilities, this tool is essential for any Contentverse deployment where service reliability and responsiveness are critical.
+        </p>
+      </section>
+    <section id="section2" class="doc-section">
+        <h2>2. Tomcat Server – Monitoring Panel</h2>
+        <b>Overview</b>
+        <ul>
+            <li>The Tomcat Server appears by default on the left-hand sidebar under the "Services" section. It is a
+                non-removable core monitoring unit but can be configured or edited if needed.</li>
+            <li>The central panel is split into:
+                <ul>
+                    <li>A navigation panel (left) with different monitoring tabs</li>
+                    <li>A data display section (right) showing real-time metrics</li>
+                    <li>A "Last Updated" timestamp (top-right), which refreshes every 5 seconds</li>
+                </ul>
+            </li>
+        </ul>
+        <br>
+        <b>Monitoring Tabs:</b>
+        <ol>
+            <li><b>Server Overview:</b>
+                <ul>
+                    <li>Server Status – Indicates whether the Tomcat service is Running or Stopped.</li>
+                    <li>Uptime – Shows the total time since the server was last started, along with the exact start
+                        timestamp.
+                    </li>
+                    <li>JVM Version – Displays the Java runtime in use (e.g., OpenJDK 1.8.0_442).</li>
+                    <li>System Information – Key OS and environment data:
+                        <ul>
+                            <li>Operating System: e.g., Windows_NT 10.0.26100</li>
+                            <li>Java Runtime: e.g., OpenJDK 1.8.0_442</li>
+                            <li>Server Version: e.g., Apache Tomcat/9.0.97</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li><b>Thread & Connection</b>
+                <ul>
+                    <li>Max Threads – Maximum number of threads allocated (e.g., 200) and current active threads (e.g., 10).
+                    </li>
+                    <li>Busy Threads – Threads currently handling requests and % utilization.</li>
+                    <li>Request Count – Total requests served (e.g., 2840), with real-time error count.</li>
+                    <li>Avg Processing Time – Average response time in milliseconds (e.g., 3ms) and timeout setting.</li>
+                    <li>Graphs:
+                        <ul>
+                            <li>Thread Usage Over Time: Real-time chart of max vs. busy threads.</li>
+                            <li>Requests & Errors: Tracks incoming requests and HTTP error frequency.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <b>JVM & Memory</b>
+                <ul>
+                    <li>Heap Memory:
+                        <ul>
+                            <li>Used: e.g., 113 MB</li>
+                            <li>Max: e.g., 246 MB (46.1%)</li>
+                        </ul>
+                    </li>
+                    <li>Non-Heap Memory:
+                        <ul>
+                            <li>Used: e.g., 117 MB</li>
+                            <li>Max: e.g., 1264 MB (9.2%)</li>
+                        </ul>
+                    </li>
+                    <li>Graphs:
+                        <ul>
+                            <li>Heap Memory Usage: Comparison between max heap and used heap.</li>
+                            <li>Non-Heap Memory Usage: Same comparison for non-heap memory.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <b>Applications</b>
+                <ul>
+                    <li>Application Name – e.g., ROOT, Repositories, CVPreferences</li>
+                    <li>Context Path – URL path (e.g., /, /CVPreferences)</li>
+                    <li>Status – Each application’s running state</li>
+                    <li>Sessions – Number of active user sessions per app (often 0 unless used live)</li>
+                </ul>
+                <p>This section is auto-refreshed every 5 seconds and is ideal for checking deployment status in real time.
+                </p>
+            </li>
+            <li>
+                <b>Log Viewer</b>
+                <ul>
+                    <li>API Access – Shows real-time API requests, method type, endpoint path, and response codes</li>
+                    <li>Std Error – Displays stack traces or error messages if the application encounters runtime issues
+                    </li>
+                </ul>
+                <p>
+                    This log viewer helps developers troubleshoot issues and analyze endpoint behavior without needing
+                    remote server
+                    access.
+                </p>
+            </li>
+        </ol>
+    </section>
+        <section id="section3" class="doc-section">
+            <h2>3. Windows Services – Real-Time Monitoring</h2>
+            <p>The Windows Services section is designed to monitor essential Contentverse services such as CV PDF,
+                PDFViewerWebService, etc. These services need to be manually registered before they appear in the monitoring
+                interface. <br><b>(See: “How to Register a Service” for step-by-step instructions.)</b></p>
+ 
+            <b>Sidebar Status Indicators</b>
+            <ul>
+                <li>Each service appears under “Windows Services” in the left-hand sidebar</li>
+                <li>A green dot indicates the service is currently Running</li>
+                <li>A red dot indicates the service is Stopped or Inactive</li>
+            </ul>
+            <b>Metrics Tab</b>
+            <ul>
+                <li>Status – Shows if the service is running</li>
+                <li>Memory Usage – Percentage of RAM currently used by the service</li>
+                <li>CPU Usage – Percentage of CPU consumed</li>
+                <li>Connections – Active connection count (if applicable)</li>
+            </ul>
+            <b>Resource Usage Trend Graph</b>
+            <ul>
+                <li>CPU (blue line)</li>
+                <li>Memory (purple line)</li>
+            </ul>
+            <p>...over time, updating every 5 seconds for live tracking.</p>
+            <b>Logs Tab</b>
+            <ul>
+                <li>Each log entry shows: Log level (INFO, ERROR, WARNING), Timestamp, Service name</li>
+                <li>You can search logs using the search box</li>
+                <li>Filter logs using the "All Levels" dropdown, allowing: INFO, WARNING, ERROR</li>
+                <li>Click Export CSV to download the current logs for offline analysis or support sharing.</li>
+            </ul>
+            <p>Logs update automatically and display the most recent entries at the top.</p>
+        </section>
+      <section id="section4" class="doc-section">
+        <h2>4. How to Register a Windows Service</h2>
+        <ol>
+          <li><b>Locate the + icon:</b>
+            <ul>
+              <li>Go to the left sidebar under “Windows Services”</li>
+              <li>Click the + icon next to it</li>
+            </ul>
+          </li>
+          <li><b>Fill in the Registration Form:</b>
+            <ul>
+              <li>A pop-up titled "Register Service" will appear with these fields:</li>
+              <li><b>Service Name:</b> Exactly as in Windows system (<code>services.msc</code> &rarr; Properties &rarr; Service Name)</li>
+              <li><b>Service URL:</b> Host URL where the service is running (e.g. <code>http://localhost</code>)</li>
+              <li><b>Port Number:</b> The port on which the service is hosted (e.g. <code>8005</code>)</li>
+            </ul>
+          </li>
+          <li><b>Click “Register”:</b> The service will appear in the sidebar and metrics/logs will update in real time.</li>
+        </ol>
+        <br>
+        <b>Example Entry:</b>
+        <br>
+        <table>
+          <tr><th>Field</th><th>Value</th></tr>
+          <tr><td>Service Name</td><td>CV PDF</td></tr>
+          <tr><td>Service URL</td><td>http://localhost</td></tr>
+          <tr><td>Port Number</td><td>8005</td></tr>
+        </table>
+      </section>
+      <section id="section5" class="doc-section">
+        <h2>5. How to Edit a Service</h2>
+        <ol>
+          <li>Go to the Sidebar and locate the service</li>
+          <li>Click the Three Vertical Dots (⋮) to open context menu</li>
+          <li>Select “Edit” or “Modify” (a pop-up with pre-filled values appears)</li>
+          <li>Update any field (Service Name, Service URL, Port Number)</li>
+          <li>Click the “Modify” button to save changes and refresh monitoring</li>
+        </ol>
+        <br>
+        <b>Example Configuration</b>
+        <br>
+        <table>
+          <tr><th>Field</th><th>Example Value</th></tr>
+          <tr><td>Service Name</td><td>CV PDF</td></tr>
+          <tr><td>Service URL</td><td>http://localhost</td></tr>
+          <tr><td>Port Number</td><td>8005</td></tr>
+        </table>
+      </section>
+      <section id="section6" class="doc-section">
+        <h2>6. How to Delete a Service</h2>
+        <ol>
+          <li>Locate the Service in the left sidebar</li>
+          <li>Click the ⋮ (Three Dots) icon next to it</li>
+          <li>Select “Delete” (a confirmation popup will appear)</li>
+          <li>Click the red “Delete” button to confirm deletion</li>
+          <li>To cancel, click the Cancel button</li>
+        </ol>
+        <p>After deletion, the service disappears from the sidebar and all associated logs/metrics are removed.</p>
+      </section>
+      <section id="section7" class="doc-section">
+        <h2>7. Understanding Top-Right Icons (Header Controls)</h2>
+        <table>
+          <tr><th>Icon</th><th>Function</th></tr>
+          <tr><td>Live</td><td>Indicates the system is running and fetching live data</td></tr>
+          <tr><td>Power Button</td><td>Start/Stop individual services. <br/> - Tomcat may take 2–3 min to fully connect on first start.</td></tr>
+          <tr><td>Notifications</td><td>Shows alerts (up/down, high CPU, etc), badge for unread, delete/mark as read</td></tr>
+          <tr><td>Theme Mode</td><td>Toggle Light/Dark Mode</td></tr>
+          <tr><td>Settings</td><td>Open all system preferences</td></tr>
+          <tr><td>Help</td><td>Open this User Guide</td></tr>
+        </table>
+        <p><b>Tip:</b> Tomcat first start may show as “starting” for 2–3 minutes until all data is loaded.</p>
+      </section>
+      <section id="section8" class="doc-section">
+        <h2>8. How to Start and Stop a Service</h2>
+        <ul>
+          <li><b>When stopped:</b> Power Button is green (play icon). Click to start service. Data will update after launch.</li>
+          <li><b>When running:</b> Power Button is red (power icon). Click to stop service. Metrics stop updating.</li>
+        </ul>
+        <p>Tomcat may take 2–3 minutes to load metrics on first connect after starting.</p>
+      </section>
+      <section id="section9" class="doc-section">
+        <h2>9. Settings</h2>
+        <b>Notification Preferences</b>
+        <ul>
+          <li><b>AI Assist</b> – Summarizes technical errors for human-friendly notifications</li>
+          <li><b>In-app</b> – Alerts inside dashboard</li>
+          <li><b>Email</b> – Email alerts (needs SMTP setup)</li>
+          <li><b>SMS</b> – SMS alerts (requires SMS gateway)</li>
+        </ul>
+        <b>Manage Email & SMS Recipients:</b>
+        <ul>
+          <li>Toggle Email/SMS ON to add/delete contacts (+ and trash icons)</li>
+          <li>Click Save after editing</li>
+        </ul>
+        <b>Service Status Notifications</b>
+        <ul>
+          <li>Service Down/Error/Restart/Start toggles</li>
+        </ul>
+        <b>Resource Usage Notifications</b>
+        <ul>
+          <li>High CPU and High Memory toggles</li>
+        </ul>
+        <b>SMTP Email Configuration</b>
+        <ul>
+          <li>Fields: SMTP Host/Port, Username, Password, From Email, From Name, Use SSL</li>
+          <li>Click Test Configuration before saving</li>
+        </ul>
+      </section>
+      <section id="section10" class="doc-section">
+        <h2>10. Troubleshooting (For Admins)</h2>
+        <b>Check Configuration File</b>
+        <ol>
+          <li>Go to the server install path</li>
+          <li>Open <code>backend\.env</code></li>
+          <li>Ensure all values are correct, not commented out</li>
+        </ol>
+        <b>Tomcat-Specific Troubleshooting</b>
+        <ol>
+          <li>Check Tomcat Service Registration: All fields must match</li>
+          <li>Validate Tomcat Credentials: Ensure <code>tomcat-users.xml</code> is set and credentials in <code>.env</code>:
+            <ul>
+              <li><code>TOMCAT_USERNAME=your_username</code></li>
+              <li><code>TOMCAT_PASSWORD=your_password</code></li>
+            </ul>
+          </li>
+          <li>Set Tomcat Installation Path: <code>TOMCAT_HOME=C:\\Path\\To\\Your\\Tomcat</code></li>
+        </ol>
+        <p>Without these, Tomcat logs/metrics will not be fetched.</p>
+      </section>
+    </main>
+  </div>
+  <script src="js/tutorial.js"></script>
+</body>
+</html>

@@ -2902,3 +2902,13 @@ function updateTomcatMetricsUI(metrics) {
 window.addEventListener('DOMContentLoaded', function() {
     setInterval(pollTomcatStatus, 5000);
 });
+
+// Open tutorial page in a new tab when the tutorial button is clicked
+window.addEventListener('DOMContentLoaded', () => {
+    const tutorialBtn = document.getElementById('tutorial-btn');
+    if (tutorialBtn) {
+        tutorialBtn.addEventListener('click', () => {
+            window.open('tutorial.html', '_blank');
+        });
+    }
+});
