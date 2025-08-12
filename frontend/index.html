@@ -7,9 +7,6 @@
 
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
-    <!-- Add Lottie player -->
-    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -96,11 +93,6 @@
                         <div class="live-dot"></div>
                         <span>Live</span>
                     </div>
-                    <!-- Service Power Button (Start/Shutdown) -->
-                   
-                    <div class="action-button service-power-action" id="service-power-btn" title="Start Service">
-                        <i data-lucide="power" class="theme-icon"></i>
-                    </div>
                     <div class="notification-icon-wrapper">
                         <div class="action-button notification-action">
                             <i data-lucide="bell" class="theme-icon"></i>
@@ -186,39 +178,6 @@
                                                             data-lucide="plus"></i></button>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Service Status Notifications</label>
-                                        <div class="checkbox-group">
-                                            <label>
-                                                <span>Service Down</span>
-                                                <div class="toggle-switch">
-                                                    <input type="checkbox" id="notif-down">
-                                                    <span class="slider round"></span>
-                                                </div>
-                                            </label>
-                                            <label>
-                                                <span>Service Error</span>
-                                                <div class="toggle-switch">
-                                                    <input type="checkbox" id="notif-error">
-                                                    <span class="slider round"></span>
-                                                </div>
-                                            </label>
-                                            <label>
-                                                <span>Service Restart</span>
-                                                <div class="toggle-switch">
-                                                    <input type="checkbox" id="notif-restart">
-                                                    <span class="slider round"></span>
-                                                </div>
-                                            </label>
-                                            <label>
-                                                <span>Service Start</span>
-                                                <div class="toggle-switch">
-                                                    <input type="checkbox" id="notif-start">
-                                                    <span class="slider round"></span>
-                                                </div>
-                                            </label>
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -338,21 +297,6 @@
                         </div>
                         <div class="tomcat-content-server-overview" style="display:block;">
                             <div class="tomcat-cards">
-                                <div class="tomcat-card">
-                                    <div class="metric-header">
-                                        <i data-lucide="activity" class="metric-icon"></i>
-                                        <div class="metric-label">Server Status</div>
-                                    </div>
-                                    <!-- <div class="tomcat-status-pill tomcat-running">● Running</div> -->
-                                    <div class="tomcat-card-value">
-                                        <div class="tomcat-card-value-container"
-                                            style="display: flex; align-items: center;">
-                                            <div class="status-dot" id="tomcat-status-dot-card"></div>
-                                            <span id="tomcat-status-label-card">--</span>
-                                        </div>
-                                    </div>
-                                    <small><span class="tomcat-version-card">--</span></small>
-                                </div>
                                 <div class="tomcat-card">
                                     <div class="metric-header">
                                         <i data-lucide="clock-arrow-up" class="metric-icon"></i>
@@ -766,16 +710,6 @@
                 <div class="metrics-grid">
                     <div class="metric-card">
                         <div class="metric-header">
-                            <i data-lucide="activity" class="metric-icon"></i>
-                            <div class="metric-label">Status</div>
-                        </div>
-                        <div class="metric-value status-running">
-                            <div class="status-dot"></div>
-                            <span>--</span>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-header">
                             <i data-lucide="database" class="metric-icon"></i>
                             <div class="metric-label">Memory</div>
                         </div>
@@ -878,13 +812,6 @@
 
 
         <!-- Spinner Overlay for Service Start (replace spinner with Lottie) -->
-        <div class="spinner-overlay" id="service-spinner-overlay" style="display:none;">
-            <div class="spinner-content">
-                <lottie-player id="lottie-service-spinner" src="assets/spinner.json" background="transparent" speed="1"
-                    style="width: 120px; height: 120px;" loop autoplay></lottie-player>
-                <div class="spinner-message" id="service-spinner-message">Service is being started</div>
-            </div>
-        </div>
 </body>
 
 </html>

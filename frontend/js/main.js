@@ -144,11 +144,10 @@ async function loadServices() {
           selectService(div, index, service);
       };
       
-      // Construct the inner HTML with status dot, service name, and actions (ellipsis)
+      // Construct the inner HTML with service name
       div.innerHTML = `
-          <div class="status-dot"></div>
           <span class="service-name" title="${service.DisplayName}">${service.DisplayName}</span>
-          
+
       `;
       //<div class="service-actions" data-service-type="windows" data-service-id="${service.id}"><i data-lucide="more-vertical"></i></div>
       // Store service data on the element
@@ -175,11 +174,10 @@ async function loadServices() {
                 selectService(div, windowsServices.length + index, service);
             };
             
-            // Construct the inner HTML with status dot, service name, and actions (ellipsis)
+            // Construct the inner HTML with service name
             div.innerHTML = `
-                <div class="status-dot"></div>
                 <span class="service-name" title="${service.DisplayName}">${service.DisplayName}</span>
-                
+
             `;
             //<div class="service-actions" data-service-type="tomcat" data-service-id="${service.id}"><i data-lucide="more-vertical"></i></div>
             // Store service data on the element
@@ -189,21 +187,7 @@ async function loadServices() {
 
 
 
-            // --- Fetch Tomcat status and update dot on page load ---
-            if (service && service.id) {
-                fetch(`/api/service-control/${service.id}/status`)
-                    .then(resp => resp.ok ? resp.json() : null)
-                    .then(data => {
-                        if (data && typeof data.status === 'string') {
-                            updateTomcatServiceStatusDot(div, data.status === 'Running');
-                        } else {
-                            updateTomcatServiceStatusDot(div, false);
-                        }
-                    })
-                    .catch(() => updateTomcatServiceStatusDot(div, false));
-            } else {
-                updateTomcatServiceStatusDot(div, false);
-            }
+            // Status checks removed
         });
     }
 
@@ -483,148 +467,7 @@ function initializeResourceChart(serviceId) {
 // Ensure chart is initialized after DOM is ready
 window.addEventListener('DOMContentLoaded', () => {
     initializeResourceChart();
-    setupServicePowerButton();
 });
-
-// Setup the service power button to control only the active service
-function setupServicePowerButton() {
-    const powerBtn = document.getElementById('service-power-btn');
-    if (!powerBtn) return;
-
-    // Click handler: toggles the active service
-    powerBtn.addEventListener('click', async () => {
-        if (!activeServiceId) {
-            showNotification('No service selected', 'error');
-            return;
-        }
-        // Get current status
-        const status = await fetchServiceStatus(activeServiceId);
-        if (!status) {
-            showNotification('Could not determine service status', 'error');
-            return;
-        }
-        if (status === 'Running') {
-            // Stop the service
-            showServiceSpinner('Stopping Service...');
-            const resp = await fetch(`/api/service-control/${activeServiceId}/stop`, { method: 'POST' });
-            if (resp.ok) {
-                showNotification('Service stopped', 'success');
-                updatePowerButton('Stopped');
-                // Update status dot for the selected service
-                const selectedServiceElement = document.querySelector('.service-item.active');
-                if (selectedServiceElement) {
-                    const serviceData = JSON.parse(selectedServiceElement.dataset.service);
-                    const isTomcatService = serviceData.Name && serviceData.Name.toLowerCase().includes('tomcat');
-                    if (isTomcatService) {
-                        updateTomcatServiceStatusDot(selectedServiceElement, false);
-                    }
-                }
-                hideServiceSpinner();
-                // We do not need to update status dot for windows services
-            } else {
-                hideServiceSpinner();
-                const err = await resp.json();
-                showNotification('Failed to stop service: ' + (err.error || resp.statusText), 'error');
-            }
-        } else {
-            window._serviceSpinnerShouldHideOnRunning = true;
-            showServiceSpinner('Starting service...');
-            powerBtn.title = 'Starting...';
-            const resp = await fetch(`/api/service-control/${activeServiceId}/start`, { method: 'POST' });
-            if (resp.ok) {
-                // Wait for service to actually be running (poll status)
-                let tries = 0, running = false;
-                while (tries < 10) {
-                    await new Promise(r => setTimeout(r, 700));
-                    const newStatus = await fetchServiceStatus(activeServiceId);
-                    if (newStatus === 'Running') {
-                        running = true;
-                        // Hide spinner immediately for Tomcat only
-                        const selectedServiceElement = document.querySelector('.service-item.active');
-                        if (selectedServiceElement) {
-                            const serviceData = JSON.parse(selectedServiceElement.dataset.service);
-                            const isTomcatService = serviceData.Name && serviceData.Name.toLowerCase().includes('tomcat');
-                            if (isTomcatService) {
-                                hideServiceSpinner();
-                                updatePowerButton('Running');
-                                window._serviceSpinnerShouldHideOnRunning = false;
-                                updateTomcatServiceStatusDot(selectedServiceElement, true);
-                            } else {
-                                showServiceSpinner('Connecting to Service...');
-                                updatePowerButton('Running');
-                                showNotification('Service started', 'success');
-                                updateServiceStatus('Running');
-                            }
-                        }
-                        break;
-                    }
-                    else {
-                        hideServiceSpinner();
-                        window._serviceSpinnerShouldHideOnRunning = false;
-                        showNotification('Service start timed out', 'error');
-                        updatePowerButton('Stopped');
-                        break;
-                    }
-                    tries++;
-                }
-            } else {
-                hideServiceSpinner();
-                window._serviceSpinnerShouldHideOnRunning = false;
-                const err = await resp.json();
-                showNotification('Failed to start service', 'error');
-                updatePowerButton('Stopped');
-            }
-        }
-    });
-
-    // Update button on service selection
-    document.addEventListener('serviceSelected', async (e) => {
-        const id = e.detail && e.detail.serviceId;
-        if (!id) return;
-        const status = await fetchServiceStatus(id);
-        updatePowerButton(status);
-        // Update status dot for the selected service
-        const selectedServiceElement = document.querySelector('.service-item.active');
-        if (selectedServiceElement) {
-            const serviceData = JSON.parse(selectedServiceElement.dataset.service);
-            const isTomcatService = serviceData.Name && serviceData.Name.toLowerCase().includes('tomcat');
-            if (isTomcatService) {
-                updateTomcatServiceStatusDot(selectedServiceElement, status === 'Running');
-            }
-        }
-    });
-}
-
-// Helper to fetch service status
-async function fetchServiceStatus(serviceId) {
-    try {
-        const resp = await fetch(`/api/service-control/${serviceId}/status`);
-        if (!resp.ok) return null;
-        const data = await resp.json();
-        return data.status;
-    } catch {
-        return null;
-    }
-}
-
-// Helper to update the power button icon and tooltip
-function updatePowerButton(status) {
-    const powerBtn = document.getElementById('service-power-btn');
-    if (!powerBtn) return;
-    const icon = powerBtn.querySelector('svg');
-    powerBtn.classList.remove('service-power-running', 'service-power-stopped');
-    if (status === 'Running') {
-        powerBtn.title = 'Shutdown Service';
-        if (icon) icon.setAttribute('data-lucide', 'power');
-        powerBtn.classList.add('service-power-running');
-    } else {
-        powerBtn.title = 'Start Service';
-        if (icon) icon.setAttribute('data-lucide', 'play');
-        powerBtn.classList.add('service-power-stopped');
-    }
-    if (icon) icon.style.color = '';
-    if (window.lucide) window.lucide.createIcons({ parentElement: powerBtn });
-}
 
 function updateResourceChart(cpu, memory, timestamp) {
     // Always update the buffer for the current service
@@ -922,48 +765,8 @@ function selectService(element, index, service) {
         activeServiceType = 'windows';
     }
 
-    // === INSTANT STATUS UPDATE BASED ON DOT COLOR ===
-    const statusElement = document.querySelector('.status-running');
-    let statusIsStopped = false;
-    if (statusElement) {
-        // Find the sidebar dot for this service
-        const serviceDot = element.querySelector('.status-dot');
-        if (serviceDot) {
-            // Get the computed --dot-color value
-            const dotColor = getComputedStyle(serviceDot).getPropertyValue('--dot-color').trim();
-            // Get the CSS variable values for comparison
-            const rootStyles = getComputedStyle(document.documentElement);
-            const red = rootStyles.getPropertyValue('--red-primary').trim();
-            const green = rootStyles.getPropertyValue('--green-primary').trim();
-            const yellow = rootStyles.getPropertyValue('--yellow-primary').trim();
-
-            let statusText = 'Connecting...';
-            let mainDotColor = yellow;
-            if (dotColor === red) {
-                statusText = 'Stopped';
-                mainDotColor = red;
-                statusIsStopped = true;
-            } else if (dotColor === green) {
-                statusText = 'Running';
-                mainDotColor = green;
-            }
-            statusElement.style.setProperty('--dot-color', mainDotColor);
-            const statusTextElem = statusElement.querySelector('span');
-            if (statusTextElem) statusTextElem.textContent = statusText;
-        }
-    }
-    // If stopped, set metrics to '--' and skip rendering metrics
-    if (statusIsStopped) {
-        const cpuElement = document.getElementById('cpu-value');
-        const memoryElement = document.getElementById('memory-value');
-        const connectionsElement = document.getElementById('connections-value');
-        if (cpuElement) cpuElement.textContent = '--';
-        if (memoryElement) memoryElement.textContent = '--';
-        if (connectionsElement) connectionsElement.textContent = '--';
-    } else {
-        // Only render metrics if not stopped
-        renderServiceMetrics(serviceData.id);
-    }
+    // Render metrics for selected service
+    renderServiceMetrics(serviceData.id);
 
 
 
@@ -981,7 +784,6 @@ function selectService(element, index, service) {
     initializeResourceChart(activeServiceId);
 
     // Dispatch event for power button update
-    document.dispatchEvent(new CustomEvent('serviceSelected', { detail: { serviceId: activeServiceId, serviceType: activeServiceType } }));
 }
 
 function switchTab(element, tabName, index) {
@@ -1060,12 +862,6 @@ function renderServiceMetrics(serviceId) {
     if (memoryElement) memoryElement.textContent = parseMetricValue(metrics.memoryUsage, true).toFixed(2) + '%';
     if (connectionsElement) connectionsElement.textContent = parseMetricValue(metrics.activeConnections).toFixed(1);
 
-    const statusElement = document.querySelector('.status-running');
-    if (statusElement) {
-        statusElement.style.setProperty('--dot-color', metrics.serviceRunning ? 'var(--green-primary)' : 'var(--red-primary)');
-        const statusText = statusElement.querySelector('span');
-        statusText.textContent = metrics.serviceRunning ? 'Running' : 'Stopped';
-    }
 }
 
 // Function to toggle filter dropdown
@@ -1546,10 +1342,6 @@ async function initializeNotificationSettings() {
     notifEmailToggle.checked = notificationSettings.emailEnabled || false;
     notifSmsToggle.checked = notificationSettings.smsEnabled || false;
     document.getElementById('notif-inapp').checked = notificationSettings.inAppEnabled || false;
-    document.getElementById('notif-down').checked = notificationSettings.serviceDownEnabled || false;
-    document.getElementById('notif-error').checked = notificationSettings.serviceErrorEnabled || false;
-    document.getElementById('notif-restart').checked = notificationSettings.serviceRestartEnabled || false;
-    document.getElementById('notif-start').checked = notificationSettings.serviceStartEnabled || false;
     document.getElementById('notif-high-cpu').checked = notificationSettings.highCpuEnabled || false;
     document.getElementById('notif-high-memory').checked = notificationSettings.highMemoryEnabled || false;
     notifAIAssistToggle.checked = notificationSettings.aiAssistEnabled || false;
@@ -1739,10 +1531,7 @@ async function saveAllSettingsToBackend() {
                 inAppEnabled: document.getElementById('notif-inapp').checked,
                 emailEnabled: notifEmailToggle.checked,
                 smsEnabled: notifSmsToggle.checked,
-                serviceDownEnabled: document.getElementById('notif-down').checked,
-                serviceErrorEnabled: document.getElementById('notif-error').checked,
-                serviceRestartEnabled: document.getElementById('notif-restart').checked,
-                serviceStartEnabled: document.getElementById('notif-start').checked,
+                
                 highCpuEnabled: document.getElementById('notif-high-cpu').checked,
                 highMemoryEnabled: document.getElementById('notif-high-memory').checked,
                 aiAssistEnabled: notifAIAssistToggle.checked,
@@ -1908,24 +1697,6 @@ function sendNotificationToBackend({ serviceName, timestamp, type, message }) {
   });
 }
 
-function showServiceSpinner(message = 'Starting service...') {
-    const overlay = document.getElementById('service-spinner-overlay');
-    const msg = document.getElementById('service-spinner-message');
-    if (overlay) overlay.style.display = 'flex';
-    if (msg) msg.textContent = message;
-    // Optionally restart Lottie animation if needed
-    const lottie = document.getElementById('lottie-service-spinner');
-    if (lottie) lottie.play();
-}
-
-function hideServiceSpinner() {
-    const overlay = document.getElementById('service-spinner-overlay');
-    if (overlay) overlay.style.display = 'none';
-    // Optionally stop Lottie animation if needed
-    const lottie = document.getElementById('lottie-service-spinner');
-    if (lottie) lottie.stop();
-}
-
 
 
 function showTomcatPanel() {
@@ -1940,47 +1711,6 @@ function showWindowsPanel() {
 
 
 
-// Helper to update Tomcat status dot in the sidebar and card
-function updateTomcatStatusDotBoth(isRunning) {
-    // Sidebar
-    const tomcatSidebarItem = document.getElementById('tomcat-service-list');
-    if (tomcatSidebarItem) {
-        const statusDot = tomcatSidebarItem.querySelector('.status-dot');
-        if (statusDot) {
-            const color = isRunning ? 'var(--green-primary)' : 'var(--red-primary)';
-            statusDot.style.setProperty('--dot-color', color);
-        }
-    }
-    // Also update the card dot and label if present
-    const cardDot = document.getElementById('tomcat-status-dot-card');
-    const cardLabel = document.getElementById('tomcat-status-label-card');
-    if (cardDot) {
-        const dotColor = isRunning ? 'var(--green-primary)' : 'var(--red-primary)';
-        cardDot.style.setProperty('--dot-color', dotColor);
-        if (cardLabel) {
-            cardLabel.textContent = isRunning ? 'Running' : 'Stopped';
-            cardLabel.style.setProperty('--dot-color', dotColor);
-            cardLabel.style.color = 'var(--dot-color)';
-        }
-    } else if (cardLabel) {
-        cardLabel.textContent = isRunning ? 'Running' : 'Stopped';
-        cardLabel.style.color = '';
-    }
-}
-
-// Helper to update individual Tomcat service status dot
-function updateTomcatServiceStatusDot(serviceElement, isRunning) {
-    if (serviceElement) {
-        const statusDot = serviceElement.querySelector('.status-dot');
-        if (statusDot) {
-            const color = isRunning ? 'var(--green-primary)' : 'var(--red-primary)';
-            statusDot.style.setProperty('--dot-color', color);
-        }
-    }
-}
-
-// === Tomcat status polling and notification logic ===
-let tomcatPrevStatus = null;
 // Persistent buffers for each log type
 const apiAccessLogBuffer = [];
 const stdErrorLogBuffer = [];
@@ -2008,53 +1738,6 @@ async function pollTomcatStatus() {
     if (!tomcatSidebarItem) return;
     const tomcatData = JSON.parse(tomcatSidebarItem.dataset.service);
     if (!tomcatData || !tomcatData.id) return;
-
-    try {
-        const resp = await fetch(`/api/service-control/${tomcatData.id}/status`);
-        if (!resp.ok) throw new Error('Failed to fetch Tomcat status');
-        const data = await resp.json();
-        const isRunning = data.status === 'Running';
-
-        // Update the status dot
-        updateTomcatStatusDotBoth(isRunning);
-
-        // Notification logic: only notify on state change
-        if (tomcatPrevStatus !== null && tomcatPrevStatus !== isRunning) {
-            const now = new Date().toISOString();
-            if (isRunning) {
-                // Tomcat went UP
-                addNotification({
-                    level: 'info',
-                    message: `${tomcatData.name} is UP`,
-                    timestamp: now
-                }, tomcatData.id, tomcatData.name, true);
-                sendNotificationToBackend({
-                    serviceName: tomcatData.name,
-                    timestamp: now,
-                    type: 'up',
-                    message: `${tomcatData.name} is UP`
-                });
-            } else {
-                // Tomcat went DOWN
-                addNotification({
-                    level: 'error',
-                    message: `${tomcatData.name} is DOWN`,
-                    timestamp: now
-                }, tomcatData.id, tomcatData.name, false);
-                sendNotificationToBackend({
-                    serviceName: tomcatData.name,
-                    timestamp: now,
-                    type: 'down',
-                    message: `${tomcatData.name} is DOWN`
-                });
-            }
-        }
-
-        // Update previous status
-        tomcatPrevStatus = isRunning;
-    } catch (err) {
-        
-    }
 
     try {
         const resp = await fetch('/api/service-control/tomcat/metrics');
