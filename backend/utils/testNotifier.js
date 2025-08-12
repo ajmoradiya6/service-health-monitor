@@ -1,4 +1,4 @@
-const { createUserNotificationFromLog } = require('../services/healthService');
+const { createUserNotificationFromLog } = require('../services/fetchServices');
 require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
 
 // console.log('Running testNotifier.js...');
@@ -33,4 +33,4 @@ async function runTests() {
 
 runTests().catch(err => {
   console.error('Error sending test notifications:', err);
-}); 
+});
