@@ -1815,12 +1815,12 @@ body {
     max-width: 300px;
 }
 
-#tomcat-sidebar-item {
+#tomcat-service-list {
     margin-top: 8px;
 }
 
 #service-list svg,
-#tomcat-sidebar-item svg {
+#tomcat-service-list svg {
     padding: 3px;
 }
 

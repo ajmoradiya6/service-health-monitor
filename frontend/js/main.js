@@ -162,33 +162,55 @@ async function loadServices() {
       }
     });
 
-    const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
-    if (tomcatSidebarItem) {
-      const actionsEl = tomcatSidebarItem.querySelector('.service-actions');
-      if (tomcatService) {
-        tomcatSidebarItem.dataset.service = JSON.stringify(tomcatService);
-        actionsEl.dataset.serviceId = tomcatService.id;
-      } else {
-        const defaultTomcat = { id: null, name: 'Tomcat Server', url: 'http://localhost', port: '8080' };
-        tomcatSidebarItem.dataset.service = JSON.stringify(defaultTomcat);
-        actionsEl.dataset.serviceId = '';
-      }
-      actionsEl.dataset.serviceType = 'tomcat';
-      // --- Fetch Tomcat status and update dot on page load ---
-      if (tomcatService && tomcatService.id) {
-        fetch(`/api/service-control/${tomcatService.id}/status`)
-          .then(resp => resp.ok ? resp.json() : null)
-          .then(data => {
-            if (data && typeof data.status === 'string') {
-              updateTomcatStatusDotBoth(data.status === 'Running');
-            } else {
-              updateTomcatStatusDotBoth(false);
+    // Render tomcat services dynamically
+    const tomcatContainer = document.getElementById('tomcat-service-list');
+    if (tomcatContainer && Array.isArray(tomcatService)) {
+        tomcatContainer.innerHTML = '';
+        
+        tomcatService.forEach((service, index) => {
+            const div = document.createElement('div');
+            div.className = 'service-item';
+            div.onclick = (event) => {
+                // Prevent the ellipsis click from triggering service selection
+                if (event.target.closest('.service-actions')) {
+                    return;
+                }
+                selectService(div, windowsServices.length + index, service);
+            };
+            
+            // Construct the inner HTML with status dot, service name, and actions (ellipsis)
+            div.innerHTML = `
+                <div class="status-dot"></div>
+                <span class="service-name" title="${service.DisplayName}">${service.DisplayName}</span>
+                
+            `;
+            //<div class="service-actions" data-service-type="tomcat" data-service-id="${service.id}"><i data-lucide="more-vertical"></i></div>
+            // Store service data on the element
+            div.dataset.service = JSON.stringify(service);
+
+            tomcatContainer.appendChild(div);
+
+            // === Ensure a connection is created and stored for every service ===
+            if (!serviceConnections[service.id]) {
+                serviceConnections[service.id] = connectToSignalR(service);
             }
-          })
-          .catch(() => updateTomcatStatusDotBoth(false));
-      } else {
-        updateTomcatStatusDotBoth(false);
-      }
+
+            // --- Fetch Tomcat status and update dot on page load ---
+            if (service && service.id) {
+                fetch(`/api/service-control/${service.id}/status`)
+                    .then(resp => resp.ok ? resp.json() : null)
+                    .then(data => {
+                        if (data && typeof data.status === 'string') {
+                            updateTomcatServiceStatusDot(div, data.status === 'Running');
+                        } else {
+                            updateTomcatServiceStatusDot(div, false);
+                        }
+                    })
+                    .catch(() => updateTomcatServiceStatusDot(div, false));
+            } else {
+                updateTomcatServiceStatusDot(div, false);
+            }
+        });
     }
 
     // After adding all service items, create Lucide icons within the container
@@ -199,22 +221,25 @@ async function loadServices() {
     // Add event listener for service actions (ellipsis) using delegation
     container.addEventListener('click', handleServiceActionsClick);
 
-    // Auto-select the Tomcat service if present, otherwise the first windows service
-    if (tomcatService && tomcatService.id) {
-        const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
-        if (tomcatSidebarItem) {
-            tomcatSidebarItem.classList.add('active');
-            // Set Tomcat as the active service
-            activeServiceId = tomcatService.id;
-            activeServiceType = 'tomcat';
-            document.dispatchEvent(new CustomEvent('serviceSelected', { detail: { serviceId: activeServiceId, serviceType: activeServiceType } }));
-            showTomcatPanel();
+    // Auto-select the first service (tomcat or windows)
+    if (Array.isArray(tomcatService) && tomcatService.length > 0) {
+        const tomcatContainer = document.getElementById('tomcat-service-list');
+        const firstTomcatItem = tomcatContainer.querySelector('.service-item');
+        if (firstTomcatItem) {
+            selectService(firstTomcatItem, 0, tomcatService[0]);
         }
+        // Connect to remaining tomcat services
+        tomcatService.forEach((srv, idx) => {
+            if (idx !== 0) {
+                connectToSignalR(srv);
+            }
+        });
     } else if (windowsServices.length > 0) {
         const firstItem = container.querySelector('.service-item');
         if (firstItem) {
             selectService(firstItem, 0, windowsServices[0]);
         }
+        // Connect to remaining windows services
         windowsServices.forEach((srv, idx) => {
             if (idx !== 0) {
                 connectToSignalR(srv);
@@ -513,10 +538,14 @@ function setupServicePowerButton() {
             if (resp.ok) {
                 showNotification('Service stopped', 'success');
                 updatePowerButton('Stopped');
-                // Update Tomcat status dot if Tomcat is selected
-                const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
-                if (tomcatSidebarItem && activeServiceId === JSON.parse(tomcatSidebarItem.dataset.service).id) {
-                    updateTomcatStatusDotBoth(false);
+                // Update status dot for the selected service
+                const selectedServiceElement = document.querySelector('.service-item.active');
+                if (selectedServiceElement) {
+                    const serviceData = JSON.parse(selectedServiceElement.dataset.service);
+                    const isTomcatService = serviceData.Name && serviceData.Name.toLowerCase().includes('tomcat');
+                    if (isTomcatService) {
+                        updateTomcatServiceStatusDot(selectedServiceElement, false);
+                    }
                 }
                 hideServiceSpinner();
                 // We do not need to update status dot for windows services
@@ -539,17 +568,21 @@ function setupServicePowerButton() {
                     if (newStatus === 'Running') {
                         running = true;
                         // Hide spinner immediately for Tomcat only
-                        const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
-                        if (tomcatSidebarItem && activeServiceId === JSON.parse(tomcatSidebarItem.dataset.service).id) {
-                            hideServiceSpinner();
-                            updatePowerButton('Running');
-                            window._serviceSpinnerShouldHideOnRunning = false;
-                            updateTomcatStatusDotBoth(true);
-                        }else{
-                            showServiceSpinner('Connecting to Service...');
-                            updatePowerButton('Running');
-                            showNotification('Service started', 'success');
-                            updateServiceStatus('Running');
+                        const selectedServiceElement = document.querySelector('.service-item.active');
+                        if (selectedServiceElement) {
+                            const serviceData = JSON.parse(selectedServiceElement.dataset.service);
+                            const isTomcatService = serviceData.Name && serviceData.Name.toLowerCase().includes('tomcat');
+                            if (isTomcatService) {
+                                hideServiceSpinner();
+                                updatePowerButton('Running');
+                                window._serviceSpinnerShouldHideOnRunning = false;
+                                updateTomcatServiceStatusDot(selectedServiceElement, true);
+                            } else {
+                                showServiceSpinner('Connecting to Service...');
+                                updatePowerButton('Running');
+                                showNotification('Service started', 'success');
+                                updateServiceStatus('Running');
+                            }
                         }
                         break;
                     }
@@ -578,10 +611,14 @@ function setupServicePowerButton() {
         if (!id) return;
         const status = await fetchServiceStatus(id);
         updatePowerButton(status);
-        // Update Tomcat status dot if Tomcat is selected
-        const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
-        if (tomcatSidebarItem && id === JSON.parse(tomcatSidebarItem.dataset.service).id) {
-            updateTomcatStatusDotBoth(status === 'Running');
+        // Update status dot for the selected service
+        const selectedServiceElement = document.querySelector('.service-item.active');
+        if (selectedServiceElement) {
+            const serviceData = JSON.parse(selectedServiceElement.dataset.service);
+            const isTomcatService = serviceData.Name && serviceData.Name.toLowerCase().includes('tomcat');
+            if (isTomcatService) {
+                updateTomcatServiceStatusDot(selectedServiceElement, status === 'Running');
+            }
         }
     });
 }
@@ -1217,19 +1254,27 @@ function connectToSignalR(serviceData) {
 
 // Modify the selectService function to establish SignalR connection
 function selectService(element, index, service) {
-    // Remove active from Tomcat
-    document.querySelectorAll('.sidebar-content-top-item').forEach(item => item.classList.remove('active'));
-    // Panel switching logic for Windows
-    showWindowsPanel();
-    document.querySelectorAll('.service-item').forEach(item => {
-        item.classList.remove('active');
-    });
+    // Remove active from all service items
+    document.querySelectorAll('.service-item').forEach(item => item.classList.remove('active'));
     element.classList.add('active');
 
     // Get the service data from the data attribute
     const serviceData = JSON.parse(element.dataset.service);
     activeServiceId = serviceData.id;
     console.log('Selected service data:', serviceData);
+
+    // Determine if this is a Tomcat service based on the service name
+    const isTomcatService = serviceData.Name && serviceData.Name.toLowerCase().includes('tomcat');
+    
+    if (isTomcatService) {
+        // Show Tomcat panel for Tomcat services
+        showTomcatPanel();
+        activeServiceType = 'tomcat';
+    } else {
+        // Show Windows panel for Windows services
+        showWindowsPanel();
+        activeServiceType = 'windows';
+    }
 
     // === INSTANT STATUS UPDATE BASED ON DOT COLOR ===
     const statusElement = document.querySelector('.status-running');
@@ -1301,7 +1346,7 @@ function selectService(element, index, service) {
     initializeResourceChart(activeServiceId);
 
     // Dispatch event for power button update
-    document.dispatchEvent(new CustomEvent('serviceSelected', { detail: { serviceId: activeServiceId } }));
+    document.dispatchEvent(new CustomEvent('serviceSelected', { detail: { serviceId: activeServiceId, serviceType: activeServiceType } }));
 }
 
 function switchTab(element, tabName, index) {
@@ -1680,16 +1725,16 @@ function handleEditService(serviceId) {
         }
     });
 
-    // If not found, check the Tomcat service entry
+    // If not found, check all service items (including Tomcat services)
     if (!serviceToEdit) {
-        const tomcatItem = document.getElementById('tomcat-sidebar-item');
-        if (tomcatItem) {
-            const tomcatData = JSON.parse(tomcatItem.dataset.service);
-            const tomcatId = tomcatData.id === null ? '' : String(tomcatData.id);
-            if (serviceId === tomcatId || serviceId === 'null' || serviceId === '') {
-                serviceToEdit = tomcatData;
+        const serviceItems = document.querySelectorAll('.service-item');
+        serviceItems.forEach(item => {
+            const serviceData = JSON.parse(item.dataset.service);
+            const serviceIdStr = serviceData.id === null ? '' : String(serviceData.id);
+            if (serviceId === serviceIdStr || serviceId === 'null' || serviceId === '') {
+                serviceToEdit = serviceData;
             }
-        }
+        });
     }
 
     if (serviceToEdit) {
@@ -2554,51 +2599,12 @@ function showWindowsPanel() {
     document.getElementById('windows-metrics-panel').style.display = 'block';
 }
 
-// Patch selectService to show/hide Tomcat/Windows panels
-const originalSelectService = window.selectService;
-window.selectService = function(element, index, service) {
-    if (service.name && service.name.toLowerCase().includes('tomcat')) {
-        showTomcatPanel();
-    } else {
-        showWindowsPanel();
-    }
-    if (typeof originalSelectService === 'function') {
-        originalSelectService.apply(this, arguments);
-    }
-};
 
-// Add Tomcat sidebar click logic after DOMContentLoaded
-window.addEventListener('DOMContentLoaded', function() {
-    const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
-    if (tomcatSidebarItem) {
-        tomcatSidebarItem.addEventListener('click', function(event) {
-            if (event.target.closest('.service-actions')) {
-                return;
-            }
-            // Set active class
-            document.querySelectorAll('.service-item').forEach(item => item.classList.remove('active'));
-            document.querySelectorAll('.sidebar-content-top-item').forEach(item => item.classList.remove('active'));
-            tomcatSidebarItem.classList.add('active');
-            // Show Tomcat panel, hide Windows panel
-            showTomcatPanel();
-
-            // Set Tomcat as the active service
-            const tomcatData = JSON.parse(tomcatSidebarItem.dataset.service);
-            activeServiceId = tomcatData.id;
-            // Optionally: activeServiceType = 'tomcat';
-            document.dispatchEvent(new CustomEvent('serviceSelected', { detail: { serviceId: activeServiceId } }));
-        });
-        const actions = tomcatSidebarItem.querySelector('.service-actions');
-        if (actions) {
-            actions.addEventListener('click', handleServiceActionsClick);
-        }
-    }
-});
 
 // Helper to update Tomcat status dot in the sidebar and card
 function updateTomcatStatusDotBoth(isRunning) {
     // Sidebar
-    const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
+    const tomcatSidebarItem = document.getElementById('tomcat-service-list');
     if (tomcatSidebarItem) {
         const statusDot = tomcatSidebarItem.querySelector('.status-dot');
         if (statusDot) {
@@ -2620,6 +2626,17 @@ function updateTomcatStatusDotBoth(isRunning) {
     } else if (cardLabel) {
         cardLabel.textContent = isRunning ? 'Running' : 'Stopped';
         cardLabel.style.color = '';
+    }
+}
+
+// Helper to update individual Tomcat service status dot
+function updateTomcatServiceStatusDot(serviceElement, isRunning) {
+    if (serviceElement) {
+        const statusDot = serviceElement.querySelector('.status-dot');
+        if (statusDot) {
+            const color = isRunning ? 'var(--green-primary)' : 'var(--red-primary)';
+            statusDot.style.setProperty('--dot-color', color);
+        }
     }
 }
 
@@ -2648,7 +2665,7 @@ async function pollTomcatStatus() {
     const nowLabel = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
 
 
-    const tomcatSidebarItem = document.getElementById('tomcat-sidebar-item');
+    const tomcatSidebarItem = document.getElementById('tomcat-service-list');
     if (!tomcatSidebarItem) return;
     const tomcatData = JSON.parse(tomcatSidebarItem.dataset.service);
     if (!tomcatData || !tomcatData.id) return;
