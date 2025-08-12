@@ -156,10 +156,7 @@ async function loadServices() {
 
       container.appendChild(div);
 
-      // === Ensure a connection is created and stored for every service ===
-      if (!serviceConnections[service.id]) {
-        serviceConnections[service.id] = connectToSignalR(service);
-      }
+
     });
 
     // Render tomcat services dynamically
@@ -190,10 +187,7 @@ async function loadServices() {
 
             tomcatContainer.appendChild(div);
 
-            // === Ensure a connection is created and stored for every service ===
-            if (!serviceConnections[service.id]) {
-                serviceConnections[service.id] = connectToSignalR(service);
-            }
+
 
             // --- Fetch Tomcat status and update dot on page load ---
             if (service && service.id) {
@@ -227,23 +221,13 @@ async function loadServices() {
         if (firstTomcatItem) {
             selectService(firstTomcatItem, 0, tomcatService[0]);
         }
-        // Connect to remaining tomcat services
-        tomcatService.forEach((srv, idx) => {
-            if (idx !== 0) {
-                connectToSignalR(srv);
-            }
-        });
+
     } else if (windowsServices.length > 0) {
         const firstItem = container.querySelector('.service-item');
         if (firstItem) {
             selectService(firstItem, 0, windowsServices[0]);
         }
-        // Connect to remaining windows services
-        windowsServices.forEach((srv, idx) => {
-            if (idx !== 0) {
-                connectToSignalR(srv);
-            }
-        });
+
     }
 
   } catch (error) {
@@ -288,8 +272,7 @@ const canvas = document.getElementById('chartCanvas');
 const ctx = canvas.getContext('2d');
 let animationFrame;
 
-// Maintain connections and data per service
-const serviceConnections = {};
+// Maintain data per service
 const serviceLogs = {};
 const serviceMetrics = {};
 const MAX_LOGS = 200; // limit stored logs per service
@@ -913,291 +896,9 @@ async function getNotificationSummary(logEntry) {
   }
 }
 
-function connectToSignalR(serviceData) {
-    if (serviceConnections[serviceData.id]) {
-        return serviceConnections[serviceData.id];
-    }
-    // Build the SignalR URL from service data
-    //const baseUrl = serviceData.url.replace('https://', 'http://'); // Convert https to http for local development
-    const baseUrl = serviceData.url; // Convert https to http for local development
-    const port = serviceData.port;
-    const signalRUrl = `${baseUrl}:${port}/healthhub`;
 
-    let dataTimeout;
-    const DATA_TIMEOUT_DURATION = 5000; // 5 seconds timeout
-    let reconnectTimeout;
-    const RECONNECT_INTERVAL = 5000; // Try to reconnect every 5 seconds
-    let isFirstData = true;
-    let hasShownInitialStatus = false;
-    let isServiceRunning = false;
 
-    // Always set service name for notifications
-    serviceNames[serviceData.id] = serviceData.name;
-
-    // Reset status display when connecting if this service is active
-    const statusElement = document.querySelector('.status-running');
-    if (activeServiceId === serviceData.id && statusElement) {
-        statusElement.style.setProperty('--dot-color', 'var(--yellow-primary)');
-        const statusText = statusElement.querySelector('span');
-        statusText.textContent = 'Connecting...';
-    }
-
-    // Reset service dot in sidebar
-    const serviceItem = document.querySelector(`.service-item[data-service*="${serviceData.id}"]`);
-    if (serviceItem) {
-        const serviceDot = serviceItem.querySelector('.status-dot');
-        if (serviceDot) {
-            serviceDot.style.setProperty('--dot-color', 'var(--yellow-primary)'); // Yellow color
-        }
-        serviceItem.classList.add('connected');
-    }
-
-    function updateServiceStatus(isRunning) {
-        isServiceRunning = isRunning;
-
-        // Update status in the metrics card only for the active service
-        const statusElement = document.querySelector('.status-running');
-        if (activeServiceId === serviceData.id && statusElement) {
-            statusElement.style.setProperty('--dot-color', isRunning ? 'var(--green-primary)' : 'var(--red-primary)');
-            const statusText = statusElement.querySelector('span');
-            statusText.textContent = isRunning ? 'Running' : 'Stopped';
-            if (isRunning && window._serviceSpinnerShouldHideOnRunning) {
-                hideServiceSpinner();
-                window._serviceSpinnerShouldHideOnRunning = false;
-            }
-        }
-
-        // Update the service dot in the sidebar
-        const serviceItem = document.querySelector(`.service-item[data-service*="${serviceData.id}"]`);
-        if (serviceItem) {
-            const serviceDot = serviceItem.querySelector('.status-dot');
-            if (serviceDot) {
-                const color = isRunning ? 'var(--green-primary)' : 'var(--red-primary)';
-                serviceDot.style.setProperty('--dot-color', color);
-            }
-            serviceItem.classList.add('connected');
-        }
-
-        // Notification logic
-        const serviceId = serviceData.id;
-        const serviceName = serviceNames[serviceId] || 'Service';
-        if (typeof servicePrevStatus[serviceId] !== 'undefined') {
-            if (!servicePrevStatus[serviceId] && isRunning) {
-                // Service was down, now up
-                addNotification({
-                    level: 'info',
-                    message: `${serviceName} is UP`,
-                    timestamp: new Date().toISOString()
-                }, serviceId, serviceName, true);
-                sendNotificationToBackend({
-                    serviceName: serviceName,
-                    timestamp: new Date().toISOString(),
-                    type: 'up',
-                    message: `${serviceName} is UP`
-                });
-            } else if (servicePrevStatus[serviceId] && !isRunning) {
-                // Service was up, now down
-                addNotification({
-                    level: 'error',
-                    message: `${serviceName} is DOWN`,
-                    timestamp: new Date().toISOString()
-                }, serviceId, serviceName);
-                sendNotificationToBackend({
-                    serviceName: serviceName,
-                    timestamp: new Date().toISOString(),
-                    type: 'down',
-                    message: `${serviceName} is DOWN`
-                });
-            }
-        } else {
-            // First status update after connection
-            if (isRunning) {
-                addNotification({
-                    level: 'info',
-                    message: `${serviceName} is UP`,
-                    timestamp: new Date().toISOString()
-                }, serviceId, serviceName, true);
-                sendNotificationToBackend({
-                    serviceName: serviceName,
-                    timestamp: new Date().toISOString(),
-                    type: 'up',
-                    message: `${serviceName} is UP`
-                });
-            } else {
-                addNotification({
-                    level: 'error',
-                    message: `${serviceName} is DOWN`,
-                    timestamp: new Date().toISOString()
-                }, serviceId, serviceName);
-                sendNotificationToBackend({
-                    serviceName: serviceName,
-                    timestamp: new Date().toISOString(),
-                    type: 'down',
-                    message: `${serviceName} is DOWN`
-                });
-            }
-        }
-        servicePrevStatus[serviceId] = isRunning;
-    }
-
-    function startConnection() {
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl(signalRUrl, { 
-                withCredentials: true,
-                skipNegotiation: true,
-                transport: signalR.HttpTransportType.WebSockets
-            })
-            .configureLogging(signalR.LogLevel.Debug)
-            .build();
-
-        connection.on("ReceiveHealthUpdate", (data) => {
-            clearTimeout(dataTimeout);
-
-            // Determine running status from backend data
-            const isRunning = typeof data.serviceRunning === 'boolean' ? data.serviceRunning : true;
-            updateServiceStatus(isRunning);
-            if (isFirstData) {
-                hasShownInitialStatus = true;
-                isFirstData = false;
-            }
-
-            // Store latest metrics
-            serviceMetrics[serviceData.id] = {
-                cpuUsage: data.cpuUsage,
-                memoryUsage: data.memoryUsage,
-                activeConnections: data.activeConnections,
-                serviceRunning: isRunning,
-                serviceUptime: data.serviceUptime,
-                timestamp: data.timestamp
-            };
-
-            // Store service name for notifications
-            serviceNames[serviceData.id] = serviceData.name;
-
-            if (!serviceLogs[serviceData.id]) serviceLogs[serviceData.id] = [];
-            if (Array.isArray(data.applicationLogs)) {
-                console.log('Processing application logs:', data.applicationLogs);
-                data.applicationLogs.forEach(async (log) => {
-                    const entry = parseLogEntry(log);
-                    console.log('Processed log entry:', entry);
-                    serviceLogs[serviceData.id].push(entry);
-                    if (serviceLogs[serviceData.id].length > MAX_LOGS) {
-                        serviceLogs[serviceData.id].shift();
-                    }
-                    // Add notification for warning and error logs with user-friendly summary
-                    if (entry.level === 'warning' || entry.level === 'error') {
-                        console.log('Found warning/error log, creating notification:', entry);
-                        await processLogForNotification(entry, serviceData.id, serviceData.name);
-                    }
-                });
-            }
-
-            // --- Always update the per-service buffer ---
-            if (!window.chartDataBuffers[serviceData.id]) {
-                window.chartDataBuffers[serviceData.id] = [];
-            }
-            window.chartDataBuffers[serviceData.id].push({
-                cpu: parseFloat(data.cpuUsage),
-                memory: parseFloat(data.memoryUsage),
-                timestamp: data.timestamp || Date.now()
-            });
-            if (window.chartDataBuffers[serviceData.id].length > 60) {
-                window.chartDataBuffers[serviceData.id].shift();
-            }
-
-            // --- Only update the chart UI if this is the active service ---
-            if (activeServiceId === serviceData.id) {
-                const cpuElement = document.getElementById("cpu-value");
-                const memoryElement = document.getElementById("memory-value");
-                const connectionsElement = document.getElementById("connections-value");
-
-                const currentCpu = parseMetricValue(cpuElement.textContent, true);
-                const currentMemory = parseMetricValue(memoryElement.textContent, true);
-                const currentConnections = parseMetricValue(connectionsElement.textContent);
-
-                const newCpu = parseMetricValue(data.cpuUsage, true);
-                const newMemory = parseMetricValue(data.memoryUsage, true);
-                const newConnections = parseMetricValue(data.activeConnections);
-
-                animateValue(cpuElement, currentCpu, newCpu, 1000, '%', 2);
-                animateValue(memoryElement, currentMemory, newMemory, 1000, '%', 2);
-                animateValue(connectionsElement, currentConnections, newConnections, 1000, '', 1);
-
-                const logsList = document.getElementById("logs-list");
-                if (logsList && Array.isArray(data.applicationLogs)) {
-                    const wasAtBottom =
-                        Math.abs(logsList.scrollHeight - logsList.clientHeight - logsList.scrollTop) <= 5;
-                    data.applicationLogs.forEach((log) => {
-                        const entry = parseLogEntry(log);
-
-                        const logDiv = document.createElement('div');
-                        logDiv.className = `log-entry ${entry.level}`;
-                        logDiv.innerHTML = `
-                            <div class="log-level ${entry.level}">${entry.level}</div>
-                            <div class="log-timestamp">${entry.timestamp}</div>
-                            <div class="log-message">${entry.message}</div>
-                        `;
-                        logsList.appendChild(logDiv);
-                    });
-                    if (wasAtBottom) {
-                        logsList.scrollTop = logsList.scrollHeight;
-                    }
-                }
-
-                // --- Update the chart for the active service ---
-                chartDataBuffer = window.chartDataBuffers[serviceData.id];
-                if (!window.resourceChart) return;
-                window.resourceChart.data.labels = chartDataBuffer.map(d => {
-                    const date = new Date(d.timestamp);
-                    return date.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                });
-                window.resourceChart.data.datasets[0].data = chartDataBuffer.map(d => d.cpu);
-                window.resourceChart.data.datasets[1].data = chartDataBuffer.map(d => d.memory);
-                window.resourceChart.update();
-            }
-        });
-
-        connection
-            .start()
-            .then(() => {
-                console.log("Successfully connected to SignalR hub at:", signalRUrl);
-            })
-            .catch((err) => {
-                console.error("SignalR connection error:", err);
-                console.error("Failed to connect to:", signalRUrl);
-                hasShownInitialStatus = true;
-                updateServiceStatus(false);
-                
-                // Try to reconnect after a delay
-                reconnectTimeout = setTimeout(() => {
-                    startConnection();
-                }, RECONNECT_INTERVAL);
-            });
-
-        // Clean up timeout when connection is closed
-        connection.onclose(() => {
-            clearTimeout(dataTimeout);
-            hasShownInitialStatus = true;
-            updateServiceStatus(false);
-            if (serviceMetrics[serviceData.id]) {
-                serviceMetrics[serviceData.id].serviceRunning = false;
-            }
-            isFirstData = true; // Reset first data flag when connection closes
-
-            reconnectTimeout = setTimeout(() => {
-                startConnection();
-            }, RECONNECT_INTERVAL);
-        });
-
-        return connection;
-    }
-
-    const conn = startConnection();
-    serviceConnections[serviceData.id] = conn;
-    return conn;
-}
-
-// Modify the selectService function to establish SignalR connection
+// Service selection function
 function selectService(element, index, service) {
     // Remove active from all service items
     document.querySelectorAll('.service-item').forEach(item => item.classList.remove('active'));
@@ -1264,20 +965,9 @@ function selectService(element, index, service) {
         renderServiceMetrics(serviceData.id);
     }
 
-    // If this service has never been connected, show "Connecting..." feedback
-    if (!serviceConnections[serviceData.id]) {
-        const statusElement = document.querySelector('.status-running');
-        if (statusElement) {
-            statusElement.style.setProperty('--dot-color', 'var(--yellow-primary)');
-            const statusText = statusElement.querySelector('span');
-            statusText.textContent = 'Connecting...';
-        }
-    }
 
-    // Connect to SignalR for this service if not already connected
-    if (!serviceConnections[serviceData.id]) {
-        serviceConnections[serviceData.id] = connectToSignalR(serviceData);
-    }
+
+    
 
     // Render cached logs
     populateLogs(serviceData.id);
