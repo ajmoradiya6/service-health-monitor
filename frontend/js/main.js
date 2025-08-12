@@ -218,8 +218,7 @@ async function loadServices() {
         parentElement: container // Only create icons within the service list container
     });
 
-    // Add event listener for service actions (ellipsis) using delegation
-    container.addEventListener('click', handleServiceActionsClick);
+
 
     // Auto-select the first service (tomcat or windows)
     if (Array.isArray(tomcatService) && tomcatService.length > 0) {
@@ -296,10 +295,6 @@ const serviceMetrics = {};
 const MAX_LOGS = 200; // limit stored logs per service
 
 // Get modal elements and forms
-const registerServiceModal = document.getElementById('register-service-modal');
-const registerServiceForm = document.getElementById('register-service-form');
-const editServiceModal = document.getElementById('edit-service-modal');
-const editServiceForm = document.getElementById('edit-service-form');
 const settingsModal = document.getElementById('settings-modal');
 
 // Get SMTP configuration elements
@@ -312,12 +307,7 @@ const smtpFromName = document.getElementById('smtp-from-name');
 const smtpSsl = document.getElementById('smtp-ssl');
 const testEmailConfig = document.getElementById('test-email-config');
 
-// Get confirmation modal elements
-const confirmationModal = document.getElementById('confirmation-modal');
-const confirmDeleteButton = document.getElementById('confirm-delete-btn');
 
-// Variable to store the service ID for deletion
-let serviceIdToDelete = null;
 
 // Get sidebar elements
 const sidebar = document.getElementById('sidebar');
@@ -331,8 +321,7 @@ let initialSidebarWidth = 0;
 const MIN_SIDEBAR_WIDTH = 200; // Adjust as needed
 const MAX_SIDEBAR_WIDTH = 400; // Adjust as needed
 
-// Context menu state
-let activeContextMenu = null;
+
 
 // Global variable to store current log filter
 let currentLogFilter = 'all';
@@ -759,9 +748,7 @@ function toggleTheme() {
             // Note: This assumes the openModalButton variable might still hold a reference to an old element.
             // A more robust solution might involve event delegation or ensuring icon re-creation is synchronous if possible.
             
-            // Remove existing listener before adding a new one
-            newOpenModalButton.removeEventListener('click', openRegisterServiceModal);
-            newOpenModalButton.addEventListener('click', openRegisterServiceModal);
+
         }
     }, 350); // Increased delay slightly
     
@@ -788,49 +775,7 @@ function initializeTheme() {
 }
 
 // ===== MODAL FUNCTIONS =====
-// Function to open the Register Service modal
-function openRegisterServiceModal() {
-    const modal = document.getElementById('register-service-modal');
-    if (modal) {
-        modal.style.display = 'flex'; // Use flex to center
-    }
-}
 
-// Function to close the Register Service modal
-function closeRegisterServiceModal() {
-    const modal = document.getElementById('register-service-modal');
-    const form = document.getElementById('register-service-form');
-    if (modal) {
-        modal.style.display = 'none';
-        if (form) {
-            form.reset(); // Reset form fields
-        }
-    }
-}
-
-// Function to open the Edit Service modal and populate it
-function openEditServiceModal(service) {
-    const modal = document.getElementById('edit-service-modal');
-    if (modal) {
-        document.getElementById('edit-service-id').value = service.id;
-        document.getElementById('edit-service-name').value = service.name;
-        document.getElementById('edit-service-url').value = service.url;
-        document.getElementById('edit-service-port').value = service.port;
-        modal.style.display = 'flex'; // Use flex to center
-    }
-}
-
-// Function to close the Edit Service modal
-function closeEditServiceModal() {
-    const modal = document.getElementById('edit-service-modal');
-    const form = document.getElementById('edit-service-form');
-    if (modal) {
-        modal.style.display = 'none';
-        if (form) {
-            form.reset(); // Optional: Clear form fields
-        }
-    }
-}
 
 // Function to open the Settings modal
 function openSettingsModal() {
@@ -1712,119 +1657,7 @@ function setupLogSearch() {
 
 // ===== CONTEXT MENU FUNCTIONS =====
 
-// Placeholder functions for context menu actions
-function handleEditService(serviceId) {
-    console.log('Edit service with ID:', serviceId);
-    // Find the service data for the given ID among Windows services
-    const serviceItems = document.querySelectorAll('.service-item');
-    let serviceToEdit = null;
-    serviceItems.forEach(item => {
-        const serviceData = JSON.parse(item.dataset.service);
-        if (String(serviceData.id) === String(serviceId)) {
-            serviceToEdit = serviceData;
-        }
-    });
 
-    // If not found, check all service items (including Tomcat services)
-    if (!serviceToEdit) {
-        const serviceItems = document.querySelectorAll('.service-item');
-        serviceItems.forEach(item => {
-            const serviceData = JSON.parse(item.dataset.service);
-            const serviceIdStr = serviceData.id === null ? '' : String(serviceData.id);
-            if (serviceId === serviceIdStr || serviceId === 'null' || serviceId === '') {
-                serviceToEdit = serviceData;
-            }
-        });
-    }
-
-    if (serviceToEdit) {
-        openEditServiceModal(serviceToEdit);
-    } else {
-        console.error('Service with ID', serviceId, 'not found.');
-    }
-    hideContextMenu(); // Hide the context menu
-}
-
-function handleDeleteService(serviceId) {
-    // Instead of confirm, open the custom confirmation modal
-    openConfirmationModal(serviceId);
-    hideContextMenu();
-}
-
-// Function to handle clicks on service actions (ellipsis)
-function handleServiceActionsClick(event) {
-    const actionsElement = event.target.closest('.service-actions');
-    if (actionsElement) {
-        event.stopPropagation(); // Prevent click from bubbling to parent service-item
-        const serviceId = actionsElement.dataset.serviceId;
-        const serviceType = actionsElement.dataset.serviceType || 'windows';
-
-        // Use the actionsElement itself as the target for positioning
-        showContextMenu(actionsElement, serviceId, serviceType);
-    }
-}
-
-// Placeholder functions for showing/hiding the context menu
-function showContextMenu(targetElement, serviceId, serviceType) {
-    // Remove any existing context menu
-    hideContextMenu();
-
-    const contextMenu = document.createElement('ul');
-    contextMenu.className = 'context-menu';
-    contextMenu.dataset.serviceId = serviceId; // Store service ID on the menu
-
-    if (serviceType === 'tomcat') {
-        contextMenu.innerHTML = `
-            <li onclick="handleEditService('${serviceId}')"><i data-lucide="edit"></i> Edit</li>
-        `;
-    } else {
-        contextMenu.innerHTML = `
-            <li onclick="handleEditService('${serviceId}')"><i data-lucide="edit"></i> Edit</li>
-            <li onclick="handleDeleteService('${serviceId}')"><i data-lucide="trash-2"></i> Delete</li>
-        `;
-    }
-
-    // Position the context menu near the target element
-    const rect = targetElement.getBoundingClientRect();
-    // Position below the target element, aligned to its right edge
-    // Get the menu width after it's in the DOM for accurate calculation
-    const menuWidth = contextMenu.offsetWidth;
-    contextMenu.style.top = `${rect.bottom + window.scrollY + 5}px`;
-    contextMenu.style.left = `${rect.right + window.scrollX - menuWidth}px`;
-
-    document.body.appendChild(contextMenu);
-    activeContextMenu = contextMenu;
-
-    // Create icons within the new context menu
-    lucide.createIcons({
-        parentElement: contextMenu // Only create icons within the context menu
-    });
-
-    // Add a click listener to the document to hide the menu when clicking outside
-    // Use setTimeout with 0 delay to allow the current click event to bubble and be processed first
-    setTimeout(() => {
-        // Only add the listener if activeContextMenu is still the one we just created
-        if (activeContextMenu === contextMenu) {
-             document.addEventListener('click', handleClickOutsideMenu);
-        }
-    }, 0);
-}
-
-function hideContextMenu() {
-    if (activeContextMenu) {
-        activeContextMenu.remove();
-        // Remove the outside click listener when the menu is hidden
-        document.removeEventListener('click', handleClickOutsideMenu);
-        activeContextMenu = null;
-    }
-}
-
-function handleClickOutsideMenu(event) {
-    // Hide the menu if the click is not inside the menu itself
-    if (activeContextMenu && !activeContextMenu.contains(event.target)) {
-        hideContextMenu();
-    }
-}
 
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -1844,67 +1677,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupLogSearch();
 
 
-    // Event listener for the Register Service form submission
-    const registerServiceForm = document.getElementById('register-service-form');
-    if (registerServiceForm) {
-        registerServiceForm.addEventListener('submit', async function(event) {
-            event.preventDefault(); // Prevent default form submission
 
-            const serviceName = document.getElementById('service-name').value;
-            const serviceUrl = document.getElementById('service-url').value;
-            const servicePort = document.getElementById('service-port').value;
-
-            // Create an object with the service data
-            const serviceData = {
-                name: serviceName,
-                url: serviceUrl,
-                port: servicePort
-            };
-
-            console.log('Service data to register:', serviceData);
-
-            // Send this data to the backend endpoint to save to properties file
-            try {
-                const response = await fetch('/api/register-service', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(serviceData)
-                });
-
-                if (response.ok) {
-                    console.log('Service registered successfully');
-                    closeRegisterServiceModal();
-                    // Refresh the service list in the sidebar
-                    loadServices();
-                } else {
-                    console.error('Failed to register service');
-                    const errorData = await response.json();
-                    console.error('Error details:', errorData);
-                    // TODO: Display an error message to the user
-                }
-            } catch (error) {
-                console.error('Error registering service:', error);
-                // TODO: Display an error message to the user
-            }
-        });
-    }
-
-    // Event delegation for the Register Service modal close button
-    const registerModalContent = document.querySelector('#register-service-modal .modal-content');
-    if (registerModalContent) {
-        console.log('Register modal content found for close button event delegation.', registerModalContent);
-        registerModalContent.addEventListener('click', function(event) {
-            const closeButton = event.target.closest('.close-button');
-            if (closeButton) {
-                console.log('Register modal close button clicked (via event delegation).');
-                closeRegisterServiceModal();
-            }
-        });
-    } else {
-        console.error('Register modal content #register-service-modal .modal-content not found for close button event delegation.');
-    }
 
     // Event delegation for the Settings modal close button
     const settingsModalContent = document.querySelector('#settings-modal .modal-content');
@@ -1917,111 +1690,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Event listener for the Edit Service form submission
-    const editServiceForm = document.getElementById('edit-service-form');
-    if (editServiceForm) {
-        editServiceForm.addEventListener('submit', async function(event) {
-            event.preventDefault(); // Prevent default form submission
 
-            const serviceId = document.getElementById('edit-service-id').value;
-            const serviceName = document.getElementById('edit-service-name').value;
-            const serviceUrl = document.getElementById('edit-service-url').value;
-            const servicePort = document.getElementById('edit-service-port').value;
-
-            const serviceData = {
-                name: serviceName,
-                url: serviceUrl,
-                port: servicePort
-            };
-
-            console.log('Service data to save:', serviceData);
-
-            try {
-                let response;
-                if (!serviceId || serviceId === 'null') {
-                    // Create new service
-                    response = await fetch('/api/services', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(serviceData)
-                    });
-                } else {
-                    // Update existing
-                    response = await fetch(`/api/services/${serviceId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ id: serviceId, ...serviceData })
-                    });
-                }
-
-                if (response.ok) {
-                    console.log('Service saved successfully');
-                    closeEditServiceModal();
-                    // Refresh the service list in the sidebar
-                    loadServices();
-                } else {
-                    console.error('Failed to update service');
-                    const errorData = await response.json();
-                    console.error('Error details:', errorData);
-                    // TODO: Display an error message to the user
-                }
-            } catch (error) {
-                console.error('Error updating service:', error);
-                // TODO: Display an error message to the user
-            }
-        });
-    }
-
-    // Event delegation for the Confirm Delete button within the confirmation modal
-    const confirmationModalElement = document.getElementById('confirmation-modal');
-    if (confirmationModalElement) {
-        console.log('Confirmation modal element found for event delegation.', confirmationModalElement);
-        confirmationModalElement.addEventListener('click', async function(event) {
-            console.log('Click event on confirmation modal captured.', event.target);
-            
-            // Prevent deletion if clicking the cancel button or the modal background/content directly
-            if (event.target.classList.contains('secondary') || event.target.id === 'confirmation-modal' || event.target.classList.contains('modal-content') || event.target.classList.contains('close')) {
-                console.log('Click was on cancel button, close button, modal background, or modal content. Aborting delete.');
-                // The closeConfirmationModal is already handled by onclick on these elements
-                return; 
-            }
-
-            // Check if the clicked element is the confirm delete button or an element inside it
-            const confirmDeleteButton = event.target.closest('#confirm-delete-btn');
-            if (confirmDeleteButton) {
-                console.log('Clicked element is the confirm delete button.');
-                if (serviceIdToDelete) {
-                    console.log('Executing deletion for service ID:', serviceIdToDelete);
-                    try {
-                        console.log('Sending DELETE request to:', `/api/services/${serviceIdToDelete}`);
-                        const response = await fetch(`/api/services/${serviceIdToDelete}`, {
-                            method: 'DELETE',
-                        });
-
-                        console.log('Received response from DELETE request:', response);
-                        if (response.ok) {
-                            console.log('Service deleted successfully. Response OK.');
-                            closeConfirmationModal();
-                            // Refresh the service list in the sidebar
-                            loadServices();
-                        } else {
-                            console.error('Failed to delete service. Response not OK.', response.status);
-                            const errorData = await response.json();
-                            console.error('Error details:', errorData);
-                            // TODO: Display an error message to the user
-                        }
-                    } catch (error) {
-                        console.error('Error during fetch or processing delete response:', error);
-                        // TODO: Display an error message to the user
-                    }
-                } else {
-                    console.error('No service ID set for deletion.');
-                }
-            }
-        });
-    } else {
-        console.error('Confirmation modal element #confirmation-modal not found for event delegation.');
-    }
 
     // Add filter options to the dropdown
     const filterDropdown = document.querySelector('.filter-dropdown');
@@ -2137,30 +1806,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Trigger default active tab content to show
     document.querySelector(".tomcat-settings-tabs .tab.active")?.click();
 
+    // Initialize the app
+    initializeApp();
 });
 
-// Function to open the Confirmation modal
-function openConfirmationModal(serviceId) {
-    console.log('Attempting to open confirmation modal for service ID:', serviceId);
-    serviceIdToDelete = serviceId; // Store the ID
-    const modal = document.getElementById('confirmation-modal');
-    if (modal) {
-        console.log('Confirmation modal element found.', modal);
-        modal.style.display = 'flex'; // Use flex to center
-    } else {
-        console.error('Confirmation modal element #confirmation-modal not found.');
-    }
-}
+// ===== GLOBAL VARIABLES =====
 
-// Function to close the Confirmation modal
-function closeConfirmationModal() {
-    console.log('Attempting to close confirmation modal.');
-    const modal = document.getElementById('confirmation-modal');
-    if (modal) {
-        console.log('Confirmation modal element found for closing.');
-        modal.style.display = 'none';
-    }
-}
+
 
 // ===== NEW NOTIFICATION SETTINGS FUNCTIONS =====
 // Helper to load settings from backend or localStorage
@@ -2584,10 +2236,7 @@ function hideServiceSpinner() {
     if (lottie) lottie.stop();
 }
 
-// Add this global function for inline onclick
-function handleRegisterServiceClick(event) {
-    openRegisterServiceModal();
-}
+
 
 function showTomcatPanel() {
     document.getElementById('tomcat-metrics-panel').style.display = 'block';

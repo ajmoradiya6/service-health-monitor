@@ -9,7 +9,7 @@ const { exec } = require('child_process');
 const path = require('path');
 const fs = require('fs').promises;
 
-const servicesFilePath = path.join(__dirname, '..', '..', 'database', 'RegisteredServices.json');
+
 
 const BACKEND_HOST = process.env.BACKEND_HOST || 'http://localhost';
 const PORT         = parseInt(process.env.TOMCAT_PORT, 10) || 8080;
@@ -17,50 +17,18 @@ const PORT         = parseInt(process.env.TOMCAT_PORT, 10) || 8080;
 // Add at the top
 let TOMCAT_PROCESS_NAME = 'Tomcat*'; // default fallback
 
-async function loadTomcatProcessName() {
-  try {
-    const servicesFilePath = process.env.SERVICES_FILE_PATH || path.join(__dirname, '..', '..', 'database', 'RegisteredServices.json');
-    const fileContent = await fs.readFile(servicesFilePath, 'utf8');
-    const data = JSON.parse(fileContent);
-
-    if (data.tomcatService && data.tomcatService.name) {
-      TOMCAT_PROCESS_NAME = data.tomcatService.name;
-    } else if (Array.isArray(data.windowsServices)) {
-      const found = data.windowsServices.find(s => s.name && s.name.toLowerCase().startsWith('tomcat'));
-      if (found) TOMCAT_PROCESS_NAME = found.name;
-    }
-    // else keep default
-  } catch (e) {
-    // Leave the default if anything goes wrong
-  }
-}
-
-// Immediately load it once at startup
-loadTomcatProcessName();
 
 
-// Helper to get service name by ID
-async function getServiceById(serviceId) {
-    const fileContent = await fs.readFile(servicesFilePath, 'utf8');
-    const data = fileContent ? JSON.parse(fileContent) : {};
-    // Check windowsServices array
-    if (Array.isArray(data.windowsServices)) {
-        const found = data.windowsServices.find(s => s.id === serviceId);
-        if (found) return found;
-    }
-    // Check tomcatService object
-    if (data.tomcatService && data.tomcatService.id === serviceId) {
-        return data.tomcatService;
-    }
-    return null;
-}
+
+
+
+
 
 // Start service
 router.post('/:id/start', async (req, res) => {
     try {
-        const service = await getServiceById(req.params.id);
-        if (!service) return res.status(404).json({ error: 'Service not found' });
-        exec(`powershell.exe Start-Service -Name '${service.name}'`, (err, stdout, stderr) => {
+        const serviceName = req.params.id;
+        exec(`powershell.exe Start-Service -Name '${serviceName}'`, (err, stdout, stderr) => {
             if (err) return res.status(500).json({ error: stderr || err.message });
             res.json({ status: 'started', stdout });
         });
@@ -72,9 +40,8 @@ router.post('/:id/start', async (req, res) => {
 // Stop service
 router.post('/:id/stop', async (req, res) => {
     try {
-        const service = await getServiceById(req.params.id);
-        if (!service) return res.status(404).json({ error: 'Service not found' });
-        exec(`powershell.exe Stop-Service -Name '${service.name}' -Force`, (err, stdout, stderr) => {
+        const serviceName = req.params.id;
+        exec(`powershell.exe Stop-Service -Name '${serviceName}' -Force`, (err, stdout, stderr) => {
             if (err) return res.status(500).json({ error: stderr || err.message });
             res.json({ status: 'stopped', stdout });
         });
@@ -86,9 +53,8 @@ router.post('/:id/stop', async (req, res) => {
 // Get service status
 router.get('/:id/status', async (req, res) => {
     try {
-        const service = await getServiceById(req.params.id);
-        if (!service) return res.status(404).json({ error: 'Service not found' });
-        exec(`powershell.exe (Get-Service -Name '${service.name}').Status`, (err, stdout, stderr) => {
+        const serviceName = req.params.id;
+        exec(`powershell.exe (Get-Service -Name '${serviceName}').Status`, (err, stdout, stderr) => {
             if (err) return res.status(500).json({ error: stderr || err.message });
             res.json({ status: stdout.trim() });
         });

@@ -63,57 +63,7 @@ async function getAllServices() {
       }
 }
 
-async function updateService(serviceId, updatedService) {
-    try {
-        const fileContent = await fsp.readFile(servicesFilePath, 'utf8').catch(() => '{}');
-        let data = fileContent ? JSON.parse(fileContent) : { windowsServices: [], tomcatService: null };
-        let found = false;
-        // Update in windowsServices
-        if (Array.isArray(data.windowsServices)) {
-            const idx = data.windowsServices.findIndex(s => s.id === serviceId);
-            if (idx !== -1) {
-                data.windowsServices[idx] = { ...data.windowsServices[idx], ...updatedService };
-                found = true;
-            }
-        }
-        // Update tomcatService
-        if (!found && data.tomcatService && data.tomcatService.id === serviceId) {
-            data.tomcatService = { ...data.tomcatService, ...updatedService };
-            found = true;
-        }
-        if (!found) {
-            throw new Error(`Service with ID ${serviceId} not found.`);
-        }
-        await fsp.writeFile(servicesFilePath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        throw error;
-    }
-}
 
-async function deleteService(serviceId) {
-    try {
-        const fileContent = await fsp.readFile(servicesFilePath, 'utf8').catch(() => '{}');
-        let data = fileContent ? JSON.parse(fileContent) : { windowsServices: [], tomcatService: null };
-        let changed = false;
-        // Remove from windowsServices
-        if (Array.isArray(data.windowsServices)) {
-            const origLen = data.windowsServices.length;
-            data.windowsServices = data.windowsServices.filter(s => s.id !== serviceId);
-            if (data.windowsServices.length !== origLen) changed = true;
-        }
-        // Remove tomcatService
-        if (data.tomcatService && data.tomcatService.id === serviceId) {
-            data.tomcatService = null;
-            changed = true;
-        }
-        if (!changed) {
-            throw new Error(`Service with ID ${serviceId} not found.`);
-        }
-        await fsp.writeFile(servicesFilePath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        throw error;
-    }
-}
 
 /**
  * Example function to process a log and generate a user-friendly notification.
@@ -167,4 +117,4 @@ async function createUserNotificationFromLog(logMessage) {
   return userFriendlyMessage;
 }
 
-module.exports = { getAllServices, updateService, deleteService, createUserNotificationFromLog };
+module.exports = { getAllServices, createUserNotificationFromLog };
