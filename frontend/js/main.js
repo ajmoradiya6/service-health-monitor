@@ -144,8 +144,9 @@ async function loadServices() {
           selectService(div, index, service);
       };
       
-      // Construct the inner HTML with service name
+      // Construct the inner HTML with status dot and service name
       div.innerHTML = `
+          <div class="status-dot"></div>
           <span class="service-name" title="${service.DisplayName}">${service.DisplayName}</span>
 
       `;
@@ -174,8 +175,9 @@ async function loadServices() {
                 selectService(div, windowsServices.length + index, service);
             };
             
-            // Construct the inner HTML with service name
+            // Construct the inner HTML with status dot and service name
             div.innerHTML = `
+                <div class="status-dot"></div>
                 <span class="service-name" title="${service.DisplayName}">${service.DisplayName}</span>
 
             `;
