@@ -2,7 +2,8 @@ require('dotenv').config({ path: require('path').resolve(__dirname, '../backend/
 
 const axios = require('axios');
 
-const textbeltHost = process.env.TEXTBELT_HOST || 'http://localhost';
+//const textbeltHost = process.env.TEXTBELT_HOST || 'http://localhost';
+const textbeltHost = 'http://localhost';
 const textbeltPort = process.env.TEXTBELT_PORT || '9090';
 const textbeltUrl = `${textbeltHost}:${textbeltPort}/text`;
 
