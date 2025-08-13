@@ -2,8 +2,9 @@ const { exec } = require('child_process');
 
 function runPowerShell(command) {
   return new Promise((resolve, reject) => {
+    const escaped = command.replace(/"/g, '\\"');
     exec(
-      `powershell -NoProfile -ExecutionPolicy Bypass -Command "${command}"`,
+      `powershell -NoProfile -ExecutionPolicy Bypass -Command "${escaped}"`,
       { maxBuffer: 1024 * 500 },
       (error, stdout, stderr) => {
         if (error) return reject(error);
@@ -20,21 +21,33 @@ async function getWindowsMetrics(identifiers = []) {
   }
 
   const escaped = identifiers.map(id => `'${id.replace(/'/g, "''")}'`).join(',');
-  const command =
-    `$names = @(${escaped}); $totalMem = (Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory; ` +
-    '$result = @(); foreach ($name in $names) { ' +
-    "$svc = Get-Service -Name $name -ErrorAction SilentlyContinue; " +
-    'if ($svc) { ' +
-    "$pid = (Get-WmiObject Win32_Service -Filter \"Name='$name'\").ProcessId; " +
-    'if ($pid) { ' +
-    '$proc = Get-Process -Id $pid -ErrorAction SilentlyContinue; ' +
-    "$cpu = (Get-Counter \"\\Process($($proc.ProcessName))\\% Processor Time\").CounterSamples.CookedValue / $env:NUMBER_OF_PROCESSORS; " +
-    '$mem = [math]::Round(($proc.WorkingSet64 / $totalMem) * 100, 2); ' +
-    '$conn = (Get-NetTCPConnection -OwningProcess $pid -ErrorAction SilentlyContinue | Measure-Object).Count; ' +
-    '$result += [pscustomobject]@{ Name=$name; CpuUsage=[math]::Round($cpu,2); MemoryUsage=$mem; Connections=$conn }; ' +
-    '} else { $result += [pscustomobject]@{ Name=$name; CpuUsage=$null; MemoryUsage=$null; Connections=$null }; } ' +
-    '} else { $result += [pscustomobject]@{ Name=$name; CpuUsage=$null; MemoryUsage=$null; Connections=$null }; } } ' +
-    '$result | ConvertTo-Json -Compress';
+  const command = `
+    $names = @(${escaped})
+    $totalMem = (Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory
+    $result = @()
+    foreach ($name in $names) {
+      $svc = Get-Service -Name $name -ErrorAction SilentlyContinue
+      if ($svc) {
+        $processId = (Get-CimInstance Win32_Service -Filter "Name='$name'").ProcessId
+        if ($processId) {
+          $proc = Get-Process -Id $processId -ErrorAction SilentlyContinue
+          if ($proc) {
+            $cpu = (Get-Counter "\\Process($($proc.ProcessName))\\% Processor Time").CounterSamples.CookedValue / $env:NUMBER_OF_PROCESSORS
+            $mem = [math]::Round(($proc.WorkingSet64 / $totalMem) * 100, 2)
+            $conn = (Get-NetTCPConnection -OwningProcess $processId -ErrorAction SilentlyContinue | Measure-Object).Count
+            $result += [pscustomobject]@{ Name=$name; CpuUsage=[math]::Round($cpu,2); MemoryUsage=$mem; Connections=$conn }
+          } else {
+            $result += [pscustomobject]@{ Name=$name; CpuUsage=$null; MemoryUsage=$null; Connections=$null }
+          }
+        } else {
+          $result += [pscustomobject]@{ Name=$name; CpuUsage=$null; MemoryUsage=$null; Connections=$null }
+        }
+      } else {
+        $result += [pscustomobject]@{ Name=$name; CpuUsage=$null; MemoryUsage=$null; Connections=$null }
+      }
+    }
+    $result | ConvertTo-Json -Compress
+  `;
 
   const output = await runPowerShell(command);
   let parsed = [];
@@ -49,7 +62,11 @@ async function getWindowsMetrics(identifiers = []) {
   identifiers.forEach(id => {
     const m = parsed.find(s => s.Name === id);
     result[id] = m
-      ? { cpuUsage: m.CpuUsage || 0, memoryUsage: m.MemoryUsage || 0, connections: m.Connections || 0 }
+      ? {
+          cpuUsage: m.CpuUsage || 0,
+          memoryUsage: m.MemoryUsage || 0,
+          connections: m.Connections || 0,
+        }
       : { cpuUsage: 0, memoryUsage: 0, connections: 0 };
   });
   return result;
