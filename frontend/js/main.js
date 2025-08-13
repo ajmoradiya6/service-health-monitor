@@ -119,8 +119,8 @@ async function loadServices() {
     }
 
     const data = await response.json();
-    const windowsServices = data.windowsServices || [];
-    const tomcatService = data.tomcatService || null;
+    windowsServices = data.windowsServices || [];
+    const tomcatServices = data.tomcatService || [];
     const container = document.getElementById('service-list');
     
     if (!container) {
@@ -152,7 +152,7 @@ async function loadServices() {
       `;
       //<div class="service-actions" data-service-type="windows" data-service-id="${service.id}"><i data-lucide="more-vertical"></i></div>
       // Store service data on the element
-      div.dataset.service = JSON.stringify(service);
+      div.dataset.service = JSON.stringify({ ...service, id: service.Name });
 
       container.appendChild(div);
 
@@ -161,10 +161,10 @@ async function loadServices() {
 
     // Render tomcat services dynamically
     const tomcatContainer = document.getElementById('tomcat-service-list');
-    if (tomcatContainer && Array.isArray(tomcatService)) {
+    if (tomcatContainer && Array.isArray(tomcatServices)) {
         tomcatContainer.innerHTML = '';
-        
-        tomcatService.forEach((service, index) => {
+
+        tomcatServices.forEach((service, index) => {
             const div = document.createElement('div');
             div.className = 'service-item';
             div.onclick = (event) => {
@@ -183,7 +183,7 @@ async function loadServices() {
             `;
             //<div class="service-actions" data-service-type="tomcat" data-service-id="${service.id}"><i data-lucide="more-vertical"></i></div>
             // Store service data on the element
-            div.dataset.service = JSON.stringify(service);
+            div.dataset.service = JSON.stringify({ ...service, id: service.Name });
 
             tomcatContainer.appendChild(div);
 
@@ -198,14 +198,15 @@ async function loadServices() {
         parentElement: container // Only create icons within the service list container
     });
 
+    pollWindowsMetrics();
     await updateServiceStatuses();
 
     // Auto-select the first service (tomcat or windows)
-    if (Array.isArray(tomcatService) && tomcatService.length > 0) {
+    if (Array.isArray(tomcatServices) && tomcatServices.length > 0) {
         const tomcatContainer = document.getElementById('tomcat-service-list');
         const firstTomcatItem = tomcatContainer.querySelector('.service-item');
         if (firstTomcatItem) {
-            selectService(firstTomcatItem, 0, tomcatService[0]);
+            selectService(firstTomcatItem, 0, tomcatServices[0]);
         }
 
     } else if (windowsServices.length > 0) {
@@ -303,6 +304,7 @@ let animationFrame;
 // Maintain data per service
 const serviceLogs = {};
 const serviceMetrics = {};
+let windowsServices = [];
 const MAX_LOGS = 200; // limit stored logs per service
 
 // Get modal elements and forms
@@ -898,7 +900,7 @@ function renderServiceMetrics(serviceId) {
 
     if (cpuElement) cpuElement.textContent = parseMetricValue(metrics.cpuUsage, true).toFixed(2) + '%';
     if (memoryElement) memoryElement.textContent = parseMetricValue(metrics.memoryUsage, true).toFixed(2) + '%';
-    if (connectionsElement) connectionsElement.textContent = parseMetricValue(metrics.activeConnections).toFixed(1);
+    if (connectionsElement) connectionsElement.textContent = parseMetricValue(metrics.connections).toFixed(1);
 
 }
 
@@ -1744,6 +1746,33 @@ function showWindowsPanel() {
     document.getElementById('windows-metrics-panel').style.display = 'block';
 }
 
+async function pollWindowsMetrics() {
+    if (!windowsServices.length) return;
+    const identifiers = windowsServices.map(s => s.Name);
+    try {
+        const resp = await fetch('/api/windows/metrics', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ services: identifiers })
+        });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const metricsMap = data.metrics || {};
+        Object.entries(metricsMap).forEach(([name, m]) => {
+            serviceMetrics[name] = {
+                cpuUsage: m.cpuUsage,
+                memoryUsage: m.memoryUsage,
+                connections: m.connections
+            };
+        });
+        if (activeServiceId) {
+            renderServiceMetrics(activeServiceId);
+        }
+    } catch (err) {
+        console.error('Error fetching Windows metrics:', err);
+    }
+}
+
 
 
 // Persistent buffers for each log type
@@ -1975,6 +2004,7 @@ function updateTomcatMetricsUI(metrics) {
 // Start polling Tomcat metrics and logs every 5 seconds after DOM is ready
 window.addEventListener('DOMContentLoaded', function() {
     setInterval(pollTomcatMetrics, 5000);
+    setInterval(pollWindowsMetrics, 5000);
 });
 
 // Open tutorial page in a new tab when the tutorial button is clicked
