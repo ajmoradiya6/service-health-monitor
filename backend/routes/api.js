@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const { getAllServices } = require('../services/fetchServices');
 const { createUserNotificationFromLog } = require('../services/createUserNotificationFromLog');
-const { getServiceStatus } = require('../services/serviceStatus');
+const { getServicesStatus } = require('../services/serviceStatus');
 const serviceControlRouter = require('./serviceControl');
 
 router.use('/service-control', serviceControlRouter);
@@ -18,16 +18,18 @@ router.get('/services', async (req, res) => {
 });
 
 router.post('/status', async (req, res) => {
-    const { serviceName, displayName } = req.body || {};
-    const identifier = serviceName || displayName;
-    if (!identifier) {
-        return res.status(400).json({ error: 'serviceName or displayName is required' });
+    const { services } = req.body || {};
+    if (!Array.isArray(services) || services.length === 0) {
+        return res.status(400).json({ error: 'services array is required' });
     }
+
+    const identifiers = [...new Set(services.flatMap(s => [s.serviceName, s.displayName].filter(Boolean)))] ;
+
     try {
-        const status = await getServiceStatus(identifier);
-        res.json({ status });
+        const statuses = await getServicesStatus(identifiers);
+        res.json({ statuses });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch service status', details: err.message });
+        res.status(500).json({ error: 'Failed to fetch service statuses', details: err.message });
     }
 });
 

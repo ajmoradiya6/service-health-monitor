@@ -14,10 +14,37 @@ function runPowerShell(command) {
   });
 }
 
-async function getServiceStatus(identifier) {
-  const cmd = `Get-Service | Where-Object { $_.Name -eq '${identifier}' -or $_.DisplayName -eq '${identifier}' } | Select-Object -ExpandProperty Status`;
-  const status = await runPowerShell(cmd);
-  return status || 'Unknown';
+async function getServicesStatus(identifiers = []) {
+  if (!Array.isArray(identifiers) || identifiers.length === 0) {
+    return {};
+  }
+
+  const escaped = identifiers.map(id => `'${id.replace(/'/g, "''")}'`).join(',');
+  const command =
+    `$names = @(${escaped}); ` +
+    "Get-Service | Where-Object { $names -contains $_.Name -or $names -contains $_.DisplayName } | " +
+    'Select-Object Name, DisplayName, Status | ConvertTo-Json -Compress';
+
+  const output = await runPowerShell(command);
+  let parsed = [];
+  try {
+    parsed = JSON.parse(output);
+  } catch {
+    parsed = [];
+  }
+  if (!Array.isArray(parsed)) parsed = [parsed];
+
+  const result = {};
+  parsed.forEach(svc => {
+    if (svc.Name) result[svc.Name] = svc.Status;
+    if (svc.DisplayName) result[svc.DisplayName] = svc.Status;
+  });
+
+  identifiers.forEach(id => {
+    if (!result[id]) result[id] = 'Unknown';
+  });
+
+  return result;
 }
 
-module.exports = { getServiceStatus };
+module.exports = { getServicesStatus };

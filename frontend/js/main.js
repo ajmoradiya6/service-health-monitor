@@ -221,36 +221,40 @@ async function loadServices() {
   }
 }
 
-async function fetchServiceStatus(service) {
+async function updateServiceStatuses() {
+    const items = document.querySelectorAll('.service-item');
+    const services = Array.from(items).map(item => {
+        const svc = JSON.parse(item.dataset.service || '{}');
+        return { serviceName: svc.Name, displayName: svc.DisplayName };
+    });
+
     try {
         const response = await fetch('/api/status', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ serviceName: service.Name, displayName: service.DisplayName })
+            body: JSON.stringify({ services })
         });
-        if (!response.ok) return 'Unknown';
-        const data = await response.json();
-        return data.status || 'Unknown';
-    } catch (err) {
-        console.error('Error fetching status for', service, err);
-        return 'Unknown';
-    }
-}
-
-async function updateServiceStatuses() {
-    const items = document.querySelectorAll('.service-item');
-    const updates = Array.from(items).map(async (item) => {
-        const service = JSON.parse(item.dataset.service || '{}');
-        const status = await fetchServiceStatus(service);
-        const dot = item.querySelector('.status-dot');
-        if (!dot) return;
-        if (status.toLowerCase() === 'running') {
-            dot.style.setProperty('--dot-color', 'var(--green-primary)');
-        } else {
-            dot.style.setProperty('--dot-color', 'var(--red-primary)');
+        if (!response.ok) {
+            console.error('Failed to fetch service statuses');
+            return;
         }
-    });
-    await Promise.all(updates);
+        const data = await response.json();
+        const statusMap = data.statuses || {};
+
+        items.forEach(item => {
+            const svc = JSON.parse(item.dataset.service || '{}');
+            const status = statusMap[svc.Name] || statusMap[svc.DisplayName] || 'Unknown';
+            const dot = item.querySelector('.status-dot');
+            if (!dot) return;
+            if (status.toLowerCase() === 'running') {
+                dot.style.setProperty('--dot-color', 'var(--green-primary)');
+            } else {
+                dot.style.setProperty('--dot-color', 'var(--red-primary)');
+            }
+        });
+    } catch (err) {
+        console.error('Error fetching service statuses', err);
+    }
 }
 
 async function initializeApp() {
