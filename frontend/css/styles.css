@@ -3500,6 +3500,9 @@ body {
 #notification-toast-container .notification-item {
     box-shadow: var(--shadow-lg);
     pointer-events: auto;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
 }
 
 .notification-panel {
@@ -3705,6 +3708,11 @@ body {
 
 [data-theme="light"] .notification-item {
     background-color: #f8fafc;
+}
+
+[data-theme="light"] #notification-toast-container .notification-item {
+    background: rgba(255, 255, 255, 0.75);
+    border-color: rgba(148, 163, 184, 0.3);
 }
 
 [data-theme="light"] .notification-item:hover {
