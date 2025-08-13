@@ -1,4 +1,4 @@
-const { createUserNotificationFromLog } = require('../services/fetchServices');
+const { createUserNotificationFromLog } = require('../services/createUserNotificationFromLog');
 require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
 
 // console.log('Running testNotifier.js...');
