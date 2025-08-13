@@ -7,6 +7,9 @@ const { createUserNotificationFromLog } = require('../services/createUserNotific
 const { getServicesStatus } = require('../services/serviceStatus');
 const serviceControlRouter = require('./serviceControl');
 
+// Track previous service statuses in memory to detect changes
+const previousStatuses = {};
+
 router.use('/service-control', serviceControlRouter);
 router.get('/services', async (req, res) => {
     const data = await getAllServices();
@@ -27,7 +30,25 @@ router.post('/status', async (req, res) => {
 
     try {
         const statuses = await getServicesStatus(identifiers);
-        res.json({ statuses });
+        const notifications = [];
+
+        for (const [id, status] of Object.entries(statuses)) {
+            const prev = previousStatuses[id];
+            if (prev && prev !== status) {
+                const isRunning = typeof status === 'string' && status.toLowerCase() === 'running';
+                const notif = {
+                    serviceName: id,
+                    timestamp: new Date().toISOString(),
+                    type: isRunning ? 'info' : 'error',
+                    message: `Service ${id} is now ${status}`
+                };
+                notifications.push({ message: notif.message, type: isRunning ? 'success' : 'error' });
+                await createUserNotificationFromLog(notif);
+            }
+            previousStatuses[id] = status;
+        }
+
+        res.json({ statuses, notifications });
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch service statuses', details: err.message });
     }

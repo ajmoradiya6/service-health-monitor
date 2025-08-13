@@ -252,6 +252,13 @@ async function updateServiceStatuses() {
                 dot.style.setProperty('--dot-color', 'var(--red-primary)');
             }
         });
+
+        const notifications = data.notifications || [];
+        notifications.forEach(n => {
+            if (n && n.message) {
+                showNotification(n.message, n.type || 'error');
+            }
+        });
     } catch (err) {
         console.error('Error fetching service statuses', err);
     }
