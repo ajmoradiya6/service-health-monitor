@@ -300,14 +300,8 @@ const phoneInput = document.getElementById('phone-input');
 const addPhoneBtn = document.getElementById('add-phone-btn');
 const phoneListContainer = document.getElementById('phone-list');
 
-// Add this after the global variables section
-const serviceNames = {}; // Store service names for notifications
-
 // 1. Add a reference to the AI Assist toggle
 const notifAIAssistToggle = document.getElementById('notif-ai-assist');
-
-// Track previous running status for each service
-const servicePrevStatus = {};
 
 let resourceChart = null;
 let chartDataBuffer = [];
@@ -1719,7 +1713,7 @@ function pushToBuffer(buffer, lines, maxSize = 200) {
 }
 
 
-async function pollTomcatStatus() {
+async function pollTomcatMetrics() {
 
 
     //const nowLabel = new Date().toLocaleTimeString().slice(0, 8);
@@ -1816,7 +1810,7 @@ async function pollTomcatStatus() {
 
 function updateTomcatMetricsUI(metrics) {
 
-    // Server status, uptime, JVM version, Tomcat version, start time, OS
+    // Server uptime, JVM version, Tomcat version, start time, OS
     const uptimeEl = document.querySelectorAll('.tomcat-uptime-card');
     uptimeEl.forEach(el => {
         el.textContent = metrics.server?.uptime || '--';
@@ -1929,9 +1923,9 @@ function updateTomcatMetricsUI(metrics) {
     }
 }
 
-// Start polling Tomcat status every 5 seconds after DOM is ready
+// Start polling Tomcat metrics and logs every 5 seconds after DOM is ready
 window.addEventListener('DOMContentLoaded', function() {
-    setInterval(pollTomcatStatus, 5000);
+    setInterval(pollTomcatMetrics, 5000);
 });
 
 // Open tutorial page in a new tab when the tutorial button is clicked
