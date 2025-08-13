@@ -3485,6 +3485,23 @@ body {
 }
 
 /* ===== NOTIFICATION SYSTEM ===== */
+#notification-toast-container {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1100;
+    width: 350px;
+    pointer-events: none;
+}
+
+#notification-toast-container .notification-item {
+    box-shadow: var(--shadow-lg);
+    pointer-events: auto;
+}
+
 .notification-panel {
     position: fixed;
     top: 60px;

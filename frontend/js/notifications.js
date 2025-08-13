@@ -95,6 +95,7 @@ function addNotification(logEntry, serviceId, serviceName, allowInfo = false) {
     saveNotifications();
     updateNotificationBadge();
     updateNotificationPanel();
+    showNotificationToast(notification);
     
     console.log('Current notifications state:', {
         totalNotifications: notifications.items.length,
@@ -212,6 +213,64 @@ function updateNotificationPanel() {
     lucide.createIcons();
 }
 
+// Show a temporary in-app notification that fades after a few seconds
+function showNotificationToast(notification) {
+    let container = document.getElementById('notification-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'notification-toast-container';
+        document.body.appendChild(container);
+    }
+
+    const item = document.createElement('div');
+    item.className = `notification-item unread`;
+    item.innerHTML = `
+        <div class="notification-icon ${notification.type}">
+            <i data-lucide="${notification.type === 'error' ? 'alert-circle' : notification.type === 'warning' ? 'alert-triangle' : 'thumbs-up'}"></i>
+        </div>
+        <div class="notification-content">
+            <div class="notification-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="service-name">${notification.serviceName || 'Service'}</span>
+                <span class="notification-time">${formatTimestamp(notification.timestamp)}</span>
+            </div>
+            <div class="notification-message">${notification.message}</div>
+        </div>
+    `;
+
+    // Allow marking as read by clicking the toast
+    item.addEventListener('click', () => {
+        markNotificationAsRead(notification.id);
+        item.remove();
+        if (container.childElementCount === 0) {
+            container.remove();
+        }
+    });
+
+    container.appendChild(item);
+    lucide.createIcons();
+
+    item.style.transform = 'translateX(100%)';
+    item.style.opacity = '0';
+
+    // Animate in
+    requestAnimationFrame(() => {
+        item.style.transform = 'translateX(0)';
+        item.style.opacity = '1';
+    });
+
+    // Fade out after 5 seconds
+    setTimeout(() => {
+        item.style.transform = 'translateX(100%)';
+        item.style.opacity = '0';
+        setTimeout(() => {
+            item.remove();
+            if (container.childElementCount === 0) {
+                container.remove();
+            }
+        }, 300);
+    }, 5000);
+}
+
 // Toggle notification panel
 function toggleNotificationPanel() {
     const panel = document.querySelector('.notification-panel');
@@ -275,4 +334,4 @@ function formatTimestamp(ts) {
         second: '2-digit',
         hour12: true
     });
-} 
+}
