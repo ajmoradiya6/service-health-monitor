@@ -23,7 +23,7 @@ router.post('/status', async (req, res) => {
         return res.status(400).json({ error: 'services array is required' });
     }
 
-    const identifiers = [...new Set(services.flatMap(s => [s.serviceName, s.displayName].filter(Boolean)))] ;
+    const identifiers = [...new Set(services.map(s => s.serviceName || s.displayName).filter(Boolean))];
 
     try {
         const statuses = await getServicesStatus(identifiers);

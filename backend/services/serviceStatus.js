@@ -14,6 +14,21 @@ function runPowerShell(command) {
   });
 }
 
+function normalizeStatus(status) {
+  if (typeof status === 'number') {
+    // Map numeric ServiceControllerStatus codes to text
+    switch (status) {
+      case 4:
+        return 'Running';
+      case 1:
+        return 'Stopped';
+      default:
+        return 'Unknown';
+    }
+  }
+  return typeof status === 'string' ? status : 'Unknown';
+}
+
 async function getServicesStatus(identifiers = []) {
   if (!Array.isArray(identifiers) || identifiers.length === 0) {
     return {};
@@ -35,13 +50,9 @@ async function getServicesStatus(identifiers = []) {
   if (!Array.isArray(parsed)) parsed = [parsed];
 
   const result = {};
-  parsed.forEach(svc => {
-    if (svc.Name) result[svc.Name] = svc.Status;
-    if (svc.DisplayName) result[svc.DisplayName] = svc.Status;
-  });
-
   identifiers.forEach(id => {
-    if (!result[id]) result[id] = 'Unknown';
+    const svc = parsed.find(s => s.Name === id || s.DisplayName === id);
+    result[id] = svc ? normalizeStatus(svc.Status) : 'Unknown';
   });
 
   return result;

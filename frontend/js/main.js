@@ -246,7 +246,7 @@ async function updateServiceStatuses() {
             const status = statusMap[svc.Name] || statusMap[svc.DisplayName] || 'Unknown';
             const dot = item.querySelector('.status-dot');
             if (!dot) return;
-            if (status.toLowerCase() === 'running') {
+            if (typeof status === 'string' && status.toLowerCase() === 'running') {
                 dot.style.setProperty('--dot-color', 'var(--green-primary)');
             } else {
                 dot.style.setProperty('--dot-color', 'var(--red-primary)');
