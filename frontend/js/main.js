@@ -243,13 +243,6 @@ async function initializeApp() {
     }
 }
 
-// Set up the window.onload handler
-window.onload = initializeApp;
-
-// Remove any existing event listeners to prevent duplicate initialization
-window.removeEventListener('load', initializeApp);
-document.removeEventListener('DOMContentLoaded', initializeApp);
-
 // ===== GLOBAL VARIABLES =====
 let chartData = [];
 let activeServiceId = null;
@@ -1297,9 +1290,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize the app
     initializeApp();
 });
-
-// ===== GLOBAL VARIABLES =====
-
 
 
 // ===== NEW NOTIFICATION SETTINGS FUNCTIONS =====
