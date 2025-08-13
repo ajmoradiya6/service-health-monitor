@@ -42,7 +42,7 @@ router.post('/status', async (req, res) => {
                     type: isRunning ? 'info' : 'error',
                     message: `Service ${id} is now ${status}`
                 };
-                notifications.push({ message: notif.message, type: isRunning ? 'success' : 'error' });
+                notifications.push(notif);
                 await createUserNotificationFromLog(notif);
             }
             previousStatuses[id] = status;

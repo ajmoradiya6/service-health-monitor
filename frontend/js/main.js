@@ -256,7 +256,12 @@ async function updateServiceStatuses() {
         const notifications = data.notifications || [];
         notifications.forEach(n => {
             if (n && n.message) {
-                showNotification(n.message, n.type || 'error');
+                addNotification(
+                    { level: n.type || 'info', message: n.message, timestamp: n.timestamp },
+                    n.serviceName,
+                    n.serviceName,
+                    true
+                );
             }
         });
     } catch (err) {
