@@ -23,7 +23,6 @@ async function getWindowsMetrics(identifiers = []) {
   const escaped = identifiers.map(id => `'${id.replace(/'/g, "''")}'`).join(',');
   const command = `
     $names = @(${escaped})
-    $totalMem = (Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory
     $result = @()
     foreach ($name in $names) {
       $svc = Get-Service -Name $name -ErrorAction SilentlyContinue
@@ -32,8 +31,9 @@ async function getWindowsMetrics(identifiers = []) {
         if ($processId) {
           $proc = Get-Process -Id $processId -ErrorAction SilentlyContinue
           if ($proc) {
-            $cpu = (Get-Counter "\\Process($($proc.ProcessName))\\% Processor Time").CounterSamples.CookedValue / $env:NUMBER_OF_PROCESSORS
-            $mem = [math]::Round(($proc.WorkingSet64 / $totalMem) * 100, 2)
+            $cpuSample = (Get-Counter "\\Process($($proc.ProcessName))\\% Processor Time" -SampleInterval 1 -MaxSamples 2).CounterSamples | Select -Last 1
+            $cpu = $cpuSample.CookedValue / $env:NUMBER_OF_PROCESSORS
+            $mem = [math]::Round($proc.WorkingSet64 / 1MB, 2)
             $conn = (Get-NetTCPConnection -OwningProcess $processId -ErrorAction SilentlyContinue | Measure-Object).Count
             $result += [pscustomobject]@{ Name=$name; CpuUsage=[math]::Round($cpu,2); MemoryUsage=$mem; Connections=$conn }
           } else {

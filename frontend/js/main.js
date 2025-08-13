@@ -899,7 +899,7 @@ function renderServiceMetrics(serviceId) {
     const connectionsElement = document.getElementById('connections-value');
 
     if (cpuElement) cpuElement.textContent = parseMetricValue(metrics.cpuUsage, true).toFixed(2) + '%';
-    if (memoryElement) memoryElement.textContent = parseMetricValue(metrics.memoryUsage, true).toFixed(2) + '%';
+    if (memoryElement) memoryElement.textContent = parseMetricValue(metrics.memoryUsage).toFixed(2) + ' MB';
     if (connectionsElement) connectionsElement.textContent = parseMetricValue(metrics.connections).toFixed(1);
 
 }
