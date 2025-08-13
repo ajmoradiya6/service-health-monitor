@@ -198,7 +198,7 @@ async function loadServices() {
         parentElement: container // Only create icons within the service list container
     });
 
-
+    await updateServiceStatuses();
 
     // Auto-select the first service (tomcat or windows)
     if (Array.isArray(tomcatService) && tomcatService.length > 0) {
@@ -221,6 +221,38 @@ async function loadServices() {
   }
 }
 
+async function fetchServiceStatus(service) {
+    try {
+        const response = await fetch('/api/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ serviceName: service.Name, displayName: service.DisplayName })
+        });
+        if (!response.ok) return 'Unknown';
+        const data = await response.json();
+        return data.status || 'Unknown';
+    } catch (err) {
+        console.error('Error fetching status for', service, err);
+        return 'Unknown';
+    }
+}
+
+async function updateServiceStatuses() {
+    const items = document.querySelectorAll('.service-item');
+    const updates = Array.from(items).map(async (item) => {
+        const service = JSON.parse(item.dataset.service || '{}');
+        const status = await fetchServiceStatus(service);
+        const dot = item.querySelector('.status-dot');
+        if (!dot) return;
+        if (status.toLowerCase() === 'running') {
+            dot.style.setProperty('--dot-color', 'var(--green-primary)');
+        } else {
+            dot.style.setProperty('--dot-color', 'var(--red-primary)');
+        }
+    });
+    await Promise.all(updates);
+}
+
 async function initializeApp() {
     console.log('Initializing application...'); // Debug log
     try {
@@ -232,6 +264,7 @@ async function initializeApp() {
         
         // Load services
         await loadServices();
+        setInterval(updateServiceStatuses, 5000);
         
         // Initialize settings sections
         initializeSettingsSections();
