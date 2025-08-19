@@ -26,16 +26,15 @@ async function getWindowsMetrics(identifiers = []) {
     $result = @()
     foreach ($name in $names) {
       $svc = Get-Service -Name $name -ErrorAction SilentlyContinue
-      if ($svc) {
-        $processId = (Get-CimInstance Win32_Service -Filter "Name='$name'").ProcessId
-        if ($processId) {
-          $proc = Get-Process -Id $processId -ErrorAction SilentlyContinue
-          if ($proc) {
-            $cpuSample = (Get-Counter "\\Process($($proc.ProcessName))\\% Processor Time" -SampleInterval 1 -MaxSamples 2).CounterSamples | Select -Last 1
-            $cpu = $cpuSample.CookedValue / $env:NUMBER_OF_PROCESSORS
-            $mem = [math]::Round($proc.WorkingSet64 / 1MB, 2)
-            $conn = (Get-NetTCPConnection -OwningProcess $processId -ErrorAction SilentlyContinue | Measure-Object).Count
-            $result += [pscustomobject]@{ Name=$name; CpuUsage=[math]::Round($cpu,2); MemoryUsage=$mem; Connections=$conn }
+      if ($svc -and $svc.Status -eq 'Running') {
+        $pid = (Get-CimInstance Win32_Service -Filter "Name='$name'").ProcessId
+        if ($pid) {
+          $perf = Get-CimInstance Win32_PerfFormattedData_PerfProc_Process -Filter "IDProcess=$pid"
+          if ($perf) {
+            $cpu = [math]::Round($perf.PercentProcessorTime / $env:NUMBER_OF_PROCESSORS, 2)
+            $mem = [math]::Round($perf.WorkingSet / 1MB, 2)
+            $conn = (Get-NetTCPConnection -OwningProcess $pid -ErrorAction SilentlyContinue | Measure-Object).Count
+            $result += [pscustomobject]@{ Name=$name; CpuUsage=$cpu; MemoryUsage=$mem; Connections=$conn }
           } else {
             $result += [pscustomobject]@{ Name=$name; CpuUsage=$null; MemoryUsage=$null; Connections=$null }
           }
