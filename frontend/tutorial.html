@@ -20,9 +20,8 @@
           <li><a href="#" data-section="section5">5. Edit Service</a></li>
           <li><a href="#" data-section="section6">6. Delete Service</a></li>
           <li><a href="#" data-section="section7">7. Top-Right Icons</a></li>
-          <li><a href="#" data-section="section8">8. Start & Stop</a></li>
-          <li><a href="#" data-section="section9">9. Settings</a></li>
-          <li><a href="#" data-section="section10">10. Troubleshooting</a></li>
+          <li><a href="#" data-section="section9">8. Settings</a></li>
+          <li><a href="#" data-section="section10">9. Troubleshooting</a></li>
         </ul>
       </nav>
     </aside>
@@ -36,7 +35,6 @@
         <ul>
           <li><b>Windows Services Monitoring</b>
             <ul>
-              <li>Real-time status (Running/Stopped)</li>
               <li>CPU usage</li>
               <li>Memory consumption</li>
               <li>Active connections</li>
@@ -55,7 +53,7 @@
           </li>
           <li><b>Smart Notifications</b>
             <ul>
-              <li>Instant in-app alerts, email notifications, and SMS messages for service up/down events</li>
+              <li>Instant in-app alerts, email notifications, and SMS messages for key system events</li>
             </ul>
           </li>
         </ul>
@@ -82,7 +80,6 @@
         <ol>
             <li><b>Server Overview:</b>
                 <ul>
-                    <li>Server Status – Indicates whether the Tomcat service is Running or Stopped.</li>
                     <li>Uptime – Shows the total time since the server was last started, along with the exact start
                         timestamp.
                     </li>
@@ -258,24 +255,15 @@
         <table>
           <tr><th>Icon</th><th>Function</th></tr>
           <tr><td>Live</td><td>Indicates the system is running and fetching live data</td></tr>
-          <tr><td>Power Button</td><td>Start/Stop individual services. <br/> - Tomcat may take 2–3 min to fully connect on first start.</td></tr>
-          <tr><td>Notifications</td><td>Shows alerts (up/down, high CPU, etc), badge for unread, delete/mark as read</td></tr>
+          <tr><td>Notifications</td><td>Shows alerts for system events, badge for unread, delete/mark as read</td></tr>
           <tr><td>Theme Mode</td><td>Toggle Light/Dark Mode</td></tr>
           <tr><td>Settings</td><td>Open all system preferences</td></tr>
           <tr><td>Help</td><td>Open this User Guide</td></tr>
         </table>
-        <p><b>Tip:</b> Tomcat first start may show as “starting” for 2–3 minutes until all data is loaded.</p>
-      </section>
-      <section id="section8" class="doc-section">
-        <h2>8. How to Start and Stop a Service</h2>
-        <ul>
-          <li><b>When stopped:</b> Power Button is green (play icon). Click to start service. Data will update after launch.</li>
-          <li><b>When running:</b> Power Button is red (power icon). Click to stop service. Metrics stop updating.</li>
-        </ul>
-        <p>Tomcat may take 2–3 minutes to load metrics on first connect after starting.</p>
+        
       </section>
       <section id="section9" class="doc-section">
-        <h2>9. Settings</h2>
+        <h2>8. Settings</h2>
         <b>Notification Preferences</b>
         <ul>
           <li><b>AI Assist</b> – Summarizes technical errors for human-friendly notifications</li>
@@ -288,10 +276,6 @@
           <li>Toggle Email/SMS ON to add/delete contacts (+ and trash icons)</li>
           <li>Click Save after editing</li>
         </ul>
-        <b>Service Status Notifications</b>
-        <ul>
-          <li>Service Down/Error/Restart/Start toggles</li>
-        </ul>
         <b>Resource Usage Notifications</b>
         <ul>
           <li>High CPU and High Memory toggles</li>
@@ -303,7 +287,7 @@
         </ul>
       </section>
       <section id="section10" class="doc-section">
-        <h2>10. Troubleshooting (For Admins)</h2>
+        <h2>9. Troubleshooting (For Admins)</h2>
         <ul>
           <li>
             <b>Check Configuration File</b>
@@ -326,15 +310,6 @@
             <li>Set Tomcat Installation Path: <code>TOMCAT_HOME=C:\\Path\\To\\Your\\Tomcat</code></li>
           </ol>
           <p>Without these, Tomcat logs/metrics will not be fetched.</p>
-          </li>
-          <li>
-            <b>When It Will Show Fail to Start/Stop</b>
-            <ol>
-              <li>Go to <b>Services</b> &rarr; right-click the service &rarr; <b>Properties</b></li>
-              <li>Open the <b>Log On</b> tab</li>
-              <li>Choose <b>This account</b> and enter an admin account with all privileges</li>
-              <li>Click <b>Apply</b> and restart the service</li>
-            </ol>
           </li>
           
           

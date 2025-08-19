@@ -4,7 +4,6 @@ const connectLivereload = require('connect-livereload'); // ✅ Add this
 
 const app = express();
 const apiRoutes = require('./routes/api');
-const serviceControlRoutes = require('./routes/serviceControl');
 
 app.use(express.json());
 
@@ -16,6 +15,5 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 
 //  Mount API routes under /api
 app.use('/api', apiRoutes);
-//app.use('/api/service-control', serviceControlRoutes);
 
 module.exports = app;

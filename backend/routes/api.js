@@ -1,7 +1,15 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
-const { getAllServices, createUserNotificationFromLog } = require('../services/healthService');
+const path = require('path');
+const fs = require('fs').promises;
+const { getAllServices } = require('../services/fetchServices');
+const { createUserNotificationFromLog } = require('../services/createUserNotificationFromLog');
+const { getServicesStatus } = require('../services/serviceStatus');
+const { getWindowsMetrics } = require('../services/windowsMetrics');
 const serviceControlRouter = require('./serviceControl');
+
+// Track previous service statuses in memory to detect changes
+const previousStatuses = {};
 
 router.use('/service-control', serviceControlRouter);
 router.get('/services', async (req, res) => {
@@ -11,6 +19,55 @@ router.get('/services', async (req, res) => {
         windowsServices: data.windowsServices || [],
         tomcatService: data.tomcatService || null
     });
+});
+
+router.post('/status', async (req, res) => {
+    const { services } = req.body || {};
+    if (!Array.isArray(services) || services.length === 0) {
+        return res.status(400).json({ error: 'services array is required' });
+    }
+
+    const identifiers = [...new Set(services.map(s => s.serviceName || s.displayName).filter(Boolean))];
+
+    try {
+        const statuses = await getServicesStatus(identifiers);
+        const notifications = [];
+
+        for (const [id, status] of Object.entries(statuses)) {
+            const prev = previousStatuses[id];
+            if (prev && prev !== status) {
+                const isRunning = typeof status === 'string' && status.toLowerCase() === 'running';
+                const notif = {
+                    serviceName: id,
+                    timestamp: new Date().toISOString(),
+                    type: isRunning ? 'info' : 'error',
+                    message: `Service ${id} is now ${status}`
+                };
+                notifications.push(notif);
+                await createUserNotificationFromLog(notif);
+            }
+            previousStatuses[id] = status;
+        }
+
+        res.json({ statuses, notifications });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch service statuses', details: err.message });
+    }
+});
+
+router.post('/windows/metrics', async (req, res) => {
+    const { services } = req.body || {};
+    if (!Array.isArray(services) || services.length === 0) {
+        return res.status(400).json({ error: 'services array is required' });
+    }
+
+    const identifiers = services.map(s => s.serviceName || s.displayName || s).filter(Boolean);
+    try {
+        const metrics = await getWindowsMetrics(identifiers);
+        res.json({ metrics });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch windows metrics', details: err.message });
+    }
 });
 
 

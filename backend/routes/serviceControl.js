@@ -11,10 +11,6 @@ const fs = require('fs').promises;
 
 
 
-const BACKEND_HOST = process.env.BACKEND_HOST || 'http://localhost';
-const PORT         = parseInt(process.env.TOMCAT_PORT, 10) || 8080;
-
-// Add at the top
 let TOMCAT_PROCESS_NAME = 'Tomcat*'; // default fallback
 
 
@@ -24,44 +20,6 @@ let TOMCAT_PROCESS_NAME = 'Tomcat*'; // default fallback
 
 
 
-// Start service
-router.post('/:id/start', async (req, res) => {
-    try {
-        const serviceName = req.params.id;
-        exec(`powershell.exe Start-Service -Name '${serviceName}'`, (err, stdout, stderr) => {
-            if (err) return res.status(500).json({ error: stderr || err.message });
-            res.json({ status: 'started', stdout });
-        });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-// Stop service
-router.post('/:id/stop', async (req, res) => {
-    try {
-        const serviceName = req.params.id;
-        exec(`powershell.exe Stop-Service -Name '${serviceName}' -Force`, (err, stdout, stderr) => {
-            if (err) return res.status(500).json({ error: stderr || err.message });
-            res.json({ status: 'stopped', stdout });
-        });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-// Get service status
-router.get('/:id/status', async (req, res) => {
-    try {
-        const serviceName = req.params.id;
-        exec(`powershell.exe (Get-Service -Name '${serviceName}').Status`, (err, stdout, stderr) => {
-            if (err) return res.status(500).json({ error: stderr || err.message });
-            res.json({ status: stdout.trim() });
-        });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
 
 router.get('/tomcat/metrics', async (req, res) => {
   try {
