@@ -6,6 +6,7 @@ const { getAllServices } = require('../services/fetchServices');
 const { createUserNotificationFromLog } = require('../services/createUserNotificationFromLog');
 const { getServicesStatus } = require('../services/serviceStatus');
 const { getWindowsMetrics } = require('../services/windowsMetrics');
+const { getTomcatMetrics } = require('../services/tomcatMetrics');
 const serviceControlRouter = require('./serviceControl');
 
 // Track previous service statuses in memory to detect changes
@@ -86,6 +87,35 @@ router.get('/windows/metrics/stream', async (req, res) => {
     const sendMetrics = async () => {
         try {
             const metrics = await getWindowsMetrics(identifiers);
+            res.write(`data: ${JSON.stringify(metrics)}\n\n`);
+        } catch (err) {
+            res.write('event: error\n');
+            res.write('data: {}\n\n');
+        }
+    };
+
+    const interval = setInterval(sendMetrics, 5000);
+    req.on('close', () => {
+        clearInterval(interval);
+        res.end();
+    });
+
+    sendMetrics();
+});
+
+router.get('/tomcat/metrics/stream', async (req, res) => {
+    res.set({
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive'
+    });
+    if (typeof res.flushHeaders === 'function') {
+        res.flushHeaders();
+    }
+
+    const sendMetrics = async () => {
+        try {
+            const metrics = await getTomcatMetrics();
             res.write(`data: ${JSON.stringify(metrics)}\n\n`);
         } catch (err) {
             res.write('event: error\n');

@@ -306,6 +306,7 @@ const serviceLogs = {};
 const serviceMetrics = {};
 let windowsServices = [];
 let windowsMetricsSource = null;
+let tomcatMetricsSource = null;
 const MAX_LOGS = 200; // limit stored logs per service
 
 // Get modal elements and forms
@@ -795,16 +796,18 @@ function selectService(element, index, service) {
 
     // Determine if this is a Tomcat service based on the service name
     const isTomcatService = serviceData.Name && serviceData.Name.toLowerCase().includes('tomcat');
-    
+
     if (isTomcatService) {
         // Show Tomcat panel for Tomcat services
         showTomcatPanel();
         activeServiceType = 'tomcat';
         stopWindowsMetricsStream();
+        startTomcatMetricsStream();
     } else {
         // Show Windows panel for Windows services
         showWindowsPanel();
         activeServiceType = 'windows';
+        stopTomcatMetricsStream();
         startWindowsMetricsStream();
     }
 
@@ -1778,6 +1781,44 @@ function stopWindowsMetricsStream() {
     }
 }
 
+function startTomcatMetricsStream() {
+    if (tomcatMetricsSource) return;
+    tomcatMetricsSource = new EventSource(`${window.location.origin}/api/tomcat/metrics/stream`);
+    tomcatMetricsSource.onopen = () => console.log('Tomcat metrics stream connected');
+    tomcatMetricsSource.onerror = (err) => console.error('Tomcat metrics stream error', err);
+    tomcatMetricsSource.onmessage = (event) => {
+        const metrics = JSON.parse(event.data);
+        updateTomcatMetricsUI(metrics);
+        const nowLabel = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        updateLiveChart(threadUsageChart, nowLabel, [
+            metrics.threads?.max ?? null,
+            metrics.threads?.busy ?? null
+        ]);
+        updateLiveChart(memoryUsageChart, nowLabel, [
+            metrics.memory?.heap?.maxMB ?? null,
+            metrics.memory?.heap?.usedMB ?? null
+        ]);
+        updateLiveChart(requestsErrorsChart, nowLabel, [
+            metrics.requests?.count ?? null,
+            metrics.requests?.errors ?? null
+        ]);
+        updateLiveChart(memoryPoolChart, nowLabel, [
+            metrics.memory?.nonHeap?.maxMB ?? null,
+            metrics.memory?.nonHeap?.usedMB ?? null
+        ]);
+        document.querySelectorAll('.tomcat-updated-time').forEach(el => {
+            el.textContent = nowLabel;
+        });
+    };
+}
+
+function stopTomcatMetricsStream() {
+    if (tomcatMetricsSource) {
+        tomcatMetricsSource.close();
+        tomcatMetricsSource = null;
+    }
+}
+
 
 
 // Persistent buffers for each log type
@@ -1796,53 +1837,8 @@ function pushToBuffer(buffer, lines, maxSize = 200) {
 }
 
 
-async function pollTomcatMetrics() {
+async function pollTomcatLogs() {
 
-
-    //const nowLabel = new Date().toLocaleTimeString().slice(0, 8);
-    const nowLabel = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-
-
-    const tomcatSidebarItem = document.getElementById('tomcat-service-list');
-    if (!tomcatSidebarItem) return;
-    const tomcatData = JSON.parse(tomcatSidebarItem.dataset.service);
-    if (!tomcatData || !tomcatData.id) return;
-
-    try {
-        const resp = await fetch('/api/service-control/tomcat/metrics');
-        if (!resp.ok) return;
-        const metrics = await resp.json();
-        updateTomcatMetricsUI(metrics);
-
-        updateLiveChart(threadUsageChart, nowLabel, [
-            metrics.threads?.max ?? null,
-            metrics.threads?.busy ?? null
-        ]);
-
-        updateLiveChart(memoryUsageChart, nowLabel, [
-            metrics.memory?.heap?.maxMB ?? null,
-            metrics.memory?.heap?.usedMB ?? null
-        ]);
-
-        updateLiveChart(requestsErrorsChart, nowLabel, [
-            metrics.requests?.count ?? null,
-            metrics.requests?.errors ?? null
-        ]);
-
-        updateLiveChart(memoryPoolChart, nowLabel, [
-            metrics.memory?.nonHeap?.maxMB ?? null,
-            metrics.memory?.nonHeap?.usedMB ?? null
-        ]);
-
-
-
-    } catch (err) {
-        console.error('Error fetching Tomcat metrics:', err);
-    }
-
-    document.querySelectorAll('.tomcat-updated-time').forEach(el => {
-        el.textContent = nowLabel;
-    });
 
     // Add logic to fetch logs
     try {
@@ -2008,7 +2004,7 @@ function updateTomcatMetricsUI(metrics) {
 
 // Start polling Tomcat metrics and logs every 5 seconds after DOM is ready
 window.addEventListener('DOMContentLoaded', function() {
-    setInterval(pollTomcatMetrics, 5000);
+    setInterval(pollTomcatLogs, 5000);
 });
 
 // Open tutorial page in a new tab when the tutorial button is clicked
