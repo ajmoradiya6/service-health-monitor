@@ -38,7 +38,7 @@ async function getAllServices() {
           if (!Array.isArray(windowsServices)) windowsServices = [windowsServices].filter(Boolean);
 
           // Split Windows services into web and core groups
-          const coreKeywords = ['API','Indexer','Notification','Retention','Sentinel','Storage','Text Extraction','Workflow','ContentverseService'];
+          const coreKeywords = ['AIP','Indexer','Notification','Retention','Sentinel','Storage','Text Extraction','Workflow','ContentverseService'];
           const coreServices = [];
           const webServices = [];
           windowsServices.forEach(svc => {
