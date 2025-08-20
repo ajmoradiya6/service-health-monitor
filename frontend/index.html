@@ -299,11 +299,23 @@
                             <div class="tomcat-cards">
                                 <div class="tomcat-card">
                                     <div class="metric-header">
+                                        <i data-lucide="activity" class="metric-icon"></i>
+                                        <div class="metric-label">Status</div>
+                                    </div>
+                                    <div class="tomcat-card-value">
+                                        <div id="tomcat-status-pill" class="tomcat-status-pill">
+                                            <div class="status-dot"></div>
+                                            <span id="tomcat-status-value">--</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tomcat-card">
+                                    <div class="metric-header">
                                         <i data-lucide="clock-arrow-up" class="metric-icon"></i>
                                         <div class="metric-label">Uptime</div>
                                     </div>
                                     <div class="tomcat-card-value tomcat-uptime-card">--</div>
-                                    <small>Started: 
+                                    <small>Started:
                                         <span class="tomcat-start-time-card">--</span>
                                     </small>
                                 </div>
@@ -708,6 +720,15 @@
                 <!-- Place your existing metrics/logs UI here (move all main content except Tomcat panel into this div) -->
                 <!-- Metrics Grid -->
                 <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <i data-lucide="activity" class="metric-icon"></i>
+                            <div class="metric-label">Status</div>
+                        </div>
+                        <div class="metric-value">
+                            <span id="windows-status-value" class="status-pill">--</span>
+                        </div>
+                    </div>
                     <div class="metric-card">
                         <div class="metric-header">
                             <i data-lucide="database" class="metric-icon"></i>

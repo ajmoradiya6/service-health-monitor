@@ -199,6 +199,7 @@ async function loadServices() {
     });
 
     pollWindowsMetrics();
+    pollTomcatMetrics();
     await updateServiceStatuses();
 
     // Auto-select the first service (tomcat or windows)
@@ -244,7 +245,9 @@ async function updateServiceStatuses() {
 
         items.forEach(item => {
             const svc = JSON.parse(item.dataset.service || '{}');
-            const status = statusMap[svc.Name] || statusMap[svc.DisplayName] || 'Unknown';
+            const key = svc.Name || svc.DisplayName;
+            const status = statusMap[key] || 'Unknown';
+            serviceStatuses[key] = status;
             const dot = item.querySelector('.status-dot');
             if (!dot) return;
             if (typeof status === 'string' && status.toLowerCase() === 'running') {
@@ -253,6 +256,8 @@ async function updateServiceStatuses() {
                 dot.style.setProperty('--dot-color', 'var(--red-primary)');
             }
         });
+
+        updateStatusCard();
 
         const notifications = data.notifications || [];
         notifications.forEach(n => {
@@ -304,6 +309,7 @@ let animationFrame;
 // Maintain data per service
 const serviceLogs = {};
 const serviceMetrics = {};
+const serviceStatuses = {};
 let windowsServices = [];
 const MAX_LOGS = 200; // limit stored logs per service
 
@@ -355,22 +361,13 @@ const phoneListContainer = document.getElementById('phone-list');
 const notifAIAssistToggle = document.getElementById('notif-ai-assist');
 
 let resourceChart = null;
-let chartDataBuffer = [];
 
 // Global chart data storage for all services
 window.serviceChartData = {};
 
-// Global per-service chart data buffers
-window.chartDataBuffers = {};
-
-// Add debug log and check for canvas existence in initializeResourceChart
+// Initialize chart for a given service using its stored history
 function initializeResourceChart(serviceId) {
-    // Use per-service buffer
-    if (!window.chartDataBuffers[serviceId]) {
-        window.chartDataBuffers[serviceId] = (window.serviceChartData[serviceId] || []).slice();
-    }
-    chartDataBuffer = window.chartDataBuffers[serviceId];
-    const data = chartDataBuffer;
+    const data = window.serviceChartData[serviceId] || [];
     const canvas = document.getElementById('chartCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -508,24 +505,6 @@ function initializeResourceChart(serviceId) {
 window.addEventListener('DOMContentLoaded', () => {
     initializeResourceChart();
 });
-
-function updateResourceChart(cpu, memory, timestamp) {
-    // Always update the buffer for the current service
-    if (!window.chartDataBuffers[activeServiceId]) {
-        window.chartDataBuffers[activeServiceId] = [];
-    }
-    chartDataBuffer = window.chartDataBuffers[activeServiceId];
-    chartDataBuffer.push({ cpu, memory, timestamp });
-    if (chartDataBuffer.length > 60) chartDataBuffer.shift();
-    if (!window.resourceChart) return;
-    window.resourceChart.data.labels = chartDataBuffer.map(d => {
-        const date = new Date(d.timestamp);
-        return date.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    });
-    window.resourceChart.data.datasets[0].data = chartDataBuffer.map(d => d.cpu);
-    window.resourceChart.data.datasets[1].data = chartDataBuffer.map(d => d.memory);
-    window.resourceChart.update(); // Enable animation
-}
 
 function updateResourceChartForService(serviceId) {
     const data = window.serviceChartData[serviceId] || [];
@@ -808,6 +787,8 @@ function selectService(element, index, service) {
     // Render metrics for selected service
     renderServiceMetrics(serviceData.id);
 
+    updateStatusCard();
+
 
 
     
@@ -902,6 +883,33 @@ function renderServiceMetrics(serviceId) {
     if (memoryElement) memoryElement.textContent = parseMetricValue(metrics.memoryUsage).toFixed(2) + '%';
     if (connectionsElement) connectionsElement.textContent = parseMetricValue(metrics.connections).toFixed(1);
 
+    // Update the trend chart with stored history for this service
+    updateResourceChartForService(serviceId);
+}
+
+function updateStatusCard() {
+    if (!activeServiceId) return;
+    const status = serviceStatuses[activeServiceId];
+    const isRunning = typeof status === 'string' && status.toLowerCase() === 'running';
+
+    if (activeServiceType === 'tomcat') {
+        const textEl = document.getElementById('tomcat-status-value');
+        const dot = document.querySelector('#tomcat-status-pill .status-dot');
+        if (textEl) {
+            textEl.textContent = status || '--';
+            textEl.style.color = isRunning ? '#16a34a' : '#dc2626';
+        }
+        if (dot) {
+            dot.style.setProperty('--dot-color', isRunning ? 'var(--green-primary)' : 'var(--red-primary)');
+        }
+    } else {
+        const pill = document.getElementById('windows-status-value');
+        if (pill) {
+            pill.textContent = status || '--';
+            pill.classList.remove('running', 'stopped');
+            pill.classList.add(isRunning ? 'running' : 'stopped');
+        }
+    }
 }
 
 // Function to toggle filter dropdown
@@ -1758,12 +1766,19 @@ async function pollWindowsMetrics() {
         if (!resp.ok) return;
         const data = await resp.json();
         const metricsMap = data.metrics || {};
+        const timestamp = Date.now();
         Object.entries(metricsMap).forEach(([name, m]) => {
+            const cpu = parseMetricValue(m.cpuUsagePercent, true);
+            const memory = parseMetricValue(m.memoryUsagePercent);
             serviceMetrics[name] = {
-                cpuUsage: m.cpuUsagePercent,
-                memoryUsage: m.memoryUsagePercent,
+                cpuUsage: cpu,
+                memoryUsage: memory,
                 connections: m.connections
             };
+            if (!window.serviceChartData[name]) window.serviceChartData[name] = [];
+            const history = window.serviceChartData[name];
+            history.push({ cpu, memory, timestamp });
+            if (history.length > 100) history.shift();
         });
         if (activeServiceId) {
             renderServiceMetrics(activeServiceId);
@@ -1792,16 +1807,8 @@ function pushToBuffer(buffer, lines, maxSize = 200) {
 
 
 async function pollTomcatMetrics() {
-
-
     //const nowLabel = new Date().toLocaleTimeString().slice(0, 8);
     const nowLabel = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-
-
-    const tomcatSidebarItem = document.getElementById('tomcat-service-list');
-    if (!tomcatSidebarItem) return;
-    const tomcatData = JSON.parse(tomcatSidebarItem.dataset.service);
-    if (!tomcatData || !tomcatData.id) return;
 
     try {
         const resp = await fetch('/api/service-control/tomcat/metrics');
@@ -1828,9 +1835,6 @@ async function pollTomcatMetrics() {
             metrics.memory?.nonHeap?.maxMB ?? null,
             metrics.memory?.nonHeap?.usedMB ?? null
         ]);
-
-
-
     } catch (err) {
         console.error('Error fetching Tomcat metrics:', err);
     }
