@@ -297,6 +297,7 @@ async function initializeApp() {
 let chartData = [];
 let activeServiceId = null;
 let activeTab = 'metrics';
+let activeServiceType = null;
 const canvas = document.getElementById('chartCanvas');
 const ctx = canvas.getContext('2d');
 let animationFrame;
@@ -799,6 +800,7 @@ function selectService(element, index, service) {
         // Show Tomcat panel for Tomcat services
         showTomcatPanel();
         activeServiceType = 'tomcat';
+        pollTomcatMetrics();
     } else {
         // Show Windows panel for Windows services
         showWindowsPanel();
@@ -1792,16 +1794,10 @@ function pushToBuffer(buffer, lines, maxSize = 200) {
 
 
 async function pollTomcatMetrics() {
-
+    if (activeServiceType !== 'tomcat') return;
 
     //const nowLabel = new Date().toLocaleTimeString().slice(0, 8);
     const nowLabel = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-
-
-    const tomcatSidebarItem = document.getElementById('tomcat-service-list');
-    if (!tomcatSidebarItem) return;
-    const tomcatData = JSON.parse(tomcatSidebarItem.dataset.service);
-    if (!tomcatData || !tomcatData.id) return;
 
     try {
         const resp = await fetch('/api/service-control/tomcat/metrics');
