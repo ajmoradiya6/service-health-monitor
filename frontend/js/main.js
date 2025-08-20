@@ -794,11 +794,13 @@ function selectService(element, index, service) {
 
     // Determine if this is a Tomcat service based on the service name
     const isTomcatService = serviceData.Name && serviceData.Name.toLowerCase().includes('tomcat');
-    
+
     if (isTomcatService) {
         // Show Tomcat panel for Tomcat services
         showTomcatPanel();
         activeServiceType = 'tomcat';
+        // Fetch Tomcat metrics immediately when selected
+        pollTomcatMetrics();
     } else {
         // Show Windows panel for Windows services
         showWindowsPanel();
@@ -1792,16 +1794,11 @@ function pushToBuffer(buffer, lines, maxSize = 200) {
 
 
 async function pollTomcatMetrics() {
+    // Only fetch Tomcat metrics when a Tomcat service is active
+    if (activeServiceType !== 'tomcat') return;
 
-
-    //const nowLabel = new Date().toLocaleTimeString().slice(0, 8);
+    // const nowLabel = new Date().toLocaleTimeString().slice(0, 8);
     const nowLabel = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-
-
-    const tomcatSidebarItem = document.getElementById('tomcat-service-list');
-    if (!tomcatSidebarItem) return;
-    const tomcatData = JSON.parse(tomcatSidebarItem.dataset.service);
-    if (!tomcatData || !tomcatData.id) return;
 
     try {
         const resp = await fetch('/api/service-control/tomcat/metrics');
