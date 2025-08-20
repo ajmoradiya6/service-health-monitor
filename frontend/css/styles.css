@@ -1819,7 +1819,8 @@ body {
     margin-top: 8px;
 }
 
-#service-list svg,
+#web-service-list svg,
+#core-service-list svg,
 #tomcat-service-list svg {
     padding: 3px;
 }

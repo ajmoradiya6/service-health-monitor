@@ -119,44 +119,56 @@ async function loadServices() {
     }
 
     const data = await response.json();
-    windowsServices = data.windowsServices || [];
+    const webServices = data.webServices || [];
+    const coreServices = data.coreServices || [];
+    windowsServices = [...webServices, ...coreServices];
     const tomcatServices = data.tomcatService || [];
-    const container = document.getElementById('service-list');
-    
-    if (!container) {
-        console.error('Service list container not found in the DOM.');
-        return; 
+
+    const webContainer = document.getElementById('web-service-list');
+    const coreContainer = document.getElementById('core-service-list');
+
+    if (!webContainer || !coreContainer) {
+        console.error('Service list containers not found in the DOM.');
+        return;
     }
 
-    container.innerHTML = '';
+    webContainer.innerHTML = '';
+    coreContainer.innerHTML = '';
 
-    // Render windows services
-    windowsServices.forEach((service, index) => {
-      const div = document.createElement('div');
-      // Use the existing service-item class and add click handler
-      // The main div click will handle service selection
-      div.className = 'service-item';
-      div.onclick = (event) => {
-          // Prevent the ellipsis click from triggering service selection
-          if (event.target.closest('.service-actions')) {
-              return;
-          }
-          selectService(div, index, service);
-      };
-      
-      // Construct the inner HTML with status dot and service name
-      div.innerHTML = `
-          <div class="status-dot"></div>
-          <span class="service-name" title="${service.DisplayName}">${service.DisplayName}</span>
+    // Render web services
+    webServices.forEach((service, index) => {
+        const div = document.createElement('div');
+        div.className = 'service-item';
+        div.onclick = (event) => {
+            if (event.target.closest('.service-actions')) {
+                return;
+            }
+            selectService(div, index, service);
+        };
+        div.innerHTML = `
+            <div class="status-dot"></div>
+            <span class="service-name" title="${service.DisplayName}">${service.DisplayName}</span>
+        `;
+        div.dataset.service = JSON.stringify({ ...service, id: service.Name });
+        webContainer.appendChild(div);
+    });
 
-      `;
-      //<div class="service-actions" data-service-type="windows" data-service-id="${service.id}"><i data-lucide="more-vertical"></i></div>
-      // Store service data on the element
-      div.dataset.service = JSON.stringify({ ...service, id: service.Name });
-
-      container.appendChild(div);
-
-
+    // Render core services
+    coreServices.forEach((service, index) => {
+        const div = document.createElement('div');
+        div.className = 'service-item';
+        div.onclick = (event) => {
+            if (event.target.closest('.service-actions')) {
+                return;
+            }
+            selectService(div, webServices.length + index, service);
+        };
+        div.innerHTML = `
+            <div class="status-dot"></div>
+            <span class="service-name" title="${service.DisplayName}">${service.DisplayName}</span>
+        `;
+        div.dataset.service = JSON.stringify({ ...service, id: service.Name });
+        coreContainer.appendChild(div);
     });
 
     // Render tomcat services dynamically
@@ -164,39 +176,31 @@ async function loadServices() {
     if (tomcatContainer && Array.isArray(tomcatServices)) {
         tomcatContainer.innerHTML = '';
 
+        const offset = windowsServices.length;
         tomcatServices.forEach((service, index) => {
             const div = document.createElement('div');
             div.className = 'service-item';
             div.onclick = (event) => {
-                // Prevent the ellipsis click from triggering service selection
                 if (event.target.closest('.service-actions')) {
                     return;
                 }
-                selectService(div, windowsServices.length + index, service);
+                selectService(div, offset + index, service);
             };
-            
-            // Construct the inner HTML with status dot and service name
             div.innerHTML = `
                 <div class="status-dot"></div>
                 <span class="service-name" title="${service.DisplayName}">${service.DisplayName}</span>
-
             `;
-            //<div class="service-actions" data-service-type="tomcat" data-service-id="${service.id}"><i data-lucide="more-vertical"></i></div>
-            // Store service data on the element
             div.dataset.service = JSON.stringify({ ...service, id: service.Name });
-
             tomcatContainer.appendChild(div);
-
-
-
-            // Status checks removed
         });
     }
 
-    // After adding all service items, create Lucide icons within the container
-    lucide.createIcons({
-        parentElement: container // Only create icons within the service list container
-    });
+    // After adding all service items, create Lucide icons within the containers
+    lucide.createIcons({ parentElement: webContainer });
+    lucide.createIcons({ parentElement: coreContainer });
+    if (tomcatContainer) {
+        lucide.createIcons({ parentElement: tomcatContainer });
+    }
 
     pollWindowsMetrics();
     pollTomcatMetrics();
@@ -204,18 +208,15 @@ async function loadServices() {
 
     // Auto-select the first service (tomcat or windows)
     if (Array.isArray(tomcatServices) && tomcatServices.length > 0) {
-        const tomcatContainer = document.getElementById('tomcat-service-list');
-        const firstTomcatItem = tomcatContainer.querySelector('.service-item');
+        const firstTomcatItem = document.getElementById('tomcat-service-list').querySelector('.service-item');
         if (firstTomcatItem) {
             selectService(firstTomcatItem, 0, tomcatServices[0]);
         }
-
     } else if (windowsServices.length > 0) {
-        const firstItem = container.querySelector('.service-item');
+        const firstItem = webContainer.querySelector('.service-item') || coreContainer.querySelector('.service-item');
         if (firstItem) {
             selectService(firstItem, 0, windowsServices[0]);
         }
-
     }
 
   } catch (error) {
