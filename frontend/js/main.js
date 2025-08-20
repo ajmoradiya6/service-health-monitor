@@ -2007,7 +2007,6 @@ function updateTomcatMetricsUI(metrics) {
 // Start polling Tomcat metrics and logs every 5 seconds after DOM is ready
 window.addEventListener('DOMContentLoaded', function() {
     setInterval(pollTomcatMetrics, 5000);
-    startWindowsMetricsStream();
 });
 
 // Open tutorial page in a new tab when the tutorial button is clicked
