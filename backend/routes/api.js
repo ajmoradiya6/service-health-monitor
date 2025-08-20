@@ -86,11 +86,31 @@ router.get('/windows/metrics/stream', async (req, res) => {
 
     const sendMetrics = async () => {
         try {
-            const metrics = await getWindowsMetrics(identifiers);
-            res.write(`data: ${JSON.stringify(metrics)}\n\n`);
+            const [metrics, statuses] = await Promise.all([
+                getWindowsMetrics(identifiers),
+                getServicesStatus(identifiers)
+            ]);
+
+            const notifications = [];
+            for (const [id, status] of Object.entries(statuses)) {
+                const prev = previousStatuses[id];
+                if (prev && prev !== status) {
+                    const isRunning = typeof status === 'string' && status.toLowerCase() === 'running';
+                    const notif = {
+                        serviceName: id,
+                        timestamp: new Date().toISOString(),
+                        type: isRunning ? 'info' : 'error',
+                        message: `Service ${id} is now ${status}`
+                    };
+                    notifications.push(notif);
+                    await createUserNotificationFromLog(notif);
+                }
+                previousStatuses[id] = status;
+            }
+
+            res.write(`data: ${JSON.stringify({ metrics, statuses, notifications })}\n\n`);
         } catch (err) {
-            res.write('event: error\n');
-            res.write('data: {}\n\n');
+            res.write(`data: ${JSON.stringify({ metrics: {}, statuses: {}, notifications: [], error: err.message })}\n\n`);
         }
     };
 
@@ -113,13 +133,37 @@ router.get('/tomcat/metrics/stream', async (req, res) => {
         res.flushHeaders();
     }
 
+    const { tomcatService } = await getAllServices();
+    const identifiers = tomcatService ? [tomcatService.Name] : [];
+
     const sendMetrics = async () => {
         try {
             const metrics = await getTomcatMetrics();
-            res.write(`data: ${JSON.stringify(metrics)}\n\n`);
+            let statuses = {};
+            if (identifiers.length > 0) {
+                statuses = await getServicesStatus(identifiers);
+            }
+
+            const notifications = [];
+            for (const [id, status] of Object.entries(statuses)) {
+                const prev = previousStatuses[id];
+                if (prev && prev !== status) {
+                    const isRunning = typeof status === 'string' && status.toLowerCase() === 'running';
+                    const notif = {
+                        serviceName: id,
+                        timestamp: new Date().toISOString(),
+                        type: isRunning ? 'info' : 'error',
+                        message: `Service ${id} is now ${status}`
+                    };
+                    notifications.push(notif);
+                    await createUserNotificationFromLog(notif);
+                }
+                previousStatuses[id] = status;
+            }
+
+            res.write(`data: ${JSON.stringify({ metrics, statuses, notifications })}\n\n`);
         } catch (err) {
-            res.write('event: error\n');
-            res.write('data: {}\n\n');
+            res.write(`data: ${JSON.stringify({ metrics: null, statuses: {}, notifications: [], error: err.message })}\n\n`);
         }
     };
 
