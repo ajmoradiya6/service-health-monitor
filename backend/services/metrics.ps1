@@ -53,7 +53,11 @@ $result = foreach ($info in $svcInfo) {
       $procMemMB = $perf.WorkingSet / 1MB
       [math]::Round((($procMemMB / $totalMemMB) * 100), 2)
     } else { $null }
-    $conn = $connLookup[$info.ProcId] ?? 0
+    if ($connLookup.ContainsKey($info.ProcId)) {
+      $conn = $connLookup[$info.ProcId]
+    } else {
+      $conn = 0
+    }
     [pscustomobject]@{
       Name               = $info.Name
       CpuUsagePercent    = $cpu
