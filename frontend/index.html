@@ -66,13 +66,19 @@
                 </div>
                 <div class="sidebar-content-bottom">
                     <div class="sidebar-content-bottom-heading">
-                        <h4>Windows Services</h4>
-                        <!-- <i data-lucide="plus" class="expand-icon" onclick="handleRegisterServiceClick(event)"></i> -->
+                        <h4>Web Services</h4>
                     </div>
 
-                    <ul class="service-list" id="service-list">
+                    <ul class="service-list" id="web-service-list">
                         <!-- Default services removed. Only dynamically loaded services will be rendered here. -->
+                    </ul>
 
+                    <div class="sidebar-content-bottom-heading" style="margin-top: 16px;">
+                        <h4>Core Services</h4>
+                    </div>
+
+                    <ul class="service-list" id="core-service-list">
+                        <!-- Core services will be rendered here -->
                     </ul>
                 </div>
             </div>
@@ -299,11 +305,23 @@
                             <div class="tomcat-cards">
                                 <div class="tomcat-card">
                                     <div class="metric-header">
+                                        <i data-lucide="activity" class="metric-icon"></i>
+                                        <div class="metric-label">Status</div>
+                                    </div>
+                                    <div class="tomcat-card-value">
+                                        <div id="tomcat-status-pill" class="tomcat-status-pill">
+                                            <div class="status-dot"></div>
+                                            <span id="tomcat-status-value">--</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tomcat-card">
+                                    <div class="metric-header">
                                         <i data-lucide="clock-arrow-up" class="metric-icon"></i>
                                         <div class="metric-label">Uptime</div>
                                     </div>
                                     <div class="tomcat-card-value tomcat-uptime-card">--</div>
-                                    <small>Started: 
+                                    <small>Started:
                                         <span class="tomcat-start-time-card">--</span>
                                     </small>
                                 </div>
@@ -708,6 +726,18 @@
                 <!-- Place your existing metrics/logs UI here (move all main content except Tomcat panel into this div) -->
                 <!-- Metrics Grid -->
                 <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <i data-lucide="activity" class="metric-icon"></i>
+                            <div class="metric-label">Status</div>
+                        </div>
+                        <div class="metric-value">
+                            <div id="windows-status-pill" class="tomcat-status-pill">
+                                <div class="status-dot"></div>
+                                <span id="windows-status-value">--</span>
+                            </div>
+                        </div>
+                    </div>
                     <div class="metric-card">
                         <div class="metric-header">
                             <i data-lucide="database" class="metric-icon"></i>

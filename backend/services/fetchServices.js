@@ -36,21 +36,35 @@ async function getAllServices() {
           let windowsServices = [];
           try { windowsServices = JSON.parse(contentverseJson); } catch { windowsServices = []; }
           if (!Array.isArray(windowsServices)) windowsServices = [windowsServices].filter(Boolean);
-  
+
+          // Split Windows services into web and core groups
+          const coreKeywords = ['AIP','Indexer','Notification','Retention','Sentinel','Storage','Text Extraction','Workflow','ContentverseService'];
+          const coreServices = [];
+          const webServices = [];
+          windowsServices.forEach(svc => {
+              const name = (svc.DisplayName || svc.Name || '').toLowerCase();
+              if (coreKeywords.some(k => name.includes(k.toLowerCase()))) {
+                  coreServices.push(svc);
+              } else {
+                  webServices.push(svc);
+              }
+          });
+
           // Fetch Tomcat services
           const tomcatCmd = `Get-Service | Where-Object { $_.Name -like 'Tomcat*' } | Select-Object Name, DisplayName | ConvertTo-Json -Compress`;
           const tomcatJson = await runPowerShellCommand(tomcatCmd);
           let tomcatServices = [];
           try { tomcatServices = JSON.parse(tomcatJson); } catch { tomcatServices = []; }
           if (!Array.isArray(tomcatServices)) tomcatServices = [tomcatServices].filter(Boolean);
-  
+
           return {
-              windowsServices: windowsServices,
+              webServices,
+              coreServices,
               tomcatService: tomcatServices
           };
       } catch (error) {
           console.error('Error fetching services:', error);
-          return { windowsServices: [], tomcatService: [] };
+          return { webServices: [], coreServices: [], tomcatService: [] };
       }
 }
 

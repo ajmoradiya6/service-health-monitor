@@ -14,9 +14,10 @@ const previousStatuses = {};
 router.use('/service-control', serviceControlRouter);
 router.get('/services', async (req, res) => {
     const data = await getAllServices();
-    // Return both windowsServices and tomcatService
+    // Return grouped windows services along with tomcat services
     res.json({
-        windowsServices: data.windowsServices || [],
+        webServices: data.webServices || [],
+        coreServices: data.coreServices || [],
         tomcatService: data.tomcatService || null
     });
 });
