@@ -1751,7 +1751,9 @@ function showWindowsPanel() {
 
 function startWindowsMetricsStream() {
     if (windowsMetricsSource) return;
-    windowsMetricsSource = new EventSource('/api/windows/metrics/stream');
+    windowsMetricsSource = new EventSource(`${window.location.origin}/api/windows/metrics/stream`);
+    windowsMetricsSource.onopen = () => console.log('Windows metrics stream connected');
+    windowsMetricsSource.onerror = (err) => console.error('Windows metrics stream error', err);
     windowsMetricsSource.onmessage = (event) => {
         const metricsMap = JSON.parse(event.data);
         Object.entries(metricsMap).forEach(([name, m]) => {

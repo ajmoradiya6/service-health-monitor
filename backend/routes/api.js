@@ -71,12 +71,12 @@ router.post('/windows/metrics', async (req, res) => {
 });
 
 router.get('/windows/metrics/stream', async (req, res) => {
-    res.writeHead(200, {
+    res.set({
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive'
+        Connection: 'keep-alive'
     });
-    if (res.flushHeaders) {
+    if (typeof res.flushHeaders === 'function') {
         res.flushHeaders();
     }
 
@@ -86,7 +86,7 @@ router.get('/windows/metrics/stream', async (req, res) => {
     const sendMetrics = async () => {
         try {
             const metrics = await getWindowsMetrics(identifiers);
-            res.write('data: ' + JSON.stringify(metrics) + '\n\n');
+            res.write(`data: ${JSON.stringify(metrics)}\n\n`);
         } catch (err) {
             res.write('event: error\n');
             res.write('data: {}\n\n');
@@ -98,6 +98,7 @@ router.get('/windows/metrics/stream', async (req, res) => {
         clearInterval(interval);
         res.end();
     });
+
     sendMetrics();
 });
 
