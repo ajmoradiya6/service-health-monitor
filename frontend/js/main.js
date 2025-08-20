@@ -903,11 +903,14 @@ function updateStatusCard() {
             dot.style.setProperty('--dot-color', isRunning ? 'var(--green-primary)' : 'var(--red-primary)');
         }
     } else {
-        const pill = document.getElementById('windows-status-value');
-        if (pill) {
-            pill.textContent = status || '--';
-            pill.classList.remove('running', 'stopped');
-            pill.classList.add(isRunning ? 'running' : 'stopped');
+        const textEl = document.getElementById('windows-status-value');
+        const dot = document.querySelector('#windows-status-pill .status-dot');
+        if (textEl) {
+            textEl.textContent = status || '--';
+            textEl.style.color = isRunning ? '#16a34a' : '#dc2626';
+        }
+        if (dot) {
+            dot.style.setProperty('--dot-color', isRunning ? 'var(--green-primary)' : 'var(--red-primary)');
         }
     }
 }
