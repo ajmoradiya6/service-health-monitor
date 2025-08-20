@@ -70,6 +70,29 @@ router.post('/windows/metrics', async (req, res) => {
     }
 });
 
+router.get('/windows/metrics/stream', async (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+
+    const { windowsServices } = await getAllServices();
+    const identifiers = (windowsServices || []).map(s => s.Name);
+
+    const sendMetrics = async () => {
+        try {
+            const metrics = await getWindowsMetrics(identifiers);
+            res.write('data: ' + JSON.stringify(metrics) + '\n\n');
+        } catch (err) {
+            // ignore errors for stream
+        }
+    };
+
+    const interval = setInterval(sendMetrics, 5000);
+    req.on('close', () => {
+        clearInterval(interval);
+    });
+    sendMetrics();
+});
+
 
 
 // POST endpoint to save user settings (emails, phone numbers, and all settings)

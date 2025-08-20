@@ -198,7 +198,6 @@ async function loadServices() {
         parentElement: container // Only create icons within the service list container
     });
 
-    pollWindowsMetrics();
     await updateServiceStatuses();
 
     // Auto-select the first service (tomcat or windows)
@@ -296,6 +295,7 @@ async function initializeApp() {
 // ===== GLOBAL VARIABLES =====
 let chartData = [];
 let activeServiceId = null;
+let activeServiceType = null;
 let activeTab = 'metrics';
 const canvas = document.getElementById('chartCanvas');
 const ctx = canvas.getContext('2d');
@@ -305,6 +305,7 @@ let animationFrame;
 const serviceLogs = {};
 const serviceMetrics = {};
 let windowsServices = [];
+let windowsMetricsSource = null;
 const MAX_LOGS = 200; // limit stored logs per service
 
 // Get modal elements and forms
@@ -799,10 +800,12 @@ function selectService(element, index, service) {
         // Show Tomcat panel for Tomcat services
         showTomcatPanel();
         activeServiceType = 'tomcat';
+        stopWindowsMetricsStream();
     } else {
         // Show Windows panel for Windows services
         showWindowsPanel();
         activeServiceType = 'windows';
+        startWindowsMetricsStream();
     }
 
     // Render metrics for selected service
@@ -1746,18 +1749,11 @@ function showWindowsPanel() {
     document.getElementById('windows-metrics-panel').style.display = 'block';
 }
 
-async function pollWindowsMetrics() {
-    if (!windowsServices.length) return;
-    const identifiers = windowsServices.map(s => s.Name);
-    try {
-        const resp = await fetch('/api/windows/metrics', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ services: identifiers })
-        });
-        if (!resp.ok) return;
-        const data = await resp.json();
-        const metricsMap = data.metrics || {};
+function startWindowsMetricsStream() {
+    if (windowsMetricsSource) return;
+    windowsMetricsSource = new EventSource('/api/windows/metrics/stream');
+    windowsMetricsSource.onmessage = (event) => {
+        const metricsMap = JSON.parse(event.data);
         Object.entries(metricsMap).forEach(([name, m]) => {
             serviceMetrics[name] = {
                 cpuUsage: m.cpuUsagePercent,
@@ -1765,11 +1761,18 @@ async function pollWindowsMetrics() {
                 connections: m.connections
             };
         });
-        if (activeServiceId) {
+        if (activeServiceType === 'windows' && activeServiceId && metricsMap[activeServiceId]) {
+            const m = metricsMap[activeServiceId];
+            updateResourceChart(m.cpuUsagePercent, m.memoryUsagePercent, Date.now());
             renderServiceMetrics(activeServiceId);
         }
-    } catch (err) {
-        console.error('Error fetching Windows metrics:', err);
+    };
+}
+
+function stopWindowsMetricsStream() {
+    if (windowsMetricsSource) {
+        windowsMetricsSource.close();
+        windowsMetricsSource = null;
     }
 }
 
@@ -2004,7 +2007,7 @@ function updateTomcatMetricsUI(metrics) {
 // Start polling Tomcat metrics and logs every 5 seconds after DOM is ready
 window.addEventListener('DOMContentLoaded', function() {
     setInterval(pollTomcatMetrics, 5000);
-    setInterval(pollWindowsMetrics, 5000);
+    startWindowsMetricsStream();
 });
 
 // Open tutorial page in a new tab when the tutorial button is clicked
