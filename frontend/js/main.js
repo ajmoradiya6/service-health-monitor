@@ -106,21 +106,6 @@ function updateLiveChart(chart, label, datasetValues) {
     chart.update();
 }
 
-function applyStatuses(statusMap) {
-    const items = document.querySelectorAll('.service-item');
-    items.forEach(item => {
-        const svc = JSON.parse(item.dataset.service || '{}');
-        const status = statusMap[svc.Name] || statusMap[svc.DisplayName] || statusMap[svc.id];
-        const dot = item.querySelector('.status-dot');
-        if (!dot) return;
-        if (typeof status === 'string' && status.toLowerCase() === 'running') {
-            dot.style.setProperty('--dot-color', 'var(--green-primary)');
-        } else {
-            dot.style.setProperty('--dot-color', 'var(--red-primary)');
-        }
-    });
-}
-
 async function loadServices() {
   try {
     const response = await fetch('/api/services');
@@ -213,6 +198,10 @@ async function loadServices() {
         parentElement: container // Only create icons within the service list container
     });
 
+    pollWindowsMetrics();
+    pollTomcatMetrics();
+    await updateServiceStatuses();
+
     // Auto-select the first service (tomcat or windows)
     if (Array.isArray(tomcatServices) && tomcatServices.length > 0) {
         const tomcatContainer = document.getElementById('tomcat-service-list');
@@ -234,6 +223,53 @@ async function loadServices() {
   }
 }
 
+async function updateServiceStatuses() {
+    const items = document.querySelectorAll('.service-item');
+    const services = Array.from(items).map(item => {
+        const svc = JSON.parse(item.dataset.service || '{}');
+        return { serviceName: svc.Name, displayName: svc.DisplayName };
+    });
+
+    try {
+        const response = await fetch('/api/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ services })
+        });
+        if (!response.ok) {
+            console.error('Failed to fetch service statuses');
+            return;
+        }
+        const data = await response.json();
+        const statusMap = data.statuses || {};
+
+        items.forEach(item => {
+            const svc = JSON.parse(item.dataset.service || '{}');
+            const status = statusMap[svc.Name] || statusMap[svc.DisplayName] || 'Unknown';
+            const dot = item.querySelector('.status-dot');
+            if (!dot) return;
+            if (typeof status === 'string' && status.toLowerCase() === 'running') {
+                dot.style.setProperty('--dot-color', 'var(--green-primary)');
+            } else {
+                dot.style.setProperty('--dot-color', 'var(--red-primary)');
+            }
+        });
+
+        const notifications = data.notifications || [];
+        notifications.forEach(n => {
+            if (n && n.message) {
+                addNotification(
+                    { level: n.type || 'info', message: n.message, timestamp: n.timestamp },
+                    n.serviceName,
+                    n.serviceName,
+                    true
+                );
+            }
+        });
+    } catch (err) {
+        console.error('Error fetching service statuses', err);
+    }
+}
 
 async function initializeApp() {
     console.log('Initializing application...'); // Debug log
@@ -243,12 +279,10 @@ async function initializeApp() {
         
         // Initialize notification settings
         await initializeNotificationSettings();
-
+        
         // Load services
         await loadServices();
-        // Start metrics streams once
-        startWindowsMetricsStream();
-        startTomcatMetricsStream();
+        setInterval(updateServiceStatuses, 5000);
         
         // Initialize settings sections
         initializeSettingsSections();
@@ -263,7 +297,6 @@ async function initializeApp() {
 // ===== GLOBAL VARIABLES =====
 let chartData = [];
 let activeServiceId = null;
-let activeServiceType = null;
 let activeTab = 'metrics';
 const canvas = document.getElementById('chartCanvas');
 const ctx = canvas.getContext('2d');
@@ -273,8 +306,6 @@ let animationFrame;
 const serviceLogs = {};
 const serviceMetrics = {};
 let windowsServices = [];
-let windowsMetricsSource = null;
-let tomcatMetricsSource = null;
 const MAX_LOGS = 200; // limit stored logs per service
 
 // Get modal elements and forms
@@ -764,7 +795,7 @@ function selectService(element, index, service) {
 
     // Determine if this is a Tomcat service based on the service name
     const isTomcatService = serviceData.Name && serviceData.Name.toLowerCase().includes('tomcat');
-
+    
     if (isTomcatService) {
         // Show Tomcat panel for Tomcat services
         showTomcatPanel();
@@ -1716,24 +1747,18 @@ function showWindowsPanel() {
     document.getElementById('windows-metrics-panel').style.display = 'block';
 }
 
-function startWindowsMetricsStream() {
-    if (windowsMetricsSource) return;
-    windowsMetricsSource = new EventSource(`${window.location.origin}/api/windows/metrics/stream`);
-    windowsMetricsSource.onopen = () => console.log('Windows metrics stream connected');
-    windowsMetricsSource.onerror = (err) => console.error('Windows metrics stream error', err);
-    windowsMetricsSource.onmessage = (event) => {
-        const { metrics: metricsMap = {}, statuses = {}, notifications = [] } = JSON.parse(event.data);
-        applyStatuses(statuses);
-        notifications.forEach(n => {
-            if (n && n.message) {
-                addNotification(
-                    { level: n.type || 'info', message: n.message, timestamp: n.timestamp },
-                    n.serviceName,
-                    n.serviceName,
-                    true
-                );
-            }
+async function pollWindowsMetrics() {
+    if (!windowsServices.length) return;
+    const identifiers = windowsServices.map(s => s.Name);
+    try {
+        const resp = await fetch('/api/windows/metrics', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ services: identifiers })
         });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const metricsMap = data.metrics || {};
         Object.entries(metricsMap).forEach(([name, m]) => {
             serviceMetrics[name] = {
                 cpuUsage: m.cpuUsagePercent,
@@ -1741,67 +1766,13 @@ function startWindowsMetricsStream() {
                 connections: m.connections
             };
         });
-        if (activeServiceType === 'windows' && activeServiceId && metricsMap[activeServiceId]) {
-            const m = metricsMap[activeServiceId];
-            updateResourceChart(m.cpuUsagePercent, m.memoryUsagePercent, Date.now());
+        if (activeServiceId) {
             renderServiceMetrics(activeServiceId);
         }
-    };
-}
-
-function stopWindowsMetricsStream() {
-    if (windowsMetricsSource) {
-        windowsMetricsSource.close();
-        windowsMetricsSource = null;
+    } catch (err) {
+        console.error('Error fetching Windows metrics:', err);
     }
 }
-
-function startTomcatMetricsStream() {
-    if (tomcatMetricsSource) return;
-    tomcatMetricsSource = new EventSource(`${window.location.origin}/api/tomcat/metrics/stream`);
-    tomcatMetricsSource.onopen = () => console.log('Tomcat metrics stream connected');
-    tomcatMetricsSource.onerror = (err) => console.error('Tomcat metrics stream error', err);
-    tomcatMetricsSource.onmessage = (event) => {
-        const { metrics, statuses = {} } = JSON.parse(event.data);
-        applyStatuses(statuses);
-        if (metrics) {
-            updateTomcatMetricsUI(metrics);
-            const nowLabel = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-            updateLiveChart(threadUsageChart, nowLabel, [
-                metrics.threads?.max ?? null,
-                metrics.threads?.busy ?? null
-            ]);
-            updateLiveChart(memoryUsageChart, nowLabel, [
-                metrics.memory?.heap?.maxMB ?? null,
-                metrics.memory?.heap?.usedMB ?? null
-            ]);
-            updateLiveChart(requestsErrorsChart, nowLabel, [
-                metrics.requests?.count ?? null,
-                metrics.requests?.errors ?? null
-            ]);
-            updateLiveChart(memoryPoolChart, nowLabel, [
-                metrics.memory?.nonHeap?.maxMB ?? null,
-                metrics.memory?.nonHeap?.usedMB ?? null
-            ]);
-            document.querySelectorAll('.tomcat-updated-time').forEach(el => {
-                el.textContent = nowLabel;
-            });
-        }
-    };
-}
-
-function stopTomcatMetricsStream() {
-    if (tomcatMetricsSource) {
-        tomcatMetricsSource.close();
-        tomcatMetricsSource = null;
-    }
-}
-
-// Ensure streams are closed when navigating away
-window.addEventListener('beforeunload', () => {
-    stopWindowsMetricsStream();
-    stopTomcatMetricsStream();
-});
 
 
 
@@ -1821,8 +1792,42 @@ function pushToBuffer(buffer, lines, maxSize = 200) {
 }
 
 
-async function pollTomcatLogs() {
+async function pollTomcatMetrics() {
+    //const nowLabel = new Date().toLocaleTimeString().slice(0, 8);
+    const nowLabel = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
 
+    try {
+        const resp = await fetch('/api/service-control/tomcat/metrics');
+        if (!resp.ok) return;
+        const metrics = await resp.json();
+        updateTomcatMetricsUI(metrics);
+
+        updateLiveChart(threadUsageChart, nowLabel, [
+            metrics.threads?.max ?? null,
+            metrics.threads?.busy ?? null
+        ]);
+
+        updateLiveChart(memoryUsageChart, nowLabel, [
+            metrics.memory?.heap?.maxMB ?? null,
+            metrics.memory?.heap?.usedMB ?? null
+        ]);
+
+        updateLiveChart(requestsErrorsChart, nowLabel, [
+            metrics.requests?.count ?? null,
+            metrics.requests?.errors ?? null
+        ]);
+
+        updateLiveChart(memoryPoolChart, nowLabel, [
+            metrics.memory?.nonHeap?.maxMB ?? null,
+            metrics.memory?.nonHeap?.usedMB ?? null
+        ]);
+    } catch (err) {
+        console.error('Error fetching Tomcat metrics:', err);
+    }
+
+    document.querySelectorAll('.tomcat-updated-time').forEach(el => {
+        el.textContent = nowLabel;
+    });
 
     // Add logic to fetch logs
     try {
@@ -1988,7 +1993,8 @@ function updateTomcatMetricsUI(metrics) {
 
 // Start polling Tomcat metrics and logs every 5 seconds after DOM is ready
 window.addEventListener('DOMContentLoaded', function() {
-    setInterval(pollTomcatLogs, 5000);
+    setInterval(pollTomcatMetrics, 5000);
+    setInterval(pollWindowsMetrics, 5000);
 });
 
 // Open tutorial page in a new tab when the tutorial button is clicked

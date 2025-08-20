@@ -6,7 +6,6 @@ const { getAllServices } = require('../services/fetchServices');
 const { createUserNotificationFromLog } = require('../services/createUserNotificationFromLog');
 const { getServicesStatus } = require('../services/serviceStatus');
 const { getWindowsMetrics } = require('../services/windowsMetrics');
-const { getTomcatMetrics } = require('../services/tomcatMetrics');
 const serviceControlRouter = require('./serviceControl');
 
 // Track previous service statuses in memory to detect changes
@@ -69,111 +68,6 @@ router.post('/windows/metrics', async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: 'Failed to fetch windows metrics', details: err.message });
     }
-});
-
-router.get('/windows/metrics/stream', async (req, res) => {
-    res.set({
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive'
-    });
-    if (typeof res.flushHeaders === 'function') {
-        res.flushHeaders();
-    }
-
-    const { windowsServices } = await getAllServices();
-    const identifiers = (windowsServices || []).map(s => s.Name);
-
-    const sendMetrics = async () => {
-        try {
-            const [metrics, statuses] = await Promise.all([
-                getWindowsMetrics(identifiers),
-                getServicesStatus(identifiers)
-            ]);
-
-            const notifications = [];
-            for (const [id, status] of Object.entries(statuses)) {
-                const prev = previousStatuses[id];
-                if (prev && prev !== status) {
-                    const isRunning = typeof status === 'string' && status.toLowerCase() === 'running';
-                    const notif = {
-                        serviceName: id,
-                        timestamp: new Date().toISOString(),
-                        type: isRunning ? 'info' : 'error',
-                        message: `Service ${id} is now ${status}`
-                    };
-                    notifications.push(notif);
-                    await createUserNotificationFromLog(notif);
-                }
-                previousStatuses[id] = status;
-            }
-
-            res.write(`data: ${JSON.stringify({ metrics, statuses, notifications })}\n\n`);
-        } catch (err) {
-            res.write(`data: ${JSON.stringify({ metrics: {}, statuses: {}, notifications: [], error: err.message })}\n\n`);
-        }
-    };
-
-    const interval = setInterval(sendMetrics, 5000);
-    req.on('close', () => {
-        clearInterval(interval);
-        res.end();
-    });
-
-    sendMetrics();
-});
-
-router.get('/tomcat/metrics/stream', async (req, res) => {
-    res.set({
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive'
-    });
-    if (typeof res.flushHeaders === 'function') {
-        res.flushHeaders();
-    }
-
-    const { tomcatService } = await getAllServices();
-    const identifiers = tomcatService ? [tomcatService.Name] : [];
-
-    const sendMetrics = async () => {
-        try {
-            const metrics = await getTomcatMetrics();
-            let statuses = {};
-            if (identifiers.length > 0) {
-                statuses = await getServicesStatus(identifiers);
-            }
-
-            const notifications = [];
-            for (const [id, status] of Object.entries(statuses)) {
-                const prev = previousStatuses[id];
-                if (prev && prev !== status) {
-                    const isRunning = typeof status === 'string' && status.toLowerCase() === 'running';
-                    const notif = {
-                        serviceName: id,
-                        timestamp: new Date().toISOString(),
-                        type: isRunning ? 'info' : 'error',
-                        message: `Service ${id} is now ${status}`
-                    };
-                    notifications.push(notif);
-                    await createUserNotificationFromLog(notif);
-                }
-                previousStatuses[id] = status;
-            }
-
-            res.write(`data: ${JSON.stringify({ metrics, statuses, notifications })}\n\n`);
-        } catch (err) {
-            res.write(`data: ${JSON.stringify({ metrics: null, statuses: {}, notifications: [], error: err.message })}\n\n`);
-        }
-    };
-
-    const interval = setInterval(sendMetrics, 5000);
-    req.on('close', () => {
-        clearInterval(interval);
-        res.end();
-    });
-
-    sendMetrics();
 });
 
 
