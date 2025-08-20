@@ -277,9 +277,13 @@ async function initializeApp() {
         
         // Initialize notification settings
         await initializeNotificationSettings();
-        
+
         // Load services
         await loadServices();
+        // Start metrics streams once
+        startWindowsMetricsStream();
+        startTomcatMetricsStream();
+
         setInterval(updateServiceStatuses, 5000);
         
         // Initialize settings sections
@@ -801,14 +805,10 @@ function selectService(element, index, service) {
         // Show Tomcat panel for Tomcat services
         showTomcatPanel();
         activeServiceType = 'tomcat';
-        stopWindowsMetricsStream();
-        startTomcatMetricsStream();
     } else {
         // Show Windows panel for Windows services
         showWindowsPanel();
         activeServiceType = 'windows';
-        stopTomcatMetricsStream();
-        startWindowsMetricsStream();
     }
 
     // Render metrics for selected service
@@ -1818,6 +1818,12 @@ function stopTomcatMetricsStream() {
         tomcatMetricsSource = null;
     }
 }
+
+// Ensure streams are closed when navigating away
+window.addEventListener('beforeunload', () => {
+    stopWindowsMetricsStream();
+    stopTomcatMetricsStream();
+});
 
 
 
