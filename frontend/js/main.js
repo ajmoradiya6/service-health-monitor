@@ -899,7 +899,7 @@ function renderServiceMetrics(serviceId) {
     const connectionsElement = document.getElementById('connections-value');
 
     if (cpuElement) cpuElement.textContent = parseMetricValue(metrics.cpuUsage, true).toFixed(2) + '%';
-    if (memoryElement) memoryElement.textContent = parseMetricValue(metrics.memoryUsage).toFixed(2) + ' MB';
+    if (memoryElement) memoryElement.textContent = parseMetricValue(metrics.memoryUsage).toFixed(2) + '%';
     if (connectionsElement) connectionsElement.textContent = parseMetricValue(metrics.connections).toFixed(1);
 
 }
@@ -1760,8 +1760,8 @@ async function pollWindowsMetrics() {
         const metricsMap = data.metrics || {};
         Object.entries(metricsMap).forEach(([name, m]) => {
             serviceMetrics[name] = {
-                cpuUsage: m.cpuUsage,
-                memoryUsage: m.memoryUsage,
+                cpuUsage: m.cpuUsagePercent,
+                memoryUsage: m.memoryUsagePercent,
                 connections: m.connections
             };
         });

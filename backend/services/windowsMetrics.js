@@ -103,7 +103,7 @@ async function getWindowsMetrics(identifiers = []) {
   }
 
   const output = await runPowerShellFile(identifiers);
-  console.log("RAW PowerShell output:", output);
+  //console.log("RAW PowerShell output:", output);
 
   let parsed = [];
   try {

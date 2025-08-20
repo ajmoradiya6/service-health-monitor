@@ -13,14 +13,6 @@ const fs = require('fs').promises;
 
 let TOMCAT_PROCESS_NAME = 'Tomcat*'; // default fallback
 
-
-
-
-
-
-
-
-
 router.get('/tomcat/metrics', async (req, res) => {
   try {
 

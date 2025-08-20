@@ -197,7 +197,7 @@ function updateNotificationPanel() {
             <div class="notification-item ${notification.read ? 'read' : 'unread'}" 
                  onclick="event.stopPropagation(); markNotificationAsRead(${notification.id})">
                 <div class="notification-icon ${notification.type}">
-                    <i data-lucide="${notification.type === 'error' ? 'alert-circle' : notification.type === 'warning' ? 'alert-triangle' : 'thumbs-up'}"></i>
+                    <i data-lucide="${notification.type === 'error' ? 'alert-circle' : notification.type === 'warning' ? 'alert-triangle' : 'circle-check'}"></i>
                 </div>
                 <div class="notification-content">
                     <div class="notification-header" style="display: flex; justify-content: space-between; align-items: center;">
@@ -226,7 +226,7 @@ function showNotificationToast(notification) {
     item.className = `notification-item unread`;
     item.innerHTML = `
         <div class="notification-icon ${notification.type}">
-            <i data-lucide="${notification.type === 'error' ? 'alert-circle' : notification.type === 'warning' ? 'alert-triangle' : 'thumbs-up'}"></i>
+            <i data-lucide="${notification.type === 'error' ? 'alert-circle' : notification.type === 'warning' ? 'alert-triangle' : 'circle-check'}"></i>
         </div>
         <div class="notification-content">
             <div class="notification-header" style="display: flex; justify-content: space-between; align-items: center;">
