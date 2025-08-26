@@ -29,6 +29,15 @@ async function getAllServices() {
             throw error;
         }
     }*/
+
+    const excludeKeywords = ["SMTP", "Health Monitor", "Batch Scanning", "Nginix"]
+        .map(k => k.toLowerCase());
+
+    const shouldExclude = (svc) => {
+        const label = ((svc?.DisplayName ?? svc?.Name) ?? '').toLowerCase();
+        return excludeKeywords.some(k => label.includes(k));
+    };
+
         try {
           // Fetch Contentverse services
           const contentverseCmd = `Get-Service | Where-Object { $_.Name -like 'Contentverse*' } | Select-Object Name, DisplayName | ConvertTo-Json -Compress`;
@@ -37,8 +46,11 @@ async function getAllServices() {
           try { windowsServices = JSON.parse(contentverseJson); } catch { windowsServices = []; }
           if (!Array.isArray(windowsServices)) windowsServices = [windowsServices].filter(Boolean);
 
+
+          windowsServices = windowsServices.filter(svc => !shouldExclude(svc));
+
           // Split Windows services into web and core groups
-          const coreKeywords = ['AIP','Indexer','Notification','Retention','Sentinel','Storage','Text Extraction','Workflow','ContentverseService'];
+          const coreKeywords = ['AIP','Indexer','Notification','Retention','Sentinel','Storage','Text','Workflow','ContentverseService'];
           const coreServices = [];
           const webServices = [];
           windowsServices.forEach(svc => {
