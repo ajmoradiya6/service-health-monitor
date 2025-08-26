@@ -30,7 +30,7 @@ async function getAllServices() {
         }
     }*/
 
-    const excludeKeywords = ["SMTP", "Health Monitor", "Batch Scanning", "Nginix"]
+    const excludeKeywords = ["SMTP", "Health Monitor", "Batch Scanning", "contentversenginx"]
         .map(k => k.toLowerCase());
 
     const shouldExclude = (svc) => {
@@ -40,7 +40,7 @@ async function getAllServices() {
 
         try {
           // Fetch Contentverse services
-          const contentverseCmd = `Get-Service | Where-Object { $_.Name -like 'Contentverse*' } | Select-Object Name, DisplayName | ConvertTo-Json -Compress`;
+          const contentverseCmd = `Get-Service | Where-Object { $_.DisplayName  -like 'Contentverse*' } | Select-Object Name, DisplayName | ConvertTo-Json -Compress`;
           const contentverseJson = await runPowerShellCommand(contentverseCmd);
           let windowsServices = [];
           try { windowsServices = JSON.parse(contentverseJson); } catch { windowsServices = []; }
