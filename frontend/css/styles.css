@@ -1399,6 +1399,40 @@ body {
     background-color: rgba(0, 0, 0, 0.05);
 }
 
+/* Logout button color override - Dark mode */
+.header-actions .action-button.logout-action {
+    background-color: rgba(230, 57, 70, 0.2) !important;
+}
+
+.header-actions .action-button.logout-action:hover {
+    background-color: rgba(230, 57, 70, 0.3) !important;
+}
+
+.header-actions .action-button.logout-action:active {
+    background-color: rgba(230, 57, 70, 0.4) !important;
+}
+
+.header-actions .action-button.logout-action .theme-icon {
+    color: #E63946 !important;
+}
+
+/* Logout button color override - Light mode */
+[data-theme="light"] .header-actions .action-button.logout-action {
+    background-color: rgba(230, 57, 70, 0.1) !important;
+}
+
+[data-theme="light"] .header-actions .action-button.logout-action:hover {
+    background-color: rgba(230, 57, 70, 0.2) !important;
+}
+
+[data-theme="light"] .header-actions .action-button.logout-action:active {
+    background-color: rgba(230, 57, 70, 0.3) !important;
+}
+
+[data-theme="light"] .header-actions .action-button.logout-action .theme-icon {
+    color: #E63946 !important;
+}
+
 [data-theme="light"] .action-button:hover {
     background-color: rgba(0, 0, 0, 0.1);
 }

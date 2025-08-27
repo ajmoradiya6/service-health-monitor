@@ -1,10 +1,34 @@
 // Authentication utility functions
-function logout() {
+async function logout() {
+    const sessionId = localStorage.getItem('sessionId');
+    
+    if (sessionId) {
+        try {
+            // Call backend logout endpoint to logout from Tomcat
+            const response = await fetch(`/api/auth/logout?sessionId=${encodeURIComponent(sessionId)}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                },
+            });
+            
+            if (response.ok) {
+                console.log('Logged out successfully from server');
+            } else {
+                console.error('Server logout failed:', response.status);
+            }
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    }
+    
+    // Clear local session data regardless of server response
     localStorage.removeItem('sessionId');
     localStorage.removeItem('userInfo');
+    
+    // Redirect to login page
     window.location.href = '/login';
 }
-
 async function isAuthenticated() {
     const sessionId = localStorage.getItem('sessionId');
     const userInfo = localStorage.getItem('userInfo');

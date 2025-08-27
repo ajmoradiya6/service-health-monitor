@@ -127,6 +127,37 @@ router.post('/auth/isAdmin', async (req, res) => {
     }
 });
 
+// Logout endpoint
+router.get('/auth/logout', async (req, res) => {
+    try {
+        const { sessionId } = req.query;
+        
+        if (!sessionId) {
+            return res.status(400).json({ error: 'sessionId is required' });
+        }
+        
+        console.log('Logging out session:', sessionId);
+        
+        // Call Tomcat logout endpoint
+        const response = await fetch(`http://localhost:8080/CVWeb/cvapp/logout?sessionid=${encodeURIComponent(sessionId)}`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        });
+        
+        if (response.ok) {
+            console.log('Session logged out successfully from Tomcat');
+            res.json({ success: true, message: 'Logged out successfully' });
+        } else {
+            console.error('Tomcat logout failed:', response.status);
+            res.status(500).json({ error: 'Failed to logout from server' });
+        }
+        
+    } catch (error) {
+        console.error('Logout error:', error);
+        res.status(500).json({ error: 'Failed to logout' });
+    }
+});
+
 router.use('/service-control', serviceControlRouter);
 router.get('/services', async (req, res) => {
     const data = await getAllServices();

@@ -1,4 +1,32 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check if there's an existing session and logout from server if needed
+    const sessionId = localStorage.getItem('sessionId');
+    if (sessionId) {
+        try {
+            console.log('Found existing session, logging out from server...');
+            // Call logout API to terminate server session
+            const response = await fetch(`/api/auth/logout?sessionId=${encodeURIComponent(sessionId)}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                },
+            });
+            
+            if (response.ok) {
+                console.log('Successfully logged out from server');
+            } else {
+                console.error('Failed to logout from server:', response.status);
+            }
+        } catch (error) {
+            console.error('Error during server logout:', error);
+        }
+    }
+    
+    // Clear session data from browser
+    localStorage.removeItem('sessionId');
+    localStorage.removeItem('userInfo');
+    console.log('Cleared session data from browser for fresh login');
+    
     const form = document.getElementById('login-form');
     const roomSelect = document.getElementById('login-room');
     const dropdownTrigger = document.getElementById('room-dropdown-trigger');
@@ -115,44 +143,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Check if user is already authenticated
-    async function checkAuthStatus() {
-        const sessionId = localStorage.getItem('sessionId');
-        const userInfo = localStorage.getItem('userInfo');
-        
-        if (sessionId && userInfo) {
-            try {
-                // Check if session is still valid by calling the isAdmin endpoint
-                const adminUrl = `http://localhost:8080/CVWeb/isAdmin?sessionId=${sessionId}`;
-                const response = await fetch(adminUrl);
-                const result = await response.text();
-                
-                if (result === 1) {
-                    // Session is still valid, user is authenticated
-                    console.log('User already authenticated, redirecting to home');
-                    window.location.href = '/home';
-                    return;
-                } else {
-                    // Session is invalid, clear stored data
-                    localStorage.removeItem('sessionId');
-                    localStorage.removeItem('userInfo');
-                }
-            } catch (error) {
-                console.error('Auth check error:', error);
-                // Clear stored data on error
-                localStorage.removeItem('sessionId');
-                localStorage.removeItem('userInfo');
-            }
-        }
-    }
+    // Note: Session cleanup is now handled at the beginning of DOMContentLoaded
+    // This ensures fresh login every time the login page is accessed
 
     if (form) {
         if (window.lucide) {
             lucide.createIcons({ parentElement: form });
         }
         
-        // Check authentication status first
-        //checkAuthStatus();
+        // Session cleanup is handled at the beginning of DOMContentLoaded
         
         // Initialize custom dropdown
         initCustomDropdown();
