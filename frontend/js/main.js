@@ -1,10 +1,53 @@
+// Authentication check - must be first
+async function checkAuthentication() {
+    const sessionId = localStorage.getItem('sessionId');
+    const userInfo = localStorage.getItem('userInfo');
+    
+    if (!sessionId || !userInfo) {
+        console.log('No authentication found, redirecting to login');
+        window.location.href = '/login';
+        return false;
+    }
+    
+    try {
+        const response = await fetch('/api/auth/isAdmin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId })
+        });
+        
+        const result = await response.text();
+        if (result !== '1') {
+            console.log('Invalid session, redirecting to login');
+            localStorage.removeItem('sessionId');
+            localStorage.removeItem('userInfo');
+            window.location.href = '/login';
+            return false;
+        }
+        
+        console.log('Authentication valid, proceeding to home page');
+        return true;
+    } catch (error) {
+        console.error('Authentication check failed:', error);
+        localStorage.removeItem('sessionId');
+        localStorage.removeItem('userInfo');
+        window.location.href = '/login';
+        return false;
+    }
+}
+
 // Chart.js setup for Tomcat Thread & Connection tab
 let threadUsageChart = null;
 let memoryUsageChart = null;
 let requestsErrorsChart = null;
 let memoryPoolChart = null;
 
-window.addEventListener('DOMContentLoaded', function () {
+window.addEventListener('DOMContentLoaded', async function () {
+    // Check authentication first
+    const isAuthenticated = await checkAuthentication();
+    if (!isAuthenticated) {
+        return; // Stop execution if not authenticated
+    }
     if (window.Chart) {
         // THREAD USAGE CHART
         const threadUsage = document.getElementById('thread-usage-chart');

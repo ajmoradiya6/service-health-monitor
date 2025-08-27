@@ -115,10 +115,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Check if user is already authenticated
+    async function checkAuthStatus() {
+        const sessionId = localStorage.getItem('sessionId');
+        const userInfo = localStorage.getItem('userInfo');
+        
+        if (sessionId && userInfo) {
+            try {
+                // Check if session is still valid by calling the isAdmin endpoint
+                const adminUrl = `http://localhost:8080/CVWeb/isAdmin?sessionId=${sessionId}`;
+                const response = await fetch(adminUrl);
+                const result = await response.text();
+                
+                if (result === 1) {
+                    // Session is still valid, user is authenticated
+                    console.log('User already authenticated, redirecting to home');
+                    window.location.href = '/home';
+                    return;
+                } else {
+                    // Session is invalid, clear stored data
+                    localStorage.removeItem('sessionId');
+                    localStorage.removeItem('userInfo');
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                // Clear stored data on error
+                localStorage.removeItem('sessionId');
+                localStorage.removeItem('userInfo');
+            }
+        }
+    }
+
     if (form) {
         if (window.lucide) {
             lucide.createIcons({ parentElement: form });
         }
+        
+        // Check authentication status first
+        //checkAuthStatus();
         
         // Initialize custom dropdown
         initCustomDropdown();
@@ -126,9 +160,70 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fetch rooms when page loads
         fetchRooms();
         
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            window.location.href = '/home';
+            
+            // Get form data
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const room = roomSelect.value;
+            
+            // Basic validation
+            if (!username || !password || !room) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            if (room === 'Select Room' || room === '') {
+                alert('Please select a room');
+                return;
+            }
+            
+            // Show loading state
+            const submitButton = document.getElementById('login-btn');
+            const originalText = submitButton.textContent;
+            submitButton.textContent = 'Authenticating...';
+            submitButton.disabled = true;
+            
+            try {
+                // Extract server name and room name from the selected room
+                const roomParts = room.split('.');
+                if (roomParts.length !== 2) {
+                    alert('Invalid room format. Expected format: ServerName.RoomName');
+                    return;
+                }
+                
+                const serverName = roomParts[0];
+                const roomName = roomParts[1];
+                const localAddress = "10.4.8.188";
+                
+                // Authenticate user through backend
+                const loginResponse = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username, password, serverName, roomName, localAddress
+                    })
+                });
+                
+                const authData = await loginResponse.json();
+                
+                if (authData.success) {
+                    // Store session data and redirect
+                    localStorage.setItem('sessionId', authData.sessionId);
+                    localStorage.setItem('userInfo', JSON.stringify(authData.user));
+                    window.location.href = '/home';
+                } else {
+                    alert(authData.error || 'Authentication failed.');
+                }
+            } catch (error) {
+                console.error('Authentication error:', error);
+                alert('Authentication failed. Please try again.');
+            } finally {
+                // Reset button state
+                submitButton.textContent = originalText;
+                submitButton.disabled = false;
+            }
         });
     }
 });

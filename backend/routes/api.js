@@ -8,8 +8,126 @@ const { getServicesStatus } = require('../services/serviceStatus');
 const { getWindowsMetrics } = require('../services/windowsMetrics');
 const serviceControlRouter = require('./serviceControl');
 
+// Note: Authentication is handled by external Tomcat server
+// This backend only handles service monitoring functionality
+
 // Track previous service statuses in memory to detect changes
 const previousStatuses = {};
+
+// Authentication endpoint
+router.post('/auth/login', async (req, res) => {
+    try {
+        const { username, password, serverName, roomName, localAddress } = req.body;
+        
+        // Validate required parameters
+        if (!username || !password || !serverName || !roomName || !localAddress) {
+            return res.status(400).json({ 
+                error: 'Missing required parameters: username, password, serverName, roomName, localAddress' 
+            });
+        }
+        
+        // Login request to Tomcat server
+        const loginResponse = await fetch('http://localhost:8080/CVWeb/cvapp/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json'
+            },
+            body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&servername=${encodeURIComponent(serverName)}&roomname=${encodeURIComponent(roomName)}&localAddresss=${encodeURIComponent(localAddress)}`
+        });
+        
+        const loginResult = await loginResponse.json();
+        
+        // Check if login was successful
+        if (loginResult.includes('~cvweb')) {
+            const sessionId = loginResult.split('~')[0];
+            
+            // Check if user is admin
+            const adminResponse = await fetch(`http://localhost:8080/CVWeb/isAdmin?sessionId=${encodeURIComponent(sessionId)}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                },
+            });
+            
+            const adminResult = await adminResponse.json();
+            
+            if (adminResult === 1) {
+                // Authentication successful
+                res.json({
+                    success: true,
+                    message: 'Authentication successful',
+                    sessionId: sessionId,
+                    user: {
+                        username: username,
+                        serverName: serverName,
+                        roomName: roomName,
+                        isAdmin: true
+                    }
+                });
+            } else {
+                res.status(401).json({ 
+                    error: 'Access denied. Admin privileges required.',
+                    code: 'ADMIN_REQUIRED'
+                });
+            }
+        } else {
+            // Handle login errors
+            const errorCode = loginResult.trim();
+            let errorMessage = 'Authentication failed.';
+            
+            switch (errorCode) {
+                case '-800': errorMessage = 'Login count exceeded.'; break;
+                case '-19': errorMessage = 'No More License Seats.'; break;
+                case '-100': errorMessage = 'Failed to Authenticate user.'; break;
+                case '-799': errorMessage = 'Access denied.'; break;
+                case '-45': errorMessage = 'User Does Not Exist In DB.'; break;
+                case '-110': errorMessage = 'Invalid Password.'; break;
+                case '-13': errorMessage = 'Server Not Found.'; break;
+                case '-33': errorMessage = 'Not Allowed Connections.'; break;
+                case '-1000': errorMessage = 'Already session is active.'; break;
+                case '-36': errorMessage = 'Server In-active.'; break;
+                default: errorMessage = `Authentication failed. Error code: ${errorCode}`;
+            }
+            
+            res.status(401).json({ 
+                error: errorMessage,
+                code: errorCode
+            });
+        }
+        
+    } catch (error) {
+        console.error('Authentication error:', error);
+        res.status(500).json({ 
+            error: 'Failed to connect to authentication server',
+            details: error.message 
+        });
+    }
+});
+/*
+// Session validation endpoint
+router.post('/auth/isAdmin', async (req, res) => {
+    try {
+        const { sessionId } = req.body;
+        
+        if (!sessionId) {
+            return res.status(400).json({ error: 'sessionId is required' });
+        }
+        
+        const response = await fetch(`http://localhost:8080/CVWeb/isAdmin?sessionId=${encodeURIComponent(sessionId)}`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        });
+        
+        const result = await response.json();
+        res.send(result.toString());
+        
+    } catch (error) {
+        console.error('Session validation error:', error);
+        res.status(500).json({ error: 'Failed to validate session' });
+    }
+});
+*/
 
 router.use('/service-control', serviceControlRouter);
 router.get('/services', async (req, res) => {
