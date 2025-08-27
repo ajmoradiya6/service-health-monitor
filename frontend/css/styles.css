@@ -1327,7 +1327,32 @@ body {
     font-weight: 600;
     letter-spacing: -0.02em;
     position: relative;
-    display: inline-block;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fetching-indicator {
+    display: none;
+    align-items: center;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.fetching-indicator .spinner {
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--text-secondary);
+    border-top-color: transparent;
+    border-radius: 50%;
+    margin-right: 4px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .header-actions {

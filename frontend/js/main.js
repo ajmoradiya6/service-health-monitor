@@ -319,6 +319,7 @@ async function updateServiceStatuses() {
         });
 
         updateStatusCard();
+        updateFetchingIndicator();
 
         const notifications = data.notifications || [];
         notifications.forEach(n => {
@@ -372,6 +373,8 @@ const serviceLogs = {};
 const serviceMetrics = {};
 const serviceStatuses = {};
 let windowsServices = [];
+let activeServiceType = 'windows';
+let tomcatMetricsAvailable = false;
 const MAX_LOGS = 200; // limit stored logs per service
 
 // Get modal elements and forms
@@ -849,6 +852,7 @@ function selectService(element, index, service) {
     renderServiceMetrics(serviceData.id);
 
     updateStatusCard();
+    updateFetchingIndicator();
 
 
 
@@ -934,7 +938,10 @@ function populateLogs(serviceId) {
 
 function renderServiceMetrics(serviceId) {
     const metrics = serviceMetrics[serviceId];
-    if (!metrics) return;
+    if (!metrics) {
+        updateFetchingIndicator();
+        return;
+    }
 
     const cpuElement = document.getElementById('cpu-value');
     const memoryElement = document.getElementById('memory-value');
@@ -946,6 +953,7 @@ function renderServiceMetrics(serviceId) {
 
     // Update the trend chart with stored history for this service
     updateResourceChartForService(serviceId);
+    updateFetchingIndicator();
 }
 
 function updateStatusCard() {
@@ -974,6 +982,20 @@ function updateStatusCard() {
             dot.style.setProperty('--dot-color', isRunning ? 'var(--green-primary)' : 'var(--red-primary)');
         }
     }
+}
+
+function updateFetchingIndicator() {
+    const indicator = document.getElementById('fetching-indicator');
+    if (!indicator || !activeServiceId) return;
+    const status = serviceStatuses[activeServiceId];
+    const isRunning = typeof status === 'string' && status.toLowerCase() === 'running';
+    let hasMetrics = false;
+    if (activeServiceType === 'tomcat') {
+        hasMetrics = tomcatMetricsAvailable;
+    } else {
+        hasMetrics = !!serviceMetrics[activeServiceId];
+    }
+    indicator.style.display = isRunning && !hasMetrics ? 'flex' : 'none';
 }
 
 // Function to toggle filter dropdown
@@ -1879,6 +1901,8 @@ async function pollTomcatMetrics() {
         if (!resp.ok) return;
         const metrics = await resp.json();
         updateTomcatMetricsUI(metrics);
+        tomcatMetricsAvailable = true;
+        if (activeServiceType === 'tomcat') updateFetchingIndicator();
 
         updateLiveChart(threadUsageChart, nowLabel, [
             metrics.threads?.max ?? null,
@@ -1901,6 +1925,8 @@ async function pollTomcatMetrics() {
         ]);
     } catch (err) {
         console.error('Error fetching Tomcat metrics:', err);
+        tomcatMetricsAvailable = false;
+        if (activeServiceType === 'tomcat') updateFetchingIndicator();
     }
 
     document.querySelectorAll('.tomcat-updated-time').forEach(el => {
