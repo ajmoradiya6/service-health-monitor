@@ -3,6 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const appContainer = document.getElementById('app-container');
 
     if (form) {
+        if (window.lucide) {
+            lucide.createIcons({ parentElement: form });
+        }
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const loginScreen = document.getElementById('login-screen');
