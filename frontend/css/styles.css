@@ -4493,6 +4493,211 @@ body {
     outline: none;
 }
 
+/* Select dropdown specific styles */
+.login-input[type="select"],
+.login-input select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+/* Force dark theme for dropdown options */
+.login-input select {
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+.login-input select option {
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    padding: 12px 16px;
+    border: none;
+    font-size: 16px;
+    transition: background-color 0.2s ease;
+    border-radius: 4px;
+}
+
+.login-input select option:hover {
+    background-color: var(--border-color-hover) !important;
+}
+
+.login-input select option:checked,
+.login-input select option:selected {
+    background-color: var(--blue-accent) !important;
+    color: #ffffff !important;
+}
+
+/* Custom dropdown styling for better consistency */
+.login-input select:focus {
+    border-color: var(--blue-accent);
+    outline: none;
+    box-shadow: 0 0 0 2px var(--blue-glow);
+}
+
+/* Light theme support for dropdown */
+[data-theme="light"] .login-input select {
+    background-color: #f9fafb !important;
+    color: #1e293b !important;
+    border-color: #e5e7eb;
+}
+
+[data-theme="light"] .login-input select option {
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+}
+
+[data-theme="light"] .login-input select option:hover {
+    background-color: #f3f4f6 !important;
+}
+
+[data-theme="light"] .login-input select option:checked,
+[data-theme="light"] .login-input select option:selected {
+    background-color: var(--blue-accent) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="light"] .login-input select:focus {
+    border-color: var(--blue-accent);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+[data-theme="light"] .login-input select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+}
+
+/* Custom Dropdown Styles */
+.custom-dropdown {
+    position: relative;
+    width: 100%;
+}
+
+.custom-dropdown-trigger {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.custom-dropdown-trigger:hover {
+    border-color: var(--border-color-hover);
+}
+
+.custom-dropdown-trigger.active {
+    border-color: var(--blue-accent);
+    box-shadow: 0 0 0 2px var(--blue-glow);
+}
+
+.custom-dropdown-selected {
+    color: var(--text-primary);
+}
+
+.custom-dropdown-arrow {
+    width: 16px;
+    height: 16px;
+    color: var(--text-secondary);
+    transition: transform 0.2s ease;
+}
+
+.custom-dropdown-trigger.active .custom-dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.custom-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+    margin-top: 4px;
+}
+
+.custom-dropdown-menu.show {
+    display: block;
+}
+
+.custom-dropdown-option {
+    padding: 12px 16px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-radius: 4px;
+    margin: 2px;
+}
+
+.custom-dropdown-option:hover {
+    background: var(--border-color-hover);
+}
+
+.custom-dropdown-option.selected {
+    background: var(--blue-accent);
+    color: #ffffff;
+}
+
+/* Light theme for custom dropdown */
+[data-theme="light"] .custom-dropdown-trigger {
+    background-color: #f9fafb;
+    color: #1e293b;
+    border-color: #e5e7eb;
+}
+
+[data-theme="light"] .custom-dropdown-trigger:hover {
+    border-color: #d1d5db;
+}
+
+[data-theme="light"] .custom-dropdown-trigger.active {
+    border-color: var(--blue-accent);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+[data-theme="light"] .custom-dropdown-selected {
+    color: #1e293b;
+}
+
+[data-theme="light"] .custom-dropdown-menu {
+    background: #ffffff;
+    border-color: #e5e7eb;
+}
+
+[data-theme="light"] .custom-dropdown-option {
+    color: #1e293b;
+}
+
+[data-theme="light"] .custom-dropdown-option:hover {
+    background: #f3f4f6;
+}
+
+[data-theme="light"] .custom-dropdown-option.selected {
+    background: var(--blue-accent);
+    color: #ffffff;
+}
+
+.login-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .login-button {
     width: 100%;
     padding: 12px;

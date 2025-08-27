@@ -29,7 +29,18 @@
             </div>
             <div class="login-input-wrapper">
                 <i data-lucide="door-open" class="login-icon"></i>
-                <input type="text" id="login-room" class="login-input" placeholder="Room">
+                <div class="custom-dropdown">
+                    <div class="custom-dropdown-trigger" id="room-dropdown-trigger">
+                        <span class="custom-dropdown-selected">Select Room</span>
+                        <i class="custom-dropdown-arrow" data-lucide="chevron-down"></i>
+                    </div>
+                    <div class="custom-dropdown-menu" id="room-dropdown-menu">
+                        <div class="custom-dropdown-option" data-value="">Select Room</div>
+                    </div>
+                    <select id="login-room" class="login-input" style="display: none;">
+                        <option value="">Select Room</option>
+                    </select>
+                </div>
             </div>
             <button type="submit" id="login-btn" class="login-button">Login</button>
         </form>
