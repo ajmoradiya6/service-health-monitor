@@ -31,7 +31,16 @@
 
 <body data-theme="dark">
     <div class="bg-gradient"></div>
-    <div class="container">
+    <div id="login-screen" class="login-screen">
+        <form id="login-form" class="login-card">
+            <h1 class="login-title">Service Health Monitor</h1>
+            <input type="text" id="login-username" class="login-input" placeholder="Username">
+            <input type="password" id="login-password" class="login-input" placeholder="Password">
+            <input type="text" id="login-room" class="login-input" placeholder="Room">
+            <button type="submit" id="login-btn" class="login-button">Login</button>
+        </form>
+    </div>
+    <div class="container" id="app-container">
         <!-- Mobile Menu Button -->
         <button class="mobile-menu-btn" onclick="toggleSidebar()">
             <i data-lucide="menu"></i>
@@ -834,6 +843,7 @@
 
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="js/notifications.js"></script>
+        <script src="js/login.js"></script>
         <script src="js/main.js"></script>
         <script src="http://localhost:35729/livereload.js"></script>
 
