@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Health Monitor - Login</title>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css" />
+
+    <link rel="icon" type="image/png" href="assets/heart-rate.png">
+</head>
+<body data-theme="dark">
+    <div class="bg-gradient"></div>
+    <div id="login-screen" class="login-screen">
+        <form id="login-form" class="login-card">
+            <h1 class="login-title">Service Health Monitor</h1>
+            <div class="login-input-wrapper">
+                <i data-lucide="user" class="login-icon"></i>
+                <input type="text" id="login-username" class="login-input" placeholder="Username">
+            </div>
+            <div class="login-input-wrapper">
+                <i data-lucide="lock" class="login-icon"></i>
+                <input type="password" id="login-password" class="login-input" placeholder="Password">
+            </div>
+            <div class="login-input-wrapper">
+                <i data-lucide="door-open" class="login-icon"></i>
+                <input type="text" id="login-room" class="login-input" placeholder="Room">
+            </div>
+            <button type="submit" id="login-btn" class="login-button">Login</button>
+        </form>
+    </div>
+    <script src="js/login.js"></script>
+</body>
+</html>
+
