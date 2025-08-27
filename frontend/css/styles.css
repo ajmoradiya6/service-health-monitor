@@ -1693,7 +1693,7 @@ body {
 
 /* ===== CHART CONTAINER ===== */
 .chart-container {
-    height: calc(-238px + 100vh);
+    height: calc(-259px + 100vh);
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--card-radius);
@@ -4180,7 +4180,7 @@ body {
 /* Tomcat Metrics Panel Container - theme aware */
 #tomcat-metrics-panel-container {
     display: flex;
-    height: calc(100vh - 112px);
+    height: calc(100vh - 134px);
     border-radius: var(--card-radius);
     border: 1px solid var(--border-color);
     background: var(--bg-card);
