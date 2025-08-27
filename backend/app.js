@@ -10,9 +10,6 @@ app.use(express.json());
 //  Inject LiveReload script into HTML
 app.use(connectLivereload());
 
-//  Serve frontend static files (HTML, CSS, JS)
-app.use(express.static(path.join(__dirname, '../frontend')));
-
 //  Login page
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/login.html'));
@@ -27,6 +24,9 @@ app.get('/home', (req, res) => {
 app.get('/', (req, res) => {
   res.redirect('/login');
 });
+
+//  Serve frontend static files (HTML, CSS, JS)
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 //  Mount API routes under /api
 app.use('/api', apiRoutes);
