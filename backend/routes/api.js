@@ -104,7 +104,6 @@ router.post('/auth/login', async (req, res) => {
         });
     }
 });
-/*
 // Session validation endpoint
 router.post('/auth/isAdmin', async (req, res) => {
     try {
@@ -127,7 +126,6 @@ router.post('/auth/isAdmin', async (req, res) => {
         res.status(500).json({ error: 'Failed to validate session' });
     }
 });
-*/
 
 router.use('/service-control', serviceControlRouter);
 router.get('/services', async (req, res) => {

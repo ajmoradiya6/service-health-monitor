@@ -1291,6 +1291,27 @@ body {
     position: relative;
 }
 
+.header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.user-info {
+    display: flex;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.user-name {
+    font-weight: 500;
+}
+
+.user-room {
+    opacity: 0.8;
+}
+
 .header::after {
     content: '';
     position: absolute;

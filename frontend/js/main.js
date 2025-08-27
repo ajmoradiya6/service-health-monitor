@@ -48,6 +48,9 @@ window.addEventListener('DOMContentLoaded', async function () {
     if (!isAuthenticated) {
         return; // Stop execution if not authenticated
     }
+    
+    // Display user info
+    displayUserInfo();
     if (window.Chart) {
         // THREAD USAGE CHART
         const threadUsage = document.getElementById('thread-usage-chart');
@@ -130,6 +133,20 @@ window.addEventListener('DOMContentLoaded', async function () {
         }
     }
 });
+
+function displayUserInfo() {
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+        const user = JSON.parse(userInfo);
+        const userInfoElement = document.getElementById('user-info');
+        const userNameElement = userInfoElement.querySelector('.user-name');
+        const userRoomElement = userInfoElement.querySelector('.user-room');
+        
+        userNameElement.textContent = `User: ${user.username}`;
+        userRoomElement.textContent = `Room: ${user.serverName}.${user.roomName}`;
+        userInfoElement.style.display = 'flex';
+    }
+}
 
 function updateLiveChart(chart, label, datasetValues) {
     if (!chart) return;
