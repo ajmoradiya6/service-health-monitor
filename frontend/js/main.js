@@ -262,6 +262,7 @@ async function loadServices() {
         lucide.createIcons({ parentElement: tomcatContainer });
     }
 
+    // Initial snapshot requests while SSE stream warms up
     pollWindowsMetrics();
     pollTomcatMetrics();
     await updateServiceStatuses();
@@ -342,6 +343,139 @@ async function updateServiceStatuses() {
     }
 }
 
+// Apply statuses map to UI and local state
+function applyStatuses(statusMap) {
+    const items = document.querySelectorAll('.service-item');
+    items.forEach(item => {
+        const svc = JSON.parse(item.dataset.service || '{}');
+        const key = svc.Name || svc.DisplayName;
+        const status = statusMap[key] || 'Unknown';
+        serviceStatuses[key] = status;
+        const dot = item.querySelector('.status-dot');
+        if (!dot) return;
+        if (typeof status === 'string' && status.toLowerCase() === 'running') {
+            dot.style.setProperty('--dot-color', 'var(--green-primary)');
+        } else {
+            dot.style.setProperty('--dot-color', 'var(--red-primary)');
+        }
+    });
+    updateStatusCard();
+    updateFetchingIndicator();
+    updatePowerButton();
+}
+
+// Consolidated SSE stream to receive statuses + windows metrics (and notifications)
+let sse;
+function startConsolidatedStream() {
+    try {
+        if (sse) {
+            try { sse.close(); } catch {}
+            sse = null;
+        }
+        if (!Array.isArray(windowsServices) || windowsServices.length === 0) return;
+        const identifiers = windowsServices.map(s => s.Name).join(',');
+        sse = new EventSource(`/api/stream?services=${encodeURIComponent(identifiers)}`);
+
+        sse.onmessage = (evt) => {
+            try {
+                const data = JSON.parse(evt.data || '{}');
+                if (data.statuses) applyStatuses(data.statuses);
+                if (data.metrics) {
+                    const metricsMap = data.metrics || {};
+                    const timestamp = Date.now();
+                    Object.entries(metricsMap).forEach(([name, m]) => {
+                        const cpu = parseMetricValue(m.cpuUsagePercent, true);
+                        const memory = parseMetricValue(m.memoryUsagePercent);
+                        serviceMetrics[name] = {
+                            cpuUsage: cpu,
+                            memoryUsage: memory,
+                            connections: m.connections
+                        };
+                        if (!window.serviceChartData[name]) window.serviceChartData[name] = [];
+                        const history = window.serviceChartData[name];
+                        history.push({ cpu, memory, timestamp });
+                        if (history.length > 100) history.shift();
+                    });
+                    if (activeServiceId) renderServiceMetrics(activeServiceId);
+                }
+                if (data.tomcat && data.tomcat.metrics) {
+                    const metrics = data.tomcat.metrics;
+                    const nowLabel = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+                    updateTomcatMetricsUI(metrics);
+                    tomcatMetricsAvailable = true;
+                    if (activeServiceType === 'tomcat') updateFetchingIndicator();
+                    updateLiveChart(threadUsageChart, nowLabel, [
+                        metrics.threads?.max ?? null,
+                        metrics.threads?.busy ?? null
+                    ]);
+                    updateLiveChart(memoryUsageChart, nowLabel, [
+                        metrics.memory?.heap?.maxMB ?? null,
+                        metrics.memory?.heap?.usedMB ?? null
+                    ]);
+                    updateLiveChart(requestsErrorsChart, nowLabel, [
+                        metrics.requests?.count ?? null,
+                        metrics.requests?.errors ?? null
+                    ]);
+                    updateLiveChart(memoryPoolChart, nowLabel, [
+                        metrics.memory?.nonHeap?.maxMB ?? null,
+                        metrics.memory?.nonHeap?.usedMB ?? null
+                    ]);
+                    document.querySelectorAll('.tomcat-updated-time').forEach(el => { el.textContent = nowLabel; });
+                }
+                if (data.tomcat && data.tomcat.logs) {
+                    const logsData = data.tomcat.logs;
+                    const apiAccessLogsEl = document.getElementById('api-access-logs');
+                    const stdErrorLogsEl = document.getElementById('std-error-logs');
+                    const accessLines = logsData.logs?.localhostAccess ? Object.values(logsData.logs.localhostAccess).map(logObj => logObj.line) : [];
+                    const stdErrLines = logsData.logs?.stdError ? Object.values(logsData.logs.stdError).map(logObj => logObj.line) : [];
+                    pushToBuffer(apiAccessLogBuffer, accessLines, 200);
+                    pushToBuffer(stdErrorLogBuffer, stdErrLines, 200);
+                    if (apiAccessLogsEl) {
+                        apiAccessLogsEl.innerHTML = '';
+                        apiAccessLogBuffer.forEach(line => {
+                            const div = document.createElement('div');
+                            div.className = 'log-line';
+                            div.textContent = line;
+                            apiAccessLogsEl.appendChild(div);
+                        });
+                        apiAccessLogsEl.scrollTop = apiAccessLogsEl.scrollHeight;
+                    }
+                    if (stdErrorLogsEl) {
+                        stdErrorLogsEl.innerHTML = '';
+                        stdErrorLogBuffer.forEach(line => {
+                            const div = document.createElement('div');
+                            div.className = 'log-line';
+                            div.textContent = line;
+                            stdErrorLogsEl.appendChild(div);
+                        });
+                        stdErrorLogsEl.scrollTop = stdErrorLogsEl.scrollHeight;
+                    }
+                }
+                const notifications = data.notifications || [];
+                notifications.forEach(n => {
+                    if (!n || !n.message || (typeof n.message === 'string' && n.message.toLowerCase().includes(' is now unknown'))) return;
+                    addNotification(
+                        { level: n.type || 'info', message: n.message, timestamp: n.timestamp },
+                        n.serviceName,
+                        n.serviceName,
+                        true
+                    );
+                });
+            } catch (e) {
+                console.error('SSE parse error:', e);
+            }
+        };
+
+        sse.addEventListener('error', (e) => {
+            console.warn('SSE error, will rely on fallback polling if needed', e);
+        });
+
+        window.addEventListener('beforeunload', () => { try { sse && sse.close(); } catch {} });
+    } catch (err) {
+        console.error('Failed to start SSE stream:', err);
+    }
+}
+
 async function initializeApp() {
     console.log('Initializing application...'); // Debug log
     try {
@@ -353,7 +487,8 @@ async function initializeApp() {
         
         // Load services
         await loadServices();
-        setInterval(updateServiceStatuses, 5000);
+        // Start consolidated SSE stream (replaces periodic status + Windows metrics polling)
+        startConsolidatedStream();
         
         // Initialize settings sections
         initializeSettingsSections();
@@ -2228,8 +2363,7 @@ function updateTomcatMetricsUI(metrics) {
 
 // Start polling Tomcat metrics and logs every 5 seconds after DOM is ready
 window.addEventListener('DOMContentLoaded', function() {
-    setInterval(pollTomcatMetrics, 5000);
-    setInterval(pollWindowsMetrics, 5000);
+    // Tomcat and Windows metrics are streamed via SSE; no periodic polling needed
 });
 
 // Open tutorial page in a new tab when the tutorial button is clicked

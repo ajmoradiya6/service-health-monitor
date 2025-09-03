@@ -336,3 +336,80 @@ router.post('/notify', async (req, res) => {
 });
 
 module.exports = router;
+// Server-Sent Events stream for consolidated updates (statuses + Windows metrics)
+router.get('/stream', async (req, res) => {
+    try {
+        const servicesCsv = String(req.query.services || '').trim();
+        const identifiers = servicesCsv
+            ? servicesCsv.split(',').map(s => s.trim()).filter(Boolean)
+            : [];
+
+        if (identifiers.length === 0) {
+            res.status(400).json({ error: 'services query parameter is required (comma-separated)' });
+            return;
+        }
+
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.flushHeaders && res.flushHeaders();
+
+        let closed = false;
+        req.on('close', () => {
+            closed = true;
+            clearInterval(timer);
+        });
+
+        async function sendUpdate() {
+            try {
+                const baseUrl = `${req.protocol}://${req.get('host')}`;
+                const [statuses, metrics, tomcatMetrics, tomcatLogs] = await Promise.all([
+                    getServicesStatus(identifiers),
+                    getWindowsMetrics(identifiers).catch(() => ({})),
+                    fetch(`${baseUrl}/api/service-control/tomcat/metrics`).then(r => r.ok ? r.json() : null).catch(() => null),
+                    fetch(`${baseUrl}/api/service-control/tomcat/logs`).then(r => r.ok ? r.json() : null).catch(() => null)
+                ]);
+
+                // Build notifications based on status transitions (same rules as /status)
+                const notifications = [];
+                const now = Date.now();
+                for (const [id, status] of Object.entries(statuses)) {
+                    const prev = previousStatuses[id];
+                    const changed = !!prev && prev !== status;
+                    previousStatuses[id] = status; // update early to avoid duplicates
+                    if (!changed) continue;
+
+                    const statusStr = typeof status === 'string' ? status.toLowerCase() : String(status);
+                    if (statusStr === 'unknown') continue; // suppress transient Unknown
+
+                    const last = lastNotified[id];
+                    if (!last || last.status !== status || (now - last.at) > 3000) {
+                        const isRunning = statusStr === 'running';
+                        const notif = {
+                            serviceName: id,
+                            timestamp: new Date().toISOString(),
+                            type: isRunning ? 'info' : 'error',
+                            message: `Service ${id} is now ${status}`
+                        };
+                        notifications.push(notif);
+                        lastNotified[id] = { status, at: now };
+                        try { await createUserNotificationFromLog(notif); } catch {}
+                    }
+                }
+
+                const payload = { statuses, metrics, notifications, tomcat: { metrics: tomcatMetrics || undefined, logs: tomcatLogs || undefined } };
+                res.write(`data: ${JSON.stringify(payload)}\n\n`);
+            } catch (e) {
+                // Send an error event but keep the stream open
+                res.write(`event: error\n`);
+                res.write(`data: ${JSON.stringify({ message: e.message || String(e) })}\n\n`);
+            }
+        }
+
+        // Send first update immediately, then every 5s
+        await sendUpdate();
+        const timer = setInterval(() => { if (!closed) sendUpdate(); }, 5000);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to start stream', details: err.message });
+    }
+});
