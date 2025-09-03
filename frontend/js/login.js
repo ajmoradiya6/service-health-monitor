@@ -1,17 +1,23 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    // Check if there's an existing session and logout from server if needed
-    const sessionId = localStorage.getItem('sessionId');
-    if (sessionId) {
+    // Utility to ensure server-side logout if a session exists locally
+    async function ensureServerLogoutIfNeeded() {
+        const existingSessionId = localStorage.getItem('sessionId');
+        if (!existingSessionId) return;
+
+        const btn = document.getElementById('login-btn');
+        let originalText = '';
+        if (btn) {
+            originalText = btn.textContent;
+            btn.textContent = 'Signing out previous session...';
+            btn.disabled = true;
+        }
+
         try {
             console.log('Found existing session, logging out from server...');
-            // Call logout API to terminate server session
-            const response = await fetch(`/api/auth/logout?sessionId=${encodeURIComponent(sessionId)}`, {
+            const response = await fetch(`/api/auth/logout?sessionId=${encodeURIComponent(existingSessionId)}`, {
                 method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                },
+                headers: { 'Accept': 'application/json' }
             });
-            
             if (response.ok) {
                 console.log('Successfully logged out from server');
             } else {
@@ -19,14 +25,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (error) {
             console.error('Error during server logout:', error);
+        } finally {
+            // Clear session data from browser
+            localStorage.removeItem('sessionId');
+            localStorage.removeItem('userInfo');
+            console.log('Cleared session data from browser for fresh login');
+
+            if (btn) {
+                btn.textContent = originalText || 'Login';
+                btn.disabled = false;
+            }
         }
     }
-    
-    // Clear session data from browser
-    localStorage.removeItem('sessionId');
-    localStorage.removeItem('userInfo');
-    console.log('Cleared session data from browser for fresh login');
-    
+
+    // Perform server logout first (if needed) before wiring up the form
+    await ensureServerLogoutIfNeeded();
+
     const form = document.getElementById('login-form');
     const roomSelect = document.getElementById('login-room');
     const dropdownTrigger = document.getElementById('room-dropdown-trigger');
@@ -161,6 +175,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            // Double-check: if a session id somehow exists, log it out first
+            const sid = localStorage.getItem('sessionId');
+            if (sid) {
+                try {
+                    await fetch(`/api/auth/logout?sessionId=${encodeURIComponent(sid)}`, { method: 'GET' });
+                } catch {}
+                localStorage.removeItem('sessionId');
+                localStorage.removeItem('userInfo');
+            }
             
             // Get form data
             const username = document.getElementById('login-username').value.trim();
@@ -226,4 +249,3 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 });
-
