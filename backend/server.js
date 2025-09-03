@@ -3,7 +3,6 @@
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
-const livereload = require('livereload');
 const app = require('./app');
 
 // ----- env vars -----
@@ -14,11 +13,18 @@ const PFX_PATH     = process.env.SSL_PFX_PATH || '';
 const PFX_PASS     = process.env.SSL_PFX_PASS || '';
 
 // ----- live-reload (dev only) -----
-const liveReloadServer = livereload.createServer();
-liveReloadServer.watch(__dirname + '/../frontend');
-liveReloadServer.server.once('connection', () => {
-  setTimeout(() => liveReloadServer.refresh('/'), 100);
-});
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    const livereload = require('livereload');
+    const liveReloadServer = livereload.createServer();
+    liveReloadServer.watch(__dirname + '/../frontend');
+    liveReloadServer.server.once('connection', () => {
+      setTimeout(() => liveReloadServer.refresh('/'), 100);
+    });
+  } catch (e) {
+    // livereload not installed; skip in production or missing dependency
+  }
+}
 
 // ----- start server -----
 if (USE_SSL && PFX_PATH) {
@@ -35,4 +41,3 @@ if (USE_SSL && PFX_PATH) {
     console.log(`HTTP server running at ${BACKEND_HOST}:${PORT}`);
   });
 }
-

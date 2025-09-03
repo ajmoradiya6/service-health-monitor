@@ -1,6 +1,6 @@
 ﻿const express = require('express');
 const path = require('path');
-const connectLivereload = require('connect-livereload'); // ✅ Add this
+// LiveReload middleware is loaded conditionally in development
 const axios = require('axios');
 
 const app = express();
@@ -8,8 +8,15 @@ const apiRoutes = require('./routes/api');
 
 app.use(express.json());
 
-//  Inject LiveReload script into HTML
-app.use(connectLivereload());
+//  Inject LiveReload script into HTML (development only)
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    const connectLivereload = require('connect-livereload');
+    app.use(connectLivereload());
+  } catch (e) {
+    // connect-livereload not installed; ignore
+  }
+}
 
 //  Login page
 app.get('/login', (req, res) => {
