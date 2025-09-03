@@ -324,6 +324,10 @@ async function updateServiceStatuses() {
 
         const notifications = data.notifications || [];
         notifications.forEach(n => {
+            // Suppress transient Unknown status notifications
+            if (!n || !n.message || (typeof n.message === 'string' && n.message.toLowerCase().includes(' is now unknown'))) {
+                return;
+            }
             if (n && n.message) {
                 addNotification(
                     { level: n.type || 'info', message: n.message, timestamp: n.timestamp },

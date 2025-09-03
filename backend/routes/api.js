@@ -14,6 +14,8 @@ const windowsServiceControlRouter = require('../services/serviceControlWindows')
 
 // Track previous service statuses in memory to detect changes
 const previousStatuses = {};
+// Throttle duplicate notifications: remember last notified status and time
+const lastNotified = {}; // { [serviceId]: { status: string, at: number } }
 
 // Authentication endpoint
 router.post('/auth/login', async (req, res) => {
@@ -185,18 +187,36 @@ router.post('/status', async (req, res) => {
 
         for (const [id, status] of Object.entries(statuses)) {
             const prev = previousStatuses[id];
-            if (prev && prev !== status) {
-                const isRunning = typeof status === 'string' && status.toLowerCase() === 'running';
-                const notif = {
-                    serviceName: id,
-                    timestamp: new Date().toISOString(),
-                    type: isRunning ? 'info' : 'error',
-                    message: `Service ${id} is now ${status}`
-                };
-                notifications.push(notif);
-                await createUserNotificationFromLog(notif);
-            }
+            const changed = !!prev && prev !== status;
+            // Update previous status immediately to avoid duplicate notifications from concurrent polls
             previousStatuses[id] = status;
+
+            if (changed) {
+                const statusStr = typeof status === 'string' ? status.toLowerCase() : String(status);
+                // Suppress noisy transitions to Unknown (during start/stop)
+                if (statusStr !== 'unknown') {
+                    // Throttle duplicates within a short window for same resulting status
+                    const now = Date.now();
+                    const last = lastNotified[id];
+                    if (!last || last.status !== status || (now - last.at) > 3000) {
+                        const isRunning = statusStr === 'running';
+                        const notif = {
+                            serviceName: id,
+                            timestamp: new Date().toISOString(),
+                            type: isRunning ? 'info' : 'error',
+                            message: `Service ${id} is now ${status}`
+                        };
+                        notifications.push(notif);
+                        lastNotified[id] = { status, at: now };
+                        try {
+                            await createUserNotificationFromLog(notif);
+                        } catch (e) {
+                            // Log and continue; do not fail status endpoint
+                            console.error('Failed to persist notification:', e?.message || e);
+                        }
+                    }
+                }
+            }
         }
 
         res.json({ statuses, notifications });
