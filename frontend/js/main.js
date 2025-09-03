@@ -144,7 +144,7 @@ function displayUserInfo() {
         
         userNameElement.textContent = `User: ${user.username}`;
         userRoomElement.textContent = `Room: ${user.serverName}.${user.roomName}`;
-        userInfoElement.style.display = 'flex';
+        //userInfoElement.style.display = 'flex';
     }
 }
 
