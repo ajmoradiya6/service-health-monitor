@@ -335,15 +335,24 @@ function applyStatuses(statusMap) {
         const incoming = statusMap[key] || 'Unknown';
         const lock = statusOverrideLocks[key];
         if (lock && Date.now() < lock.until) {
-            const desired = String(lock.desired || '').toLowerCase();
-            const incomingStr = String(incoming || '').toLowerCase();
-            if (incomingStr !== desired) {
-                // Ignore contradictory transient status while operation is in progress
-                return;
-            } else {
-                // Desired reached; clear the lock
-                delete statusOverrideLocks[key];
+            const desiredLower = String(lock.desired || '').toLowerCase();
+            const incomingLower = String(incoming || '').toLowerCase();
+            if (incomingLower !== desiredLower) {
+                // Force UI to stay at desired state until operation settles
+                const forcedStatus = lock.desired;
+                serviceStatuses[key] = forcedStatus;
+                const dot = item.querySelector('.status-dot');
+                if (dot) {
+                    if (String(forcedStatus).toLowerCase() === 'running') {
+                        dot.style.setProperty('--dot-color', 'var(--green-primary)');
+                    } else {
+                        dot.style.setProperty('--dot-color', 'var(--red-primary)');
+                    }
+                }
+                return; // skip normal incoming handling
             }
+            // Desired reached; clear the lock and continue with normal handling
+            delete statusOverrideLocks[key];
         }
         const status = incoming;
         serviceStatuses[key] = status;
@@ -1198,8 +1207,22 @@ async function handlePowerButtonClick() {
             // Lock UI against contradictory transient statuses while operation completes
             statusOverrideLocks[activeServiceId] = {
                 desired: (isRunning ? 'Stopped' : 'Running'),
-                until: Date.now() + 8000
+                until: Date.now() + 60000
             };
+            // Also lock by DisplayName key if different (to cover mismatch)
+            try {
+                const activeEl = document.querySelector('.service-item.active');
+                if (activeEl) {
+                    const svc = JSON.parse(activeEl.dataset.service || '{}');
+                    const displayKey = svc.DisplayName;
+                    if (displayKey && displayKey !== activeServiceId) {
+                        statusOverrideLocks[displayKey] = {
+                            desired: (isRunning ? 'Stopped' : 'Running'),
+                            until: Date.now() + 60000
+                        };
+                    }
+                }
+            } catch {}
             updateStatusCard();
             updatePowerButton();
             updateFetchingIndicator();
