@@ -3588,7 +3588,7 @@ body {
 
 .notification-panel {
     position: fixed;
-    top: 60px;
+    top: 70px;
     right: 20px;
     width: 400px;
     max-height: 500px;
