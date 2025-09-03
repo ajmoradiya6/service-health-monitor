@@ -109,6 +109,10 @@
                         <div class="live-dot"></div>
                         <span>Live</span>
                     </div>
+                    <!-- Service Power Button: toggles start/stop for selected Windows service -->
+                    <div class="action-button" id="service-power-button" title="Start/Stop Service">
+                        <i data-lucide="play" id="service-power-icon" class="theme-icon"></i>
+                    </div>
                     <div class="notification-icon-wrapper">
                         <div class="action-button notification-action">
                             <i data-lucide="bell" class="theme-icon"></i>
@@ -846,6 +850,8 @@
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <!-- Lottie for spinner animation -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
         <script src="js/auth.js"></script>
         <script src="js/notifications.js"></script>
         <script src="js/main.js"></script>
@@ -855,7 +861,14 @@
 
 
 
-        <!-- Spinner Overlay for Service Start (replace spinner with Lottie) -->
+        <!-- Spinner Overlay for Service Start/Stop (Lottie) -->
+        <div id="service-op-overlay" style="display:none;">
+            <div class="service-op-backdrop"></div>
+            <div class="service-op-modal">
+                <div id="service-op-lottie" class="service-op-lottie"></div>
+                <div id="service-op-text" class="service-op-text">Working...</div>
+            </div>
+        </div>
 </body>
 
 </html>

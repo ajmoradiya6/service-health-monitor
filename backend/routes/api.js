@@ -7,6 +7,7 @@ const { createUserNotificationFromLog } = require('../services/createUserNotific
 const { getServicesStatus } = require('../services/serviceStatus');
 const { getWindowsMetrics } = require('../services/windowsMetrics');
 const serviceControlRouter = require('./serviceControl');
+const windowsServiceControlRouter = require('../services/serviceControlWindows');
 
 // Note: Authentication is handled by external Tomcat server
 // This backend only handles service monitoring functionality
@@ -159,6 +160,7 @@ router.get('/auth/logout', async (req, res) => {
 });
 
 router.use('/service-control', serviceControlRouter);
+router.use('/windows-service', windowsServiceControlRouter);
 router.get('/services', async (req, res) => {
     const data = await getAllServices();
     // Return grouped windows services along with tomcat services

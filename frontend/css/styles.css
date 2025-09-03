@@ -1298,7 +1298,7 @@ body {
 }
 
 .user-info {
-    display: flex;
+    display: none;
     gap: 12px;
     font-size: 14px;
     color: var(--text-secondary);
@@ -1410,6 +1410,92 @@ body {
     background-color: rgba(255, 255, 255, 0.05);
     cursor: pointer;
     transition: background-color 0.3s ease;
+}
+
+/* Power button color states */
+#service-power-button.is-start .theme-icon {
+  color: var(--green-primary);
+}
+#service-power-button.is-stop .theme-icon {
+  color: var(--red-primary);
+}
+
+/* Background tint for power button by state (dark theme default) */
+#service-power-button.is-start {
+  background-color: rgba(16, 185, 129, 0.15); /* green */
+}
+#service-power-button.is-start:hover {
+  background-color: rgba(16, 185, 129, 0.22);
+}
+#service-power-button.is-start:active {
+  background-color: rgba(16, 185, 129, 0.28);
+}
+
+#service-power-button.is-stop {
+  background-color: rgba(239, 68, 68, 0.18); /* red */
+}
+#service-power-button.is-stop:hover {
+  background-color: rgba(239, 68, 68, 0.26);
+}
+#service-power-button.is-stop:active {
+  background-color: rgba(239, 68, 68, 0.34);
+}
+
+/* Light theme adjustments */
+[data-theme="light"] #service-power-button.is-start {
+  background-color: rgba(16, 185, 129, 0.12);
+}
+[data-theme="light"] #service-power-button.is-start:hover {
+  background-color: rgba(16, 185, 129, 0.18);
+}
+[data-theme="light"] #service-power-button.is-start:active {
+  background-color: rgba(16, 185, 129, 0.24);
+}
+
+[data-theme="light"] #service-power-button.is-stop {
+  background-color: rgba(239, 68, 68, 0.12);
+}
+[data-theme="light"] #service-power-button.is-stop:hover {
+  background-color: rgba(239, 68, 68, 0.18);
+}
+[data-theme="light"] #service-power-button.is-stop:active {
+  background-color: rgba(239, 68, 68, 0.24);
+}
+
+/* Service operation overlay (spinner) */
+#service-op-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+#service-op-overlay .service-op-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(2px);
+}
+#service-op-overlay .service-op-modal {
+  position: relative;
+  background: var(--card-bg, #0b1220);
+  border: 1px solid rgba(148,163,184,0.15);
+  border-radius: 12px;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 1;
+}
+#service-op-overlay .service-op-lottie {
+  width: 86px;
+  height: 86px;
+}
+#service-op-overlay .service-op-text {
+  color: #e2e8f0;
+  font-weight: 600;
 }
 
 .action-button:hover {
@@ -1718,7 +1804,7 @@ body {
 
 /* ===== CHART CONTAINER ===== */
 .chart-container {
-    height: calc(-259px + 100vh);
+    height: calc(-235px + 100vh);
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--card-radius);
@@ -4205,7 +4291,7 @@ body {
 /* Tomcat Metrics Panel Container - theme aware */
 #tomcat-metrics-panel-container {
     display: flex;
-    height: calc(100vh - 134px);
+    height: calc(100vh - 113px);
     border-radius: var(--card-radius);
     border: 1px solid var(--border-color);
     background: var(--bg-card);

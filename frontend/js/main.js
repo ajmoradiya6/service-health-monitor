@@ -320,6 +320,7 @@ async function updateServiceStatuses() {
 
         updateStatusCard();
         updateFetchingIndicator();
+        updatePowerButton();
 
         const notifications = data.notifications || [];
         notifications.forEach(n => {
@@ -853,6 +854,7 @@ function selectService(element, index, service) {
 
     updateStatusCard();
     updateFetchingIndicator();
+    updatePowerButton();
 
 
 
@@ -996,6 +998,131 @@ function updateFetchingIndicator() {
         hasMetrics = !!serviceMetrics[activeServiceId];
     }
     indicator.style.display = isRunning && !hasMetrics ? 'flex' : 'none';
+}
+
+// ===== POWER BUTTON (Start/Stop) =====
+function updatePowerButton() {
+    const btn = document.getElementById('service-power-button');
+    const icon = document.getElementById('service-power-icon');
+    if (!btn || !icon) return;
+
+    // Only allow for Windows services; hide/disable for Tomcat
+    if (!activeServiceId || activeServiceType === 'tomcat') {
+        btn.setAttribute('aria-disabled', 'true');
+        btn.style.opacity = '0.4';
+        btn.style.pointerEvents = 'none';
+        icon.setAttribute('data-lucide', 'play');
+        btn.classList.remove('is-stop');
+        btn.classList.add('is-start');
+        if (window.lucide) lucide.createIcons();
+        return;
+    }
+
+    btn.removeAttribute('aria-disabled');
+    btn.style.opacity = '';
+    btn.style.pointerEvents = '';
+
+    const status = serviceStatuses[activeServiceId] || 'Unknown';
+    const isRunning = typeof status === 'string' && status.toLowerCase() === 'running';
+    icon.setAttribute('data-lucide', isRunning ? 'stop-circle' : 'play');
+    btn.classList.toggle('is-stop', isRunning);
+    btn.classList.toggle('is-start', !isRunning);
+    btn.title = isRunning ? 'Stop Service' : 'Start Service';
+    if (window.lucide) lucide.createIcons();
+}
+
+async function handlePowerButtonClick() {
+    if (!activeServiceId || activeServiceType === 'tomcat') return; // Only act on selected Windows service
+    const status = serviceStatuses[activeServiceId] || 'Unknown';
+    const isRunning = typeof status === 'string' && status.toLowerCase() === 'running';
+    const endpoint = isRunning ? '/api/windows-service/stop' : '/api/windows-service/start';
+    const opText = isRunning ? 'Stopping service…' : 'Starting service…';
+
+    try {
+        showServiceOperation(opText);
+        // prevent double clicks
+        const btn = document.getElementById('service-power-button');
+        if (btn) {
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.6';
+        }
+        const resp = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: activeServiceId })
+        });
+        const result = await resp.json();
+        if (!resp.ok || result.error) {
+            console.error('Service control failed:', result.error || resp.statusText);
+            showNotification(`Failed to ${isRunning ? 'stop' : 'start'} service`, 'error');
+        } else {
+            // Update local status map and UI
+            serviceStatuses[activeServiceId] = result.status || (isRunning ? 'Stopped' : 'Running');
+            updateStatusCard();
+            updatePowerButton();
+            updateFetchingIndicator();
+            // Re-poll statuses to sync with backend/system
+            setTimeout(updateServiceStatuses, 1000);
+            showNotification(`Service ${activeServiceId} ${isRunning ? 'stopped' : 'started'}`, 'info');
+        }
+    } catch (e) {
+        console.error('Error calling service control endpoint:', e);
+        showNotification('Service control request failed', 'error');
+    }
+    finally {
+        hideServiceOperation();
+        const btn = document.getElementById('service-power-button');
+        if (btn) {
+            btn.style.pointerEvents = '';
+            btn.style.opacity = '';
+        }
+    }
+}
+
+// Attach power button click on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('service-power-button');
+    if (btn) {
+        btn.addEventListener('click', handlePowerButtonClick);
+        updatePowerButton();
+    }
+});
+
+// ===== Service Operation Spinner (Lottie) =====
+let serviceOpAnimation = null;
+function ensureServiceOpAnimation() {
+    const container = document.getElementById('service-op-lottie');
+    if (!container) return null;
+    if (serviceOpAnimation) return serviceOpAnimation;
+    if (window.lottie) {
+        serviceOpAnimation = lottie.loadAnimation({
+            container,
+            renderer: 'svg',
+            loop: true,
+            autoplay: false,
+            path: 'assets/spinner.json'
+        });
+        return serviceOpAnimation;
+    }
+    return null;
+}
+
+function showServiceOperation(text) {
+    const overlay = document.getElementById('service-op-overlay');
+    const label = document.getElementById('service-op-text');
+    if (!overlay || !label) return;
+    label.textContent = text || 'Working…';
+    overlay.style.display = 'flex';
+    const anim = ensureServiceOpAnimation();
+    if (anim) anim.play();
+}
+
+function hideServiceOperation() {
+    const overlay = document.getElementById('service-op-overlay');
+    if (!overlay) return;
+    const anim = ensureServiceOpAnimation();
+    if (anim) anim.stop();
+    overlay.style.display = 'none';
 }
 
 // Function to toggle filter dropdown
