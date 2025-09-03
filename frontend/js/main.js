@@ -266,6 +266,11 @@ async function loadServices() {
     pollWindowsMetrics();
     pollTomcatMetrics();
     await updateServiceStatuses();
+    // Start lightweight split SSE streams
+    try { startSplitStatusStream(); } catch {}
+    try { startSplitWindowsMetricsStream(); } catch {}
+    try { startSplitTomcatMetricsStream(); } catch {}
+    try { startSplitTomcatLogsStream(); } catch {}
 
     // Auto-select the first service (tomcat or windows)
     if (Array.isArray(tomcatServices) && tomcatServices.length > 0) {
@@ -329,35 +334,27 @@ async function updateServiceStatuses() {
 // Apply statuses map to UI and local state
 function applyStatuses(statusMap) {
     const items = document.querySelectorAll('.service-item');
+    const now = Date.now();
     items.forEach(item => {
         const svc = JSON.parse(item.dataset.service || '{}');
         const key = svc.Name || svc.DisplayName;
-        const incoming = statusMap[key] || 'Unknown';
-        const lock = statusOverrideLocks[key];
-        if (lock && Date.now() < lock.until) {
-            const desiredLower = String(lock.desired || '').toLowerCase();
-            const incomingLower = String(incoming || '').toLowerCase();
-            if (incomingLower !== desiredLower) {
-                // Force UI to stay at desired state until operation settles
-                const forcedStatus = lock.desired;
-                serviceStatuses[key] = forcedStatus;
-                const dot = item.querySelector('.status-dot');
-                if (dot) {
-                    if (String(forcedStatus).toLowerCase() === 'running') {
-                        dot.style.setProperty('--dot-color', 'var(--green-primary)');
-                    } else {
-                        dot.style.setProperty('--dot-color', 'var(--red-primary)');
-                    }
-                }
-                return; // skip normal incoming handling
-            }
-            // Desired reached; clear the lock and continue with normal handling
-            delete statusOverrideLocks[key];
-        }
-        const status = incoming;
+        const status = statusMap[key] || 'Unknown';
         serviceStatuses[key] = status;
         const dot = item.querySelector('.status-dot');
         if (!dot) return;
+
+        // If operation is pending and not yet at desired state, keep current dot color (no change)
+        const op = pendingOps[key];
+        if (op && (now - op.since) < 60000) {
+            const incomingLower = String(status).toLowerCase();
+            const desiredLower = String(op.desired).toLowerCase();
+            if (incomingLower !== desiredLower) {
+                return;
+            }
+            // Desired reached; clear pending
+            delete pendingOps[key];
+        }
+
         if (typeof status === 'string' && status.toLowerCase() === 'running') {
             dot.style.setProperty('--dot-color', 'var(--green-primary)');
         } else {
@@ -371,8 +368,12 @@ function applyStatuses(statusMap) {
 
 // Consolidated SSE stream to receive statuses + windows metrics (and notifications)
 let sse;
-// During start/stop, hold desired state to avoid UI flicker
-const statusOverrideLocks = {};
+let sseStatus = null;
+let sseWinMetrics = null;
+let sseTomMetrics = null;
+let sseTomLogs = null;
+// Track in-flight start/stop to render a stable 'pending' state
+const pendingOps = {}; // { [serviceId]: { desired: 'Running'|'Stopped', since: number } }
 function startConsolidatedStream() {
     try {
         if (sse) {
@@ -483,6 +484,114 @@ function startConsolidatedStream() {
     }
 }
 
+// Split streams: statuses
+function startSplitStatusStream() {
+    try { if (sseStatus) { try { sseStatus.close(); } catch {} } } catch {}
+    const ids = (windowsServices || []).map(s => s.Name).filter(Boolean);
+    if (ids.length === 0) return;
+    const qs = encodeURIComponent(ids.join(','));
+    sseStatus = new EventSource('/api/stream/status?services=' + qs);
+    sseStatus.onmessage = (evt) => {
+        try {
+            const data = JSON.parse(evt.data || '{}');
+            if (data.statuses) applyStatuses(data.statuses);
+            const notes = data.notifications || [];
+            notes.forEach(n => {
+                if (!n || !n.message || (typeof n.message === 'string' && n.message.toLowerCase().includes(' is now unknown'))) return;
+                addNotification({ level: n.type || 'info', message: n.message, timestamp: n.timestamp }, n.serviceName, n.serviceName, true);
+            });
+        } catch (e) { console.warn('status SSE parse error', e); }
+    };
+    sseStatus.addEventListener('error', (e) => console.warn('status SSE error', e));
+}
+
+// Split streams: Windows metrics
+function startSplitWindowsMetricsStream() {
+    try { if (sseWinMetrics) { try { sseWinMetrics.close(); } catch {} } } catch {}
+    const ids = (windowsServices || []).map(s => s.Name).filter(Boolean);
+    if (ids.length === 0) return;
+    const qs = encodeURIComponent(ids.join(','));
+    sseWinMetrics = new EventSource('/api/stream/windows-metrics?services=' + qs);
+    sseWinMetrics.onmessage = (evt) => {
+        try {
+            const data = JSON.parse(evt.data || '{}');
+            const metricsMap = data.metrics || {};
+            const timestamp = Date.now();
+            Object.entries(metricsMap).forEach(([name, m]) => {
+                const cpu = parseMetricValue(m.cpuUsagePercent, true);
+                const memory = parseMetricValue(m.memoryUsagePercent);
+                serviceMetrics[name] = { cpuUsage: cpu, memoryUsage: memory, connections: m.connections };
+                if (!window.serviceChartData[name]) window.serviceChartData[name] = [];
+                const history = window.serviceChartData[name];
+                history.push({ cpu, memory, timestamp });
+                if (history.length > 100) history.shift();
+            });
+            if (activeServiceId) renderServiceMetrics(activeServiceId);
+        } catch (e) { console.warn('win metrics SSE parse error', e); }
+    };
+    sseWinMetrics.addEventListener('error', (e) => console.warn('win metrics SSE error', e));
+}
+
+// Split streams: Tomcat metrics
+function startSplitTomcatMetricsStream() {
+    try { if (sseTomMetrics) { try { sseTomMetrics.close(); } catch {} } } catch {}
+    sseTomMetrics = new EventSource('/api/stream/tomcat-metrics');
+    sseTomMetrics.onmessage = (evt) => {
+        try {
+            const metrics = JSON.parse(evt.data || '{}');
+            if (!metrics || Object.keys(metrics).length === 0) return;
+            updateTomcatMetricsUI(metrics);
+            tomcatMetricsAvailable = true;
+            if (activeServiceType === 'tomcat') updateFetchingIndicator();
+            const nowLabel = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            updateLiveChart(threadUsageChart, nowLabel, [ metrics.threads?.max ?? null, metrics.threads?.busy ?? null ]);
+            updateLiveChart(memoryUsageChart, nowLabel, [ metrics.memory?.heap?.maxMB ?? null, metrics.memory?.heap?.usedMB ?? null ]);
+            updateLiveChart(requestsErrorsChart, nowLabel, [ metrics.requests?.count ?? null, metrics.requests?.errors ?? null ]);
+            updateLiveChart(memoryPoolChart, nowLabel, [ metrics.memory?.nonHeap?.maxMB ?? null, metrics.memory?.nonHeap?.usedMB ?? null ]);
+            document.querySelectorAll('.tomcat-updated-time').forEach(el => { el.textContent = nowLabel; });
+        } catch (e) { console.warn('tomcat metrics SSE parse error', e); }
+    };
+    sseTomMetrics.addEventListener('error', (e) => console.warn('tomcat metrics SSE error', e));
+}
+
+// Split streams: Tomcat logs
+function startSplitTomcatLogsStream() {
+    try { if (sseTomLogs) { try { sseTomLogs.close(); } catch {} } } catch {}
+    sseTomLogs = new EventSource('/api/stream/tomcat-logs');
+    sseTomLogs.onmessage = (evt) => {
+        try {
+            const logsData = JSON.parse(evt.data || '{}');
+            const apiAccessLogsEl = document.getElementById('api-access-logs');
+            const stdErrorLogsEl = document.getElementById('std-error-logs');
+            const accessLines = logsData.logs?.localhostAccess ? Object.values(logsData.logs.localhostAccess).map(logObj => logObj.line) : [];
+            const stdErrLines = logsData.logs?.stdError ? Object.values(logsData.logs.stdError).map(logObj => logObj.line) : [];
+            pushToBuffer(apiAccessLogBuffer, accessLines, 200);
+            pushToBuffer(stdErrorLogBuffer, stdErrLines, 200);
+            if (apiAccessLogsEl) {
+                apiAccessLogsEl.innerHTML = '';
+                apiAccessLogBuffer.forEach(line => {
+                    const div = document.createElement('div');
+                    div.className = 'log-line';
+                    div.textContent = line;
+                    apiAccessLogsEl.appendChild(div);
+                });
+                apiAccessLogsEl.scrollTop = apiAccessLogsEl.scrollHeight;
+            }
+            if (stdErrorLogsEl) {
+                stdErrorLogsEl.innerHTML = '';
+                stdErrorLogBuffer.forEach(line => {
+                    const div = document.createElement('div');
+                    div.className = 'log-line';
+                    div.textContent = line;
+                    stdErrorLogsEl.appendChild(div);
+                });
+                stdErrorLogsEl.scrollTop = stdErrorLogsEl.scrollHeight;
+            }
+        } catch (e) { console.warn('tomcat logs SSE parse error', e); }
+    };
+    sseTomLogs.addEventListener('error', (e) => console.warn('tomcat logs SSE error', e));
+}
+
 async function initializeApp() {
     console.log('Initializing application...'); // Debug log
     try {
@@ -494,8 +603,11 @@ async function initializeApp() {
         
         // Load services
         await loadServices();
-        // Start consolidated SSE stream (replaces periodic status + Windows metrics polling)
-        startConsolidatedStream();
+        // Start split SSE streams for faster, lighter updates
+        try { startSplitStatusStream(); } catch {}
+        try { startSplitWindowsMetricsStream(); } catch {}
+        try { startSplitTomcatMetricsStream(); } catch {}
+        try { startSplitTomcatLogsStream(); } catch {}
         
         // Initialize settings sections
         initializeSettingsSections();
@@ -1108,26 +1220,47 @@ function updateStatusCard() {
     if (!activeServiceId) return;
     const status = serviceStatuses[activeServiceId];
     const isRunning = typeof status === 'string' && status.toLowerCase() === 'running';
+    const op = pendingOps[activeServiceId];
 
     if (activeServiceType === 'tomcat') {
         const textEl = document.getElementById('tomcat-status-value');
         const dot = document.querySelector('#tomcat-status-pill .status-dot');
+        const pending = op && String(status).toLowerCase() !== String(op.desired).toLowerCase();
         if (textEl) {
-            textEl.textContent = status || '--';
-            textEl.style.color = isRunning ? '#16a34a' : '#dc2626';
+            if (pending) {
+                textEl.textContent = (op.desired && String(op.desired).toLowerCase() === 'running') ? 'Starting…' : 'Stopping…';
+                textEl.style.color = '#f59e0b';
+            } else {
+                textEl.textContent = status || '--';
+                textEl.style.color = isRunning ? '#16a34a' : '#dc2626';
+            }
         }
         if (dot) {
-            dot.style.setProperty('--dot-color', isRunning ? 'var(--green-primary)' : 'var(--red-primary)');
+            if (pending) {
+                dot.style.setProperty('--dot-color', '#f59e0b');
+            } else {
+                dot.style.setProperty('--dot-color', isRunning ? 'var(--green-primary)' : 'var(--red-primary)');
+            }
         }
     } else {
         const textEl = document.getElementById('windows-status-value');
         const dot = document.querySelector('#windows-status-pill .status-dot');
+        const pending = op && String(status).toLowerCase() !== String(op.desired).toLowerCase();
         if (textEl) {
-            textEl.textContent = status || '--';
-            textEl.style.color = isRunning ? '#16a34a' : '#dc2626';
+            if (pending) {
+                textEl.textContent = (op.desired && String(op.desired).toLowerCase() === 'running') ? 'Starting…' : 'Stopping…';
+                textEl.style.color = '#f59e0b';
+            } else {
+                textEl.textContent = status || '--';
+                textEl.style.color = isRunning ? '#16a34a' : '#dc2626';
+            }
         }
         if (dot) {
-            dot.style.setProperty('--dot-color', isRunning ? 'var(--green-primary)' : 'var(--red-primary)');
+            if (pending) {
+                dot.style.setProperty('--dot-color', '#f59e0b');
+            } else {
+                dot.style.setProperty('--dot-color', isRunning ? 'var(--green-primary)' : 'var(--red-primary)');
+            }
         }
     }
 }
@@ -1202,50 +1335,14 @@ async function handlePowerButtonClick() {
             console.error('Service control failed:', result.error || resp.statusText);
             showNotification(`Failed to ${isRunning ? 'stop' : 'start'} service`, 'error');
         } else {
-            // Update local status map and UI
-            serviceStatuses[activeServiceId] = result.status || (isRunning ? 'Stopped' : 'Running');
-            // Lock UI against contradictory transient statuses while operation completes
-            statusOverrideLocks[activeServiceId] = {
-                desired: (isRunning ? 'Stopped' : 'Running'),
-                until: Date.now() + 60000
-            };
-            // Also lock by DisplayName key if different (to cover mismatch)
-            try {
-                const activeEl = document.querySelector('.service-item.active');
-                if (activeEl) {
-                    const svc = JSON.parse(activeEl.dataset.service || '{}');
-                    const displayKey = svc.DisplayName;
-                    if (displayKey && displayKey !== activeServiceId) {
-                        statusOverrideLocks[displayKey] = {
-                            desired: (isRunning ? 'Stopped' : 'Running'),
-                            until: Date.now() + 60000
-                        };
-                    }
-                }
-            } catch {}
+            // Mark operation in-flight and keep showing previous state until confirmed by server
+            const desired = (isRunning ? 'Stopped' : 'Running');
+            pendingOps[activeServiceId] = { desired, since: Date.now() };
+
+            // Do NOT change local status/dot immediately; only update card message and controls
             updateStatusCard();
             updatePowerButton();
             updateFetchingIndicator();
-            // Immediate toast/notification intentionally disabled (SSE will deliver updates)
-            // Update sidebar dot immediately for selected service
-            try {
-                const items = document.querySelectorAll('.service-item');
-                items.forEach(item => {
-                    const svc = JSON.parse(item.dataset.service || '{}');
-                    const key = svc.Name || svc.DisplayName;
-                    if (key === activeServiceId) {
-                        const dot = item.querySelector('.status-dot');
-                        if (dot) {
-                            const newStatus = serviceStatuses[activeServiceId];
-                            if (typeof newStatus === 'string' && newStatus.toLowerCase() === 'running') {
-                                dot.style.setProperty('--dot-color', 'var(--green-primary)');
-                            } else {
-                                dot.style.setProperty('--dot-color', 'var(--red-primary)');
-                            }
-                        }
-                    }
-                });
-            } catch {}
             // SSE will deliver authoritative status shortly; avoid immediate re-poll
         }
     } catch (e) {

@@ -16,6 +16,40 @@ const windowsServiceControlRouter = require('../services/serviceControlWindows')
 const previousStatuses = {};
 // Throttle duplicate notifications: remember last notified status and time
 const lastNotified = {}; // { [serviceId]: { status: string, at: number } }
+// Stabilize status transitions to avoid flicker: require consistent readings
+const stableState = {}; // { [serviceId]: { value: string, candidate?: { value: string, streak: number } } }
+const STATUS_STREAK_THRESHOLD = 2; // Require 2 consecutive polls before accepting change
+
+function getEffectiveStatuses(rawStatuses = {}) {
+  const effective = {};
+  for (const [id, raw] of Object.entries(rawStatuses)) {
+    const rawStr = typeof raw === 'string' ? raw : String(raw || 'Unknown');
+    if (!stableState[id]) {
+      stableState[id] = { value: rawStr };
+      effective[id] = rawStr;
+      continue;
+    }
+    const s = stableState[id];
+    if (s.value === rawStr) {
+      // No change; reset candidate
+      if (s.candidate) delete s.candidate;
+      effective[id] = s.value;
+      continue;
+    }
+    // Change observed; track candidate until stable
+    if (!s.candidate || s.candidate.value !== rawStr) {
+      s.candidate = { value: rawStr, streak: 1 };
+    } else {
+      s.candidate.streak += 1;
+      if (s.candidate.streak >= STATUS_STREAK_THRESHOLD) {
+        s.value = rawStr;
+        delete s.candidate;
+      }
+    }
+    effective[id] = s.value;
+  }
+  return effective;
+}
 
 // Authentication endpoint
 router.post('/auth/login', async (req, res) => {
@@ -182,7 +216,8 @@ router.post('/status', async (req, res) => {
     const identifiers = [...new Set(services.map(s => s.serviceName || s.displayName).filter(Boolean))];
 
     try {
-        const statuses = await getServicesStatus(identifiers);
+        const rawStatuses = await getServicesStatus(identifiers);
+        const statuses = getEffectiveStatuses(rawStatuses);
         const notifications = [];
 
         for (const [id, status] of Object.entries(statuses)) {
@@ -365,12 +400,13 @@ router.get('/stream', async (req, res) => {
         async function sendUpdate() {
             try {
                 const baseUrl = `${req.protocol}://${req.get('host')}`;
-                const [statuses, metrics, tomcatMetrics, tomcatLogs] = await Promise.all([
+                const [rawStatuses, metrics, tomcatMetrics, tomcatLogs] = await Promise.all([
                     getServicesStatus(identifiers),
                     getWindowsMetrics(identifiers).catch(() => ({})),
                     fetch(`${baseUrl}/api/service-control/tomcat/metrics`).then(r => r.ok ? r.json() : null).catch(() => null),
                     fetch(`${baseUrl}/api/service-control/tomcat/logs`).then(r => r.ok ? r.json() : null).catch(() => null)
                 ]);
+                const statuses = getEffectiveStatuses(rawStatuses);
 
                 // Build notifications based on status transitions (same rules as /status)
                 const notifications = [];
@@ -413,5 +449,154 @@ router.get('/stream', async (req, res) => {
         timer = setInterval(() => { if (!closed) sendUpdate(); }, 5000);
     } catch (err) {
         res.status(500).json({ error: 'Failed to start stream', details: err.message });
+    }
+});
+
+// Lightweight SSE: statuses + notifications only
+router.get('/stream/status', async (req, res) => {
+    try {
+        const servicesCsv = String(req.query.services || '').trim();
+        const identifiers = servicesCsv
+            ? servicesCsv.split(',').map(s => s.trim()).filter(Boolean)
+            : [];
+        if (identifiers.length === 0) {
+            res.status(400).json({ error: 'services query parameter is required (comma-separated)' });
+            return;
+        }
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        if (res.flushHeaders) res.flushHeaders();
+
+        let closed = false;
+        let timer = null;
+        req.on('close', () => { closed = true; if (timer) clearInterval(timer); });
+
+        const send = async () => {
+            try {
+                const raw = await getServicesStatus(identifiers);
+                const statuses = (typeof getEffectiveStatuses === 'function') ? getEffectiveStatuses(raw) : raw;
+                const notifications = [];
+                const now = Date.now();
+                for (const [id, status] of Object.entries(statuses)) {
+                    const prev = previousStatuses[id];
+                    const changed = !!prev && prev !== status;
+                    previousStatuses[id] = status;
+                    if (!changed) continue;
+                    const s = String(status).toLowerCase();
+                    if (s === 'unknown') continue;
+                    const last = lastNotified[id];
+                    if (!last || last.status !== status || (now - last.at) > 8000) {
+                        const notif = {
+                            serviceName: id,
+                            timestamp: new Date().toISOString(),
+                            type: s === 'running' ? 'info' : 'error',
+                            message: 'Service ' + id + ' is now ' + status
+                        };
+                        notifications.push(notif);
+                        lastNotified[id] = { status, at: now };
+                        try { await createUserNotificationFromLog(notif); } catch (e) {}
+                    }
+                }
+                res.write('data: ' + JSON.stringify({ statuses, notifications }) + '\n\n');
+            } catch (e) {
+                res.write('event: error\n');
+                res.write('data: ' + JSON.stringify({ message: e.message || String(e) }) + '\n\n');
+            }
+        };
+
+        await send();
+        timer = setInterval(() => { if (!closed) send(); }, 2000);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to start status stream', details: err.message });
+    }
+});
+
+// Lightweight SSE: Windows metrics only
+router.get('/stream/windows-metrics', async (req, res) => {
+    try {
+        const servicesCsv = String(req.query.services || '').trim();
+        const identifiers = servicesCsv
+            ? servicesCsv.split(',').map(s => s.trim()).filter(Boolean)
+            : [];
+        if (identifiers.length === 0) {
+            res.status(400).json({ error: 'services query parameter is required (comma-separated)' });
+            return;
+        }
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        if (res.flushHeaders) res.flushHeaders();
+
+        let closed = false; let timer = null;
+        req.on('close', () => { closed = true; if (timer) clearInterval(timer); });
+
+        const send = async () => {
+            try {
+                const metrics = await getWindowsMetrics(identifiers).catch(() => ({}));
+                res.write('data: ' + JSON.stringify({ metrics }) + '\n\n');
+            } catch (e) {
+                res.write('event: error\n');
+                res.write('data: ' + JSON.stringify({ message: e.message || String(e) }) + '\n\n');
+            }
+        };
+        await send();
+        timer = setInterval(() => { if (!closed) send(); }, 5000);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to start windows metrics stream', details: err.message });
+    }
+});
+
+// Lightweight SSE: Tomcat metrics only
+router.get('/stream/tomcat-metrics', async (req, res) => {
+    try {
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        if (res.flushHeaders) res.flushHeaders();
+        let closed = false; let timer = null;
+        req.on('close', () => { closed = true; if (timer) clearInterval(timer); });
+
+        const send = async () => {
+            try {
+                const baseUrl = req.protocol + '://' + req.get('host');
+                const t = await fetch(baseUrl + '/api/service-control/tomcat/metrics').then(r => r.ok ? r.json() : null).catch(() => null);
+                res.write('data: ' + JSON.stringify(t || {}) + '\n\n');
+            } catch (e) {
+                res.write('event: error\n');
+                res.write('data: ' + JSON.stringify({ message: e.message || String(e) }) + '\n\n');
+            }
+        };
+        await send();
+        timer = setInterval(() => { if (!closed) send(); }, 5000);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to start tomcat metrics stream', details: err.message });
+    }
+});
+
+// Lightweight SSE: Tomcat logs only
+router.get('/stream/tomcat-logs', async (req, res) => {
+    try {
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        if (res.flushHeaders) res.flushHeaders();
+        let closed = false; let timer = null;
+        req.on('close', () => { closed = true; if (timer) clearInterval(timer); });
+
+        const send = async () => {
+            try {
+                const baseUrl = req.protocol + '://' + req.get('host');
+                const logs = await fetch(baseUrl + '/api/service-control/tomcat/logs').then(r => r.ok ? r.json() : null).catch(() => null);
+                res.write('data: ' + JSON.stringify(logs || {}) + '\n\n');
+            } catch (e) {
+                res.write('event: error\n');
+                res.write('data: ' + JSON.stringify({ message: e.message || String(e) }) + '\n\n');
+            }
+        };
+        await send();
+        timer = setInterval(() => { if (!closed) send(); }, 5000);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to start tomcat logs stream', details: err.message });
     }
 });
