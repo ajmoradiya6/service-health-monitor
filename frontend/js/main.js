@@ -304,24 +304,7 @@ async function updateServiceStatuses() {
         }
         const data = await response.json();
         const statusMap = data.statuses || {};
-
-        items.forEach(item => {
-            const svc = JSON.parse(item.dataset.service || '{}');
-            const key = svc.Name || svc.DisplayName;
-            const status = statusMap[key] || 'Unknown';
-            serviceStatuses[key] = status;
-            const dot = item.querySelector('.status-dot');
-            if (!dot) return;
-            if (typeof status === 'string' && status.toLowerCase() === 'running') {
-                dot.style.setProperty('--dot-color', 'var(--green-primary)');
-            } else {
-                dot.style.setProperty('--dot-color', 'var(--red-primary)');
-            }
-        });
-
-        updateStatusCard();
-        updateFetchingIndicator();
-        updatePowerButton();
+        applyStatuses(statusMap);
 
         const notifications = data.notifications || [];
         notifications.forEach(n => {
@@ -349,7 +332,20 @@ function applyStatuses(statusMap) {
     items.forEach(item => {
         const svc = JSON.parse(item.dataset.service || '{}');
         const key = svc.Name || svc.DisplayName;
-        const status = statusMap[key] || 'Unknown';
+        const incoming = statusMap[key] || 'Unknown';
+        const lock = statusOverrideLocks[key];
+        if (lock && Date.now() < lock.until) {
+            const desired = String(lock.desired || '').toLowerCase();
+            const incomingStr = String(incoming || '').toLowerCase();
+            if (incomingStr !== desired) {
+                // Ignore contradictory transient status while operation is in progress
+                return;
+            } else {
+                // Desired reached; clear the lock
+                delete statusOverrideLocks[key];
+            }
+        }
+        const status = incoming;
         serviceStatuses[key] = status;
         const dot = item.querySelector('.status-dot');
         if (!dot) return;
@@ -366,6 +362,8 @@ function applyStatuses(statusMap) {
 
 // Consolidated SSE stream to receive statuses + windows metrics (and notifications)
 let sse;
+// During start/stop, hold desired state to avoid UI flicker
+const statusOverrideLocks = {};
 function startConsolidatedStream() {
     try {
         if (sse) {
@@ -1197,12 +1195,35 @@ async function handlePowerButtonClick() {
         } else {
             // Update local status map and UI
             serviceStatuses[activeServiceId] = result.status || (isRunning ? 'Stopped' : 'Running');
+            // Lock UI against contradictory transient statuses while operation completes
+            statusOverrideLocks[activeServiceId] = {
+                desired: (isRunning ? 'Stopped' : 'Running'),
+                until: Date.now() + 8000
+            };
             updateStatusCard();
             updatePowerButton();
             updateFetchingIndicator();
-            // Re-poll statuses to sync with backend/system
-            setTimeout(updateServiceStatuses, 1000);
-            showNotification(`Service ${activeServiceId} ${isRunning ? 'stopped' : 'started'}`, 'info');
+            // Immediate toast/notification intentionally disabled (SSE will deliver updates)
+            // Update sidebar dot immediately for selected service
+            try {
+                const items = document.querySelectorAll('.service-item');
+                items.forEach(item => {
+                    const svc = JSON.parse(item.dataset.service || '{}');
+                    const key = svc.Name || svc.DisplayName;
+                    if (key === activeServiceId) {
+                        const dot = item.querySelector('.status-dot');
+                        if (dot) {
+                            const newStatus = serviceStatuses[activeServiceId];
+                            if (typeof newStatus === 'string' && newStatus.toLowerCase() === 'running') {
+                                dot.style.setProperty('--dot-color', 'var(--green-primary)');
+                            } else {
+                                dot.style.setProperty('--dot-color', 'var(--red-primary)');
+                            }
+                        }
+                    }
+                });
+            } catch {}
+            // SSE will deliver authoritative status shortly; avoid immediate re-poll
         }
     } catch (e) {
         console.error('Error calling service control endpoint:', e);

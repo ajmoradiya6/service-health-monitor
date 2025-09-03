@@ -9,6 +9,8 @@ const notifications = {
 
 // Track unique log notifications to prevent duplicates
 const notificationLogKeys = new Set();
+// Soft dedup within a short window regardless of timestamp differences
+const recentNotificationKeys = new Map(); // key -> lastMs
 
 function getNotificationLogKey(logEntry, serviceId) {
     // Use the raw timestamp (not formatted) for deduplication
@@ -50,6 +52,18 @@ function addNotification(logEntry, serviceId, serviceName, allowInfo = false) {
         console.log('Duplicate notification skipped:', logKey);
         return;
     }
+    // Soft dedup: skip if same service/level/message occurred in last 8s
+    try {
+        const nowMs = (typeof rawTimestamp === 'string' && Date.parse(rawTimestamp)) ? Date.parse(rawTimestamp)
+                    : (typeof rawTimestamp === 'number' ? rawTimestamp : Date.now());
+        const softKey = `${serviceId}|${String(logEntry.level||'').toLowerCase()}|${String(logEntry.message||'').trim()}`;
+        const lastMs = recentNotificationKeys.get(softKey) || 0;
+        if (nowMs - lastMs < 8000) {
+            console.log('Soft duplicate notification skipped:', softKey);
+            return;
+        }
+        recentNotificationKeys.set(softKey, nowMs);
+    } catch {}
     notificationLogKeys.add(logKey);
     
     console.log('Attempting to add notification:', { logEntry, serviceId, serviceName });

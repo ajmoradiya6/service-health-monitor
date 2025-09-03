@@ -198,7 +198,7 @@ router.post('/status', async (req, res) => {
                     // Throttle duplicates within a short window for same resulting status
                     const now = Date.now();
                     const last = lastNotified[id];
-                    if (!last || last.status !== status || (now - last.at) > 3000) {
+                    if (!last || last.status !== status || (now - last.at) > 8000) {
                         const isRunning = statusStr === 'running';
                         const notif = {
                             serviceName: id,
@@ -335,6 +335,7 @@ router.post('/notify', async (req, res) => {
     }
 });
 
+// POST endpoint to immediately notify a status change and throttle stream duplicates
 module.exports = router;
 // Server-Sent Events stream for consolidated updates (statuses + Windows metrics)
 router.get('/stream', async (req, res) => {
@@ -355,9 +356,10 @@ router.get('/stream', async (req, res) => {
         res.flushHeaders && res.flushHeaders();
 
         let closed = false;
+        let timer = null;
         req.on('close', () => {
             closed = true;
-            clearInterval(timer);
+            if (timer) clearInterval(timer);
         });
 
         async function sendUpdate() {
@@ -408,7 +410,7 @@ router.get('/stream', async (req, res) => {
 
         // Send first update immediately, then every 5s
         await sendUpdate();
-        const timer = setInterval(() => { if (!closed) sendUpdate(); }, 5000);
+        timer = setInterval(() => { if (!closed) sendUpdate(); }, 5000);
     } catch (err) {
         res.status(500).json({ error: 'Failed to start stream', details: err.message });
     }
